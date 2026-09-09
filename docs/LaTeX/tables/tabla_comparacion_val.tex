@@ -1,0 +1,18 @@
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{2.4cm}>{\centering\arraybackslash}p{0.8cm}>{\centering\arraybackslash}p{1.7cm}>{\centering\arraybackslash}p{1.7cm}>{\centering\arraybackslash}p{1.7cm}>{\centering\arraybackslash}p{1.4cm}}
+\toprule
+\rowcolor{naranja}
+\textbf{Modelo} & \textbf{Familia} & \textbf{n} & \textbf{MAE} & \textbf{RMSE} & \textbf{MAPE (\%)} & \textbf{R²} \\
+\midrule
+\rowcolor{filaclara} ensemble\_\allowbreak{}inverse\_\allowbreak{}mae & Ensemble & 196 & 226.418 & 323.348 & 5,62 & 0,9519 \\
+ensemble\_\allowbreak{}equal & Ensemble & 196 & 227.588 & 324.752 & 5,69 & 0,9515 \\
+\rowcolor{filaclara} xgboost\_\allowbreak{}alone & Una etapa & 196 & 244.843 & 355.027 & 5,68 & 0,9420 \\
+sarimax & Una etapa & 196 & 273.467 & 404.153 & 7,31 & 0,9248 \\
+\rowcolor{filaclara} hybrid\_\allowbreak{}weighted & Familia LSTM & 196 & 276.347 & 401.456 & 6,94 & 0,9258 \\
+hybrid & Familia LSTM & 196 & 280.738 & 415.562 & 7,09 & 0,9205 \\
+\rowcolor{filaclara} lstm\_\allowbreak{}alone & Familia LSTM & 196 & 411.142 & 655.479 & 11,81 & 0,8023 \\
+seasonal\_\allowbreak{}naive & Baseline ingenuo & 196 & 460.615 & 883.627 & 12,63 & 0,6408 \\
+\rowcolor{filaclara} persistence & Baseline ingenuo & 196 & 914.119 & 1.387.393 & 23,72 & 0,1144 \\
+moving\_\allowbreak{}average\_\allowbreak{}7 & Baseline ingenuo & 196 & 1.068.961 & 1.237.156 & 28,86 & 0,2958 \\
+\rowcolor{filaclara} moving\_\allowbreak{}average\_\allowbreak{}28 & Baseline ingenuo & 196 & 1.137.759 & 1.357.281 & 31,12 & 0,1524 \\
+\bottomrule
+\end{tabular}

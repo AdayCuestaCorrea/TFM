@@ -1,0 +1,73 @@
+# Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Data directory
+data/
+
+# Docs directory
+# docs/
+# LaTeX build artifacts
+docs/LaTeX/*.aux
+docs/LaTeX/*.bbl
+docs/LaTeX/*.blg
+docs/LaTeX/*.fdb_latexmk
+docs/LaTeX/*.fls
+docs/LaTeX/*.lof
+docs/LaTeX/*.log
+docs/LaTeX/*.lot
+docs/LaTeX/*.out
+docs/LaTeX/*.toc
+docs/LaTeX/*.synctex.gz
+docs/LaTeX/*.bak
+
+# Python cache & build files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.ipynb_checkpoints/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# OS / System files
+.DS_Store
+Thumbs.db
+
+# nbconvert scratch output from tests/test_flujo_notebook.py
+reports/.nbconvert_check/
+docs/LaTeX/TFT_baseline_*.pdf
+
+# Material de referencia de terceros: no se redistribuye desde este repositorio.
+# ts.pdf es Zhang (2003), Neurocomputing (Elsevier, con derechos reservados);
+# TFM_Docu_OLIVAS_VIU_26 es documentacion interna de la VIU. La guia docente exige
+# publicar el CODIGO, no la bibliografia consultada. Las referencias siguen citadas en
+# Bibliografia_TFT.bib, que es la via correcta.
+docs/references/
+*.docx
+CLAUDE.md.bak.*

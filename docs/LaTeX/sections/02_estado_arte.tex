@@ -1,0 +1,303 @@
+\chapter{Predicción de la demanda de transporte público: dominio, técnicas y trabajos previos}\label{cap:estado_arte}
+
+Tres bloques temáticos trazan la línea argumental que justifica cada decisión de diseño
+tomada en el capítulo \ref{cap:metodologia}: el dominio de aplicación, las técnicas de
+modelado disponibles y las arquitecturas híbridas y de ensamble. De esa línea salen las
+respuestas a por qué se agregan los cuatro operadores del CRTM en lugar de una sola
+línea, por qué se elige una arquitectura híbrida secuencial y no un ensamble paralelo, y
+por qué el protocolo de validación exige un esquema \emph{walk-forward}
+\emph{out-of-fold} en lugar de un holdout único. La
+comparativa final (sección \ref{sec:comparativa_literatura}) frente a cinco trabajos de
+referencia sitúa con precisión el hueco exacto que ocupa este TFM.
+
+\section{Movilidad urbana y demanda de transporte}\label{sec:movilidad_urbana}
+
+La demanda de transporte público en un área metropolitana como Madrid es, por
+naturaleza, un fenómeno multimodal: los viajeros se distribuyen entre Metro de Madrid,
+la Empresa Municipal de Transportes (EMT), la red de concesionarias de autobús
+interurbano (\emph{carretera}) y Renfe Cercanías, y el Consorcio Regional de Transportes
+de Madrid (CRTM) es la única entidad que agrega y publica esta demanda a escala diaria
+para el conjunto del sistema. Sin embargo, la literatura que aborda la predicción de
+demanda en Madrid y en ciudades comparables tiende sistemáticamente a operar a una
+granularidad muy inferior a la de este TFM: una única línea de autobús
+\cite{monje2022deep}, una única red de metro analizada estación por estación
+\cite{cardozo2012spatial}, o un conjunto multimodal tratado sin la perspectiva de
+demanda agregada de todo el sistema \cite{toque2017short}. Esta elección de escala no es
+casual: cuanto más fina es la granularidad —una línea, una estación, una franja
+horaria—, más sensible es la serie al ruido idiosincrático de esa unidad concreta (una
+obra puntual, un desvío de servicio, un evento singular), mientras que la demanda total
+agregada de un sistema de transporte metropolitano completo, al sumar sobre miles de
+orígenes y destinos, expone con mucha mayor nitidez los patrones estructurales de fondo
+que interesan a un modelo predictivo: la estacionalidad semanal del ciclo
+laborable/fin de semana, la estacionalidad anual asociada al calendario académico y
+vacacional, y el efecto de los días festivos y ``puente''.
+
+Este TFM adopta
+precisamente esa perspectiva sistémica: modela la serie \texttt{total} del CRTM sin
+renunciar al seguimiento individual de sus cuatro operadores, que se conserva a lo
+largo de todo el pipeline de ingeniería de características (sección
+\ref{sec:ingenieria_features}) tanto para el análisis exploratorio como para su uso
+como variables de retardo.
+
+Los factores que gobiernan esta demanda agregada, caracterizados en detalle en la
+sección \ref{sec:eda}, son de dos naturalezas bien diferenciadas y de peso muy desigual.
+Por un lado, la estacionalidad de calendario explica, como confirma la propia
+importancia de variables del capítulo \ref{cap:resultados}, la inmensa mayoría de la
+varianza observada: el contraste laborable/sábado/domingo y la posición del día respecto
+a un festivo o un puente forman una señal determinista, conocida con años de antelación
+y sin incertidumbre de pronóstico. Por otro lado, las condiciones meteorológicas
+(temperatura, precipitación, viento) introducen un efecto de segundo orden, más difícil
+de aislar y sujeto además a la incertidumbre propia de cualquier pronóstico atmosférico,
+razón por la que este TFM excluye deliberadamente la meteorología del mismo día del
+conjunto de variables predictoras (sección \ref{sec:promocion_meteo}). Ningún estudio de
+los citados en este capítulo combina ambos factores, calendario exhaustivo y física
+atmosférica retardada de forma anti-fuga, en el marco de una serie diaria agregada de
+todo un sistema metropolitano; esa combinación es, precisamente, uno de los ejes que la
+sección \ref{sec:comparativa_literatura} formaliza como aporte diferencial.
+
+\section{Modelado de series temporales y aprendizaje automático tabular}\label{sec:modelado_series}
+
+Dos grandes familias de modelos sostienen la arquitectura de este TFM antes de considerar
+ninguna hibridación entre ellas. La primera es la de los modelos estadísticos clásicos de series
+temporales, fundada por la formulación ARIMA de Box y Jenkins
+\cite{box1970time}: una descomposición autorregresiva, de diferenciación e integración
+de medias móviles que, en su extensión estacional SARIMA y con variables exógenas
+(SARIMAX), sigue constituyendo siete décadas después una referencia robusta y
+difícilmente superable en series con estructura estacional fuerte y bien definida como
+la de este proyecto. El SARIMAX$(2,1,2)\times(0,1,2,7)$ seleccionado por rejilla AIC en
+la sección \ref{sec:baselines} no es un baseline decorativo: como demuestra el capítulo
+\ref{cap:resultados}, es uno de los dos modelos de una sola etapa más precisos de todo
+el proyecto, solo superado por las dos variantes de ensamble que los combinan. Entender
+su fuerza, el modelado explícito de la periodicidad semanal mediante diferenciación
+estacional de orden 7, es indispensable para interpretar por qué la arquitectura híbrida
+no logra desplazarlo.
+
+La segunda familia es la del aprendizaje automático sobre datos tabulares con ingeniería
+de características explícita, y en particular los métodos de árboles potenciados por
+gradiente, cuyo exponente de referencia actual es XGBoost \cite{chen2016xgboost}: un
+algoritmo de \emph{gradient boosting} regularizado que, a diferencia de una red
+neuronal, no requiere aprender representaciones latentes de las variables de entrada y
+resulta especialmente eficaz cuando, como en este TFM, la señal más informativa puede
+expresarse mediante un conjunto moderado de variables diseñadas a mano (retardos,
+medias móviles, términos de Fourier, indicadores de calendario). Es precisamente este
+algoritmo el que este proyecto emplea en dos papeles distintos: como corrector de
+residuos en la etapa 2 de la arquitectura híbrida (sección \ref{sec:etapa2_xgboost}) y,
+de forma independiente, como modelo de control entrenado directamente sobre la demanda
+total (\texttt{xgboost\_alone}, sección \ref{sec:modelos_control}), cuyo desempeño
+resulta ser, junto con SARIMAX, el más sólido entre los modelos de una sola etapa de
+todo el estudio.
+
+Sea cual sea la familia de modelo empleada, la validez de su evaluación depende de un
+protocolo de partición y validación coherente con la naturaleza secuencial de los datos.
+Bergmeir y Benítez \cite{bergmeir2012cv} y, más recientemente, Cerqueira et al.
+\cite{cerqueira2020evaluating} demuestran empíricamente que los esquemas de validación
+cruzada aleatoria estándar, válidos en datos i.i.d., producen estimaciones de error
+sistemáticamente optimistas y no comparables entre modelos cuando se aplican a series
+temporales, precisamente porque permiten que información del futuro contamine, a través
+del reordenamiento de los folds, el ajuste de observaciones pasadas. Este resultado es
+la base teórica directa del esquema \emph{walk-forward} expansivo en 5 bloques que
+genera las predicciones \emph{out-of-fold} de la etapa 1 LSTM (sección
+\ref{sec:esquema_oof}) y de la partición estrictamente cronológica 70/15/15 que
+gobierna todo el proyecto (sección \ref{sec:particiones_fuga}): ninguna de las dos
+decisiones es una convención arbitraria, sino la aplicación directa de un resultado
+metodológico contrastado en la literatura de evaluación de pronósticos.
+
+Las métricas de
+error empleadas en todo el proyecto (MAE, RMSE, MAPE y $R^2$) y los criterios generales
+de buenas prácticas en la construcción de baselines siguen, asimismo, el tratamiento de
+referencia de Hyndman y Athanasopoulos \cite{hyndman2021fpp}. Se reporta el RMSE en
+lugar del error cuadrático medio sin raíz por expresar la misma información en las
+unidades del propio objetivo y ser, por tanto, directamente comparable con el MAE.
+
+\section{Arquitecturas híbridas y de ensamble}\label{sec:arquitecturas_hibridas}
+
+Los antecedentes de combinar más de un modelo para predecir una misma serie temporal
+distinguen dos estrategias que la literatura trata a menudo como intercambiables y que
+este TFM mantiene deliberadamente separadas: la hibridación secuencial por corrección de
+residuos, y el ensamble paralelo de modelos independientes.
+
+El antecedente directo de la primera estrategia es el trabajo seminal de Zhang
+\cite{zhang2003hybrid}, que formula una serie temporal como la suma de una componente
+lineal $L_t$ y una componente no lineal residual $N_t$, de modo que
+$y_t = L_t + N_t$; ajusta un modelo ARIMA para estimar $\hat L_t$, calcula el residuo
+$e_t = y_t - \hat L_t$ y entrena una red neuronal para modelar $e_t$ a partir de sus
+propios rezagos, combinando finalmente ambas predicciones como
+$\hat y_t = \hat L_t + \hat N_t$. Esta formulación es, sin ambigüedad, el precedente
+conceptual directo de la arquitectura híbrida evaluada en este TFM
+($\hat y^{\text{final}} = \hat y^{\text{LSTM}} + \hat e^{\text{XGBoost}}$, sección
+\ref{cap:metodologia}), pero las diferencias de diseño respecto al esquema original de
+Zhang son sustanciales y deliberadas, no accidentales, y conviene enunciarlas con
+precisión en lugar de diluirlas en una afirmación genérica de similitud. Primero, el
+\textbf{orden de las etapas está invertido}: Zhang ajusta primero el componente lineal
+(ARIMA) y corrige después con una red neuronal \cite{hochreiter1997lstm}; este TFM ajusta primero el componente no
+lineal (LSTM) y corrige después con un modelo de árboles (XGBoost), una inversión
+motivada por el hecho de que en este proyecto la componente más difícil de modelar no es
+la dinámica lineal de la serie sino precisamente la estructura de calendario, que un
+modelo de árboles captura de forma nativa y una red recurrente univariante no puede ver
+en absoluto. Segundo, el \textbf{mecanismo de la etapa de corrección es distinto}: en
+Zhang, la red neuronal modela el residuo a partir de sus propios rezagos,
+$e_t = f(e_{t-1}, \ldots, e_{t-n})$, un esquema univariante; en este TFM, XGBoost modela
+el residuo a partir de 161 variables exógenas (calendario, meteorología retardada,
+armónicos de Fourier, rezagos de operador) y no de los rezagos del propio residuo, de
+modo que la etapa 2 introduce información nueva al sistema y no se limita a extrapolar
+la autocorrelación de su propio error.
+
+Tercero, y más relevante para la interpretación
+de los resultados del capítulo \ref{cap:resultados}: los residuos que alimentan la
+segunda etapa en Zhang son \textbf{residuos \emph{in-sample}} del modelo ARIMA ya
+ajustado, mientras que este TFM impone la generación estrictamente
+\emph{out-of-fold} de esos residuos mediante el esquema \emph{walk-forward} de 5 folds
+descrito en la sección \ref{sec:esquema_oof}. Es una exigencia deliberadamente más
+estricta que tiene un coste medible: el 38\,\% de las filas de entrenamiento originales
+(889 a 552) se descartan por no disponer de una predicción genuinamente fuera de
+muestra. Esta tercera diferencia es la que impide, por diseño, cualquier comparación
+directa entre el resultado positivo que Zhang reporta para su híbrido y el resultado
+negativo de este TFM: son experimentos con un rigor de validación distinto sobre series
+de naturaleza distinta, y el capítulo \ref{cap:resultados} evalúa el suyo bajo el
+estándar más exigente de los dos.
+
+La segunda estrategia de combinación, el ensamble de modelos independientes que
+finalmente resulta ser el mejor modelo de todo este TFM (sección
+\ref{sec:por_que_ensemble}), se apoya en un cuerpo teórico distinto: el marco general
+de generalización apilada (\emph{stacked generalization}) de Wolpert
+\cite{wolpert1992stacking}, del que el ensamble de este proyecto es un caso particular
+extremadamente simple —un meta-modelo de combinación fijo (la media aritmética o
+ponderada) en lugar de un meta-modelo aprendido—, y la condición teórica precisa que
+determina cuándo esa combinación mejora a sus componentes, formulada por Granger
+\cite{granger1989combining} en su revisión de dos décadas de literatura de combinación
+de pronósticos: una combinación solo puede superar a sus partes cuando los modelos
+combinados son individualmente subóptimos \emph{y}, de forma crucial, se basan en
+conjuntos de información distintos entre sí.
+
+Bates y Granger \cite{bates1969combination}
+formalizan además la magnitud exacta de esa mejora: para dos pronósticos con varianza de
+error igual $\sigma^2$ y correlación $\rho$ entre sus errores, la varianza del error de
+su media aritmética es $\sigma^2(1+\rho)/2$, de modo que cuanto menor es $\rho$, cuanto
+menos correlacionados están los errores de los dos modelos combinados, mayor es la
+reducción de varianza obtenida, un resultado que Perrone y Cooper
+\cite{perrone1993networks} extienden al contexto de comités de redes neuronales y que
+este TFM verifica empíricamente sobre sus propios datos en la sección
+\ref{sec:mecanismo_ensemble}.
+
+Esta condición de Granger es exactamente la pieza teórica
+que conecta este capítulo con el hallazgo central negativo del capítulo
+\ref{cap:resultados} (sección \ref{sec:resultado_negativo_teoria}): la arquitectura
+híbrida de este TFM encadena dos etapas que observan, en última instancia, el mismo
+conjunto de información, el pasado de la serie \texttt{total}, mientras que el
+ensamble ganador combina SARIMAX y \texttt{xgboost\_alone}, dos modelos que fallan en
+subconjuntos de días sistemáticamente distintos (el primero en laborables ordinarios, el
+segundo en fin de semana y festivos) y que, por tanto, sí satisfacen la condición de
+información distinta que la hibridación secuencial incumple. Makridakis et al.
+\cite{makridakis2018m4,makridakis2022m5}, a partir de las competiciones M4 y M5 y de la
+constatación reiterada en ambas de que métodos estadísticamente simples y combinaciones de modelos superan con
+frecuencia a arquitecturas individuales más complejas (especialmente en muestras de
+tamaño moderado como las 1.310 observaciones diarias de este proyecto), proporcionan el
+contexto empírico a gran escala que hace de este patrón un resultado esperable y no una
+anomalía específica de esta implementación.
+
+\begin{sloppypar}
+Por último, el diseño de la matriz de 161 variables exógenas de este TFM —en particular
+los rezagos multiescala de demanda y meteorología y los términos armónicos de Fourier
+para la estacionalidad semanal y anual (sección \ref{sec:ingenieria_features})— toma
+como inspiración metodológica el trabajo de Surribas-Sayago et al.
+\cite{surribas_sayago_diffuse} sobre predicción de radiación solar difusa mediante una
+arquitectura de fusión paralela CNN+LSTM+MLP con una rama auxiliar exógena. Es
+indispensable, sin embargo, no diluir esta cita en una afirmación de arquitectura
+compartida: tal y como queda fijado por escrito en el documento de contexto técnico del
+proyecto, ese trabajo se cita \textbf{exclusivamente} como fuente de inspiración para la
+construcción de retardos estructurados y de una base armónica de Fourier, nunca como la
+arquitectura replicada por este proyecto. La fusión paralela de ramas concurrentes de
+Surribas-Sayago et al. y la corrección secuencial de residuos de este TFM son diseños
+conceptualmente distintos que no deben confundirse ni en el código ni en esta memoria.
+\end{sloppypar}
+
+\section{Análisis comparativo y diferenciación metodológica}\label{sec:comparativa_literatura}
+
+La tabla
+\ref{tab:comparativa_estado_arte} sitúa este TFM frente a los cinco trabajos discutidos
+en las secciones anteriores sobre cinco ejes comparables: ámbito y granularidad,
+horizonte temporal, matriz de variables exógenas, protocolo de validación y aporte
+empírico.
+
+\begin{landscape}
+  \begin{table}[p]
+    \centering
+    \footnotesize
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{0.95}
+    \resizebox{\textwidth}{!}{%
+      \input{tables/tabla_comparativa_estado_arte}%
+    }
+    \caption{\headlinecolor{Comparativa metodológica frente a la literatura previa, sobre cinco ejes (ámbito, horizonte, variables exógenas, protocolo de validación, aporte empírico).}}
+    \label{tab:comparativa_estado_arte}
+  \end{table}
+\end{landscape}
+
+En el eje \textbf{(a) ámbito y granularidad}, este TFM es, de los seis estudios de la
+tabla, el único que agrega la demanda diaria de los cuatro operadores del CRTM (Metro,
+EMT, carretera y Cercanías) en una única serie de sistema completo, frente a la
+granularidad de una sola línea de autobús en Monje et al. \cite{monje2022deep}, una red
+de metro tratada estación por estación en Cardozo et al. \cite{cardozo2012spatial}, o
+series completamente ajenas al transporte (manchas solares, población de linces, tipo de
+cambio) en el propio trabajo de Zhang \cite{zhang2003hybrid}. 
+
+En el eje \textbf{(b) horizonte temporal}, la serie de 1.310 días continuos (2023-2026), íntegramente
+posterior a la pandemia de COVID-19 y sin un solo hueco ni valor nulo, contrasta con
+horizontes bien más cortos y en algún caso anteriores a la pandemia (los 26 meses
+prepandemia de Monje et al.), cuya estructura de demanda, alterada de forma permanente
+por los cambios de movilidad de 2020-2021, no es directamente extrapolable al periodo
+que interesa a este proyecto.
+
+En el eje \textbf{(c) matriz exógena}, ningún otro estudio
+de la tabla combina una base meteorológica físicamente retardada de 105 variables con
+una codificación exhaustiva de calendario que incluye la detección automática de 55 días
+puente: Monje et
+al. se limitan a un indicador binario de festivo y al mes, Toqué et al. no especifican
+en la fuente disponible el tratamiento exógeno aplicado, y Zhang no emplea ninguna
+variable exógena en absoluto al modelar el residuo a partir de sus propios rezagos. La
+meteorología del mismo día queda explícitamente excluida para no asumir un pronóstico
+atmosférico perfecto en inferencia, decisión registrada de forma explícita como
+disyuntiva abierta en el registro de fases del proyecto y resuelta antes de entrenar
+ningún modelo.
+
+En el eje \textbf{(d) protocolo de validación}, este TFM es el único que combina una
+partición cronológica de frontera única con un esquema \emph{walk-forward}
+\emph{out-of-fold} de 5 bloques expansivos para las predicciones de la etapa 1 y un
+pronóstico SARIMAX igualmente \emph{walk-forward} de un solo paso sin reestimación,
+frente al holdout cronológico simple de una sola ejecución de Monje et al. o los
+residuos \emph{in-sample} del propio Zhang; las 257 pruebas automatizadas que fijan las
+reglas anti-fuga descritas en el capítulo \ref{cap:datos_features} (de un total de 310,
+Anexo \ref{cap:anexo2}) no tienen equivalente declarado en ninguno de los cinco estudios
+de referencia.
+
+En el eje \textbf{(e) aporte empírico}, este TFM no reporta una mejora sino una auditoría
+deliberada de un fallo. A diferencia de Zhang, cuyo híbrido ARIMA-red
+neuronal supera a ambos componentes en las tres series que evalúa, la arquitectura
+híbrida LSTM-XGBoost de este proyecto \textbf{no} bate ni a SARIMAX ni a
+\texttt{xgboost\_alone} (capítulo \ref{cap:resultados}), y el modelo finalmente más preciso
+es un ensamble de esos mismos dos componentes de una sola etapa (MAE de test 139.725 en su
+variante equiponderada 50/50 y 139.681 en la ponderada por el inverso del MAE). Leído a la
+luz de la condición de Granger desarrollada en
+la sección \ref{sec:arquitecturas_hibridas}, y no como una simple discrepancia de
+resultados frente a Zhang, este contraste es en sí mismo el aporte empírico de este
+TFM: una auditoría metodológicamente rigurosa, con validación \emph{out-of-fold}
+estricta, de las condiciones bajo las cuales la hibridación secuencial de un componente
+no lineal y uno exógeno \emph{no} mejora sobre sus partes, frente a las condiciones bajo
+las cuales un ensamble paralelo de modelos con información parcialmente descorrelacionada
+sí lo hace.
+
+Es precisamente esta ausencia de un antecedente directo que audite un
+resultado híbrido negativo bajo un protocolo de validación igualmente estricto, sobre una
+serie de demanda de transporte público real, agregada y multimodal, la que constituye el
+\emph{research gap} que este TFM ocupa: no la ausencia de arquitecturas híbridas en la
+literatura de predicción de demanda —que existen, y Zhang es su fundamento teórico—, sino
+la ausencia de una evaluación de cuándo y por qué esas arquitecturas fallan frente a
+alternativas más simples, evaluación que solo es posible con el rigor de validación que
+este capítulo ha argumentado como condición necesaria en la sección
+\ref{sec:modelado_series}.
+
+De ese hueco se derivan las hipótesis de trabajo, que esta memoria no formula aquí por
+segunda vez: están enunciadas como las cinco preguntas de investigación PI1--PI5 de la
+sección \ref{sec:preguntas_investigacion}, con la redacción exacta con la que se responden
+en la sección \ref{sec:respuesta_preguntas}, y cada una lleva asociado un criterio de
+decisión fijado por escrito antes de observar la métrica correspondiente.

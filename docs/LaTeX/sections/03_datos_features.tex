@@ -1,0 +1,421 @@
+\chapter{Fuentes de datos, integración e ingeniería de características}\label{cap:datos_features}
+
+Este capítulo documenta la cadena completa que transforma tres ficheros crudos,
+heterogéneos en formato y en semántica, en la matriz de 161 variables sobre la que se
+entrenan los modelos de los capítulos \ref{cap:metodologia} y \ref{cap:resultados}. En
+cada etapa se hace explícita la regla anti-fuga que la gobierna, puesto que la integridad
+de esa cadena es la condición de validez de todo resultado reportado.
+
+\section{Fuentes}\label{sec:fuentes_datos}
+
+El proyecto integra tres fuentes crudas, todas ellas de frecuencia diaria y con un
+horizonte temporal común de 1.310 observaciones continuas, sin huecos y sin valores
+nulos, comprendido entre el 1 de enero de 2023 y el 2 de agosto de 2026. Los tres
+ficheros se conservan sin modificar en \texttt{data/\allowbreak{}raw/} y se resumen en la tabla
+\ref{tab:fuentes_datos}.
+
+La primera fuente procede del Consorcio Regional de Transportes de Madrid (CRTM), el
+organismo público responsable de la coordinación tarifaria e informativa del transporte
+colectivo en la Comunidad de Madrid, y reporta la evolución diaria de validaciones
+agregadas por operador: Metro de Madrid, EMT (autobús urbano), las concesionarias de
+transporte interurbano por carretera y Renfe Cercanías, junto con el total sumado de los
+cuatro. El fichero se distribuye como un libro Excel con dos hojas (\texttt{mensual} y
+\texttt{diaria}, de la que solo la segunda se emplea) cuyo maquetado real difiere del
+descrito en el brief original del proyecto: la cabecera no ocupa la primera fila, sino la
+segunda, de modo que una lectura ingenua con \texttt{header=2} en lugar de
+\texttt{header=1} consume silenciosamente la primera observación (2023-01-01) como si
+fuera parte de la cabecera.
+
+La columna de fechas, además, carece de nombre propio en el
+fichero de origen, la primera columna contiene un marcador suelto sin significado
+analítico, la octava columna está vacía y la novena recoge una nota textual que advierte
+del carácter \emph{provisional} de las cifras de demanda; esa advertencia se traslada
+íntegra a las limitaciones del proyecto (\ref{sec:limitaciones}). Las cuatro columnas de
+operador se conservan explícitamente en el conjunto unificado y en la matriz de
+características, aunque el objetivo de modelado sea exclusivamente la columna
+\texttt{total}: no se trata de variables redundantes a descartar, sino de una
+desagregación que sostiene el análisis exploratorio de la sección \ref{sec:eda} y que
+podría alimentar líneas de trabajo futuras sobre demanda por modo de transporte.
+
+La segunda fuente es una serie meteorológica diaria obtenida de Open-Meteo para la
+localización de Madrid (40,386642° N, 3,676086° O, 666 m de altitud), con 22 variables
+que cubren temperatura, temperatura aparente, precipitación, humedad relativa, viento,
+presión a nivel del mar, radiación de onda corta y código de tiempo (WMO). La propuesta
+inicial preveía recurrir a la Agencia Estatal de Meteorología (AEMET); se optó
+finalmente por Open-Meteo porque su producto de reanálisis cubre la ventana completa
+2023-2026 para un único punto geográfico sin huecos ni cambios de estación de medida, lo
+que evita tener que imputar o empalmar series. Esa operación, sobre variables que
+después se retardan y promedian, habría introducido una fuente de error difícil de
+acotar. La misma familia de API se retoma en la sección \ref{sec:trabajos_futuros} como
+vía natural para incorporar pronóstico operativo.
+
+El fichero incorpora dos filas de metadatos de cabecera seguidas de una línea en blanco antes de la
+fila con los nombres de columna reales, y esos metadatos declaran una zona horaria
+\texttt{Europe/\allowbreak{}Berlin} en lugar de \texttt{Europe/\allowbreak{}Madrid}; ambas comparten horario de
+verano centroeuropeo (CEST) en la práctica totalidad del año, por lo que el efecto sobre
+los agregados diarios se consideró y descartó como fuente de sesgo relevante durante la
+ingestión, sin darlo por supuesto a priori. Las unidades de medida viajan incrustadas en
+el propio nombre de cada columna (por ejemplo, \texttt{temperature\_2m\_mean (°C)} o
+\texttt{shortwave\_radiation\_sum (MJ/\allowbreak{}m²)}) y se normalizan mediante una expresión
+regular que las separa del nombre canónico de la variable.
+
+\begin{sloppypar}
+La tercera fuente es el calendario laboral de referencia para la Comunidad de Madrid,
+distribuido como un CSV separado por punto y coma y codificado en UTF-8 con marca de
+orden de bytes (BOM), con las fechas expresadas en formato \texttt{dd/\allowbreak{}mm/\allowbreak{}aaaa} y
+analizadas mediante un patrón explícito en lugar de una inferencia automática de orden
+día/mes, para evitar ambigüedades sistemáticas. El calendario distingue el día de la
+semana (en minúsculas y sin tildes, de modo que \texttt{miercoles} o \texttt{sabado} no
+deben compararse contra sus formas acentuadas), el tipo de día
+(\texttt{laborable}/\texttt{sabado}/\texttt{domingo}/\texttt{festivo}) y, cuando procede,
+el tipo y el nombre de la festividad. El propio nombre de la columna de tipo de día
+declara una quinta categoría, \texttt{domingo festivo}, que en la práctica no se observó
+en ninguna de las 1.310 filas disponibles; esta ausencia se verificó de forma explícita
+durante la ingestión, en lugar de asumirse por la mera lectura del brief, y la categoría
+se mantiene declarada en la codificación para que, si apareciera en una actualización
+futura del calendario, se codifique correctamente en vez de degradarse silenciosamente a
+un valor nulo.
+\end{sloppypar}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\textwidth}{!}{\input{tables/tabla_fuentes_datos}}
+  \caption{\headlinecolor{Fuentes de datos crudas (\texttt{data/\allowbreak{}raw/}), 2023-01-01 a 2026-08-02.}}
+  \label{tab:fuentes_datos}
+\end{table}
+
+La figura \ref{fig:serie_completa_total} muestra la serie completa de demanda total tal
+como resulta de esta primera fuente, antes de cualquier transformación: establece la
+escala del problema (entre 1,3 y 6,6 millones de viajes diarios aproximadamente) y deja
+ya visible la textura semanal de sierra y la caída estacional recurrente cada mes de
+agosto, patrones que se analizan en detalle en la sección \ref{sec:eda}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.78\textwidth]{fig_serie_completa_total.png}
+  \caption{\headlinecolor{Demanda diaria total de transporte público en Madrid, serie completa.}}
+  \label{fig:serie_completa_total}
+\end{figure}
+
+\section{Unificación y validación}\label{sec:unificacion_validacion}
+
+Las tres fuentes se combinan mediante una unión interna (\emph{inner join}) sobre la
+columna de fecha. Se prefiere esta estrategia frente a una unión externa por la izquierda
+porque esta última fabricaría filas exógenas enteramente nulas allí donde una fuente
+tuviera un hueco, contaminando artificialmente el indicador de calidad ``cero nulos'' del
+conjunto unificado. La contrapartida es que una unión interna oculta, por construcción,
+cualquier hueco de cobertura: si una fecha faltara simultáneamente en las tres fuentes,
+el problema no se manifestaría como una fila nula sino como una fila que sencillamente
+no llega a existir. Por ello la unificación no se limita a ejecutar el \emph{join} y
+confiar en el resultado, sino que aplica cuatro comprobaciones de integridad temporal en
+cadena: en primer lugar, una detección de fechas duplicadas dentro de cada fuente
+individual, antes de fusionar nada; en segundo lugar, una comparación del número de filas
+resultante contra el número de filas de \emph{cada} fuente por separado, de modo que ante
+cualquier discrepancia el proceso interrumpe la ejecución señalando explícitamente las
+fechas concretas que se perderían, en lugar de limitarse a reportar un recuento
+agregado; en tercer lugar, una reindexación del resultado contra un rango de fechas
+diario completo entre el mínimo y el máximo observados, que es la única comprobación
+capaz de detectar un hueco común a las tres fuentes simultáneamente, precisamente el caso
+que la comparación anterior no puede ver; y en cuarto lugar, una verificación final de
+ausencia de duplicados y de valores nulos sobre el conjunto ya unificado.
+
+Estas cuatro comprobaciones se someten además a pruebas negativas que inyectan huecos sintéticos en
+conjuntos de datos de prueba en memoria y confirman que cada una de ellas interrumpe la
+ejecución cuando corresponde, de manera que no puedan degradarse silenciosamente en
+verificaciones inertes con el tiempo.
+
+El resultado se persiste en \texttt{data/\allowbreak{}interim/\allowbreak{}unified\_daily.parquet} como una tabla
+de 1.310 filas por 31 columnas, resumidas por grupos temáticos en la tabla
+\ref{tab:esquema_unificado}: la fecha, las cinco columnas de demanda (el objetivo
+\texttt{total} y los cuatro operadores), las veintiuna variables meteorológicas y las
+cuatro columnas de calendario. Sobre esta tabla se verifica, y se mantiene como
+invariante durante todo el proyecto, que la suma de las cuatro columnas de operador
+reproduce exactamente la columna \texttt{total} en las 1.310 filas, salvo por un margen
+de tolerancia de $10^{-6}$ que absorbe el ruido de redondeo introducido por fórmulas de
+Excel en el fichero de origen (por ejemplo, un valor de \texttt{carretera} igual a
+$847904{,}00000001$ en la fila del 7 de julio de 2026, con una desviación del orden de
+$10^{-8}$ respecto al entero esperado); cualquier desviación genuinamente fraccionaria,
+por encima de esa tolerancia, se trata como un error de datos y detiene el proceso, ya
+que ensancharla sin más para acallar un futuro fallo eliminaría la capacidad de detectar
+una ruptura real de esa identidad.
+
+Por último, los valores nulos que el calendario de
+origen deja en \texttt{holiday\_type} y \texttt{holiday\_name} para los días sin
+festividad se sustituyen deliberadamente por el valor centinela \texttt{'none'}: de este
+modo la invariante de ``cero nulos'' del conjunto unificado es honesta —cualquier nulo que
+aparezca en adelante señala un defecto real, no la ausencia ordinaria de festividad— y la
+siguiente fase de ingeniería de características recibe un nivel categórico limpio en
+lugar de un hueco que codificar de forma ad hoc.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \input{tables/tabla_esquema_unificado}
+  \caption{\headlinecolor{Esquema unificado (\texttt{data/\allowbreak{}interim/\allowbreak{}unified\_daily.parquet}), 1.310 x 31.}}
+  \label{tab:esquema_unificado}
+\end{table}
+
+La figura \ref{fig:demanda_por_operador} descompone la serie total por operador y hace
+visible la jerarquía de escala entre ellos: Metro de Madrid concentra el volumen mayor,
+seguido de EMT, mientras que las concesionarias por carretera y Renfe Cercanías aportan
+magnitudes sensiblemente menores pero con una textura semanal igualmente marcada. Esta
+descomposición no participa en el modelado del capítulo \ref{cap:metodologia}, cuyo
+único objetivo es \texttt{total}, pero justifica por qué las cuatro columnas de operador
+se conservan íntegras a través de todo el pipeline: son la base de este análisis
+exploratorio secundario y quedan disponibles para un trabajo futuro de predicción
+desagregada por modo de transporte.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.78\textwidth]{fig_demanda_por_operador.png}
+  \caption{\headlinecolor{Demanda diaria por operador del CRTM (Metro, EMT, carretera, Cercanías).}}
+  \label{fig:demanda_por_operador}
+\end{figure}
+
+\section{Análisis exploratorio de datos}\label{sec:eda}
+
+El análisis exploratorio persigue un objetivo acotado: caracterizar la estructura de
+estacionalidad y de dispersión de la demanda antes de diseñar sobre ella la ingeniería de
+características de la sección \ref{sec:ingenieria_features}, no agotar aquí todas las
+posibles lecturas de los datos. La propia serie completa (figura
+\ref{fig:serie_completa_total}) ya deja ver, a simple vista y de forma repetida en cada
+uno de los tres años y medio cubiertos, dos regularidades anuales: un desplome pronunciado
+y sostenido durante el mes de agosto —coincidente con el periodo vacacional de mayor
+intensidad en Madrid, en el que buena parte de la actividad laboral y educativa que
+sostiene la demanda de días laborables se suspende— y una recuperación progresiva durante
+septiembre que culmina en un máximo relativo hacia octubre y noviembre, una vez
+restablecida por completo la actividad laboral y escolar tras el verano.
+
+Ese patrón se cuantifica en la figura \ref{fig:estacionalidad_anual}, donde la demanda media de agosto
+se sitúa en torno a los 3 millones de viajes diarios, sensiblemente por debajo de
+cualquier otro mes del año, mientras que octubre alcanza el máximo del calendario anual
+con una media próxima a los 5,2 millones; los meses de invierno y primavera se mantienen
+en una meseta intermedia, entre 4,5 y 5 millones, con una dispersión (barras de error de
+desviación típica) que es sistemáticamente mayor en los meses que combinan más
+irregularidades de calendario —festivos nacionales y autonómicos, semana de Navidad,
+Semana Santa de fecha variable— que en los meses centrales del curso.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.78\textwidth]{fig_estacionalidad_semanal.png}
+  \caption{\headlinecolor{Estacionalidad semanal de la demanda total (diagrama de caja por día de la semana).}}
+  \label{fig:estacionalidad_semanal}
+\end{figure}
+
+La segunda regularidad, de periodicidad semanal y de magnitud mayor que la anual, se
+recoge en la figura \ref{fig:estacionalidad_semanal}. Los cinco días laborables presentan
+medianas muy próximas entre sí, en el entorno de los 5 a 5,5 millones de viajes diarios,
+con una cola inferior de valores atípicos que corresponde a los festivos que caen en día
+laborable; el sábado desciende a una mediana cercana a los 3,4 millones y el domingo, el
+día de menor demanda de la semana, se sitúa alrededor de los 2,6 millones. La transición
+entre el régimen laborable y el de fin de semana implica, por tanto, un salto de
+aproximadamente 2,5 millones de viajes diarios dos veces por semana, una magnitud que
+resulta clave para interpretar correctamente los baselines del capítulo
+\ref{cap:metodologia}: un modelo de persistencia ingenuo ($\hat y_t = y_{t-1}$) queda
+sistemáticamente mal calibrado en cada transición viernes-sábado y domingo-lunes,
+precisamente porque ignora esta estructura semanal tan pronunciada.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.78\textwidth]{fig_estacionalidad_anual.png}
+  \caption{\headlinecolor{Estacionalidad anual de la demanda total (media mensual, 2023-2026).}}
+  \label{fig:estacionalidad_anual}
+\end{figure}
+
+Por último, la figura \ref{fig:meteo_vs_demanda} cruza la demanda total con la
+temperatura media diaria, coloreando cada observación por tipo de día. El resultado es
+informativo precisamente por lo que no muestra: dentro de cada franja de tipo de día la
+nube de puntos se mantiene aproximadamente horizontal, sin una relación monótona clara
+entre temperatura y demanda, mientras que la separación vertical entre franjas (laborable
+frente a sábado, domingo y festivo) domina visualmente el gráfico. Esto sugiere que el
+\textbf{calendario, no la meteorología, es el factor exógeno de primer orden} sobre la demanda
+agregada, y que la meteorología, si aporta señal, lo hace como un efecto secundario que
+matiza el nivel de cada régimen de calendario más que como un determinante independiente.
+Esta lectura motiva la decisión, desarrollada en la sección \ref{sec:promocion_meteo}, de
+incorporar la meteorología como bloque de variables exógenas retardadas y nunca como
+sustituto del calendario.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.78\textwidth]{fig_meteo_vs_demanda.png}
+  \caption{\headlinecolor{Demanda total frente a temperatura media diaria, por tipo de día (EDA; la meteorología del mismo día no entra en el modelo).}}
+  \label{fig:meteo_vs_demanda}
+\end{figure}
+
+\section{Ingeniería de características}\label{sec:ingenieria_features}
+
+A partir del esquema unificado de la sección \ref{sec:unificacion_validacion} se
+construye una matriz de 161 variables de modelado, todas ellas identificadas mediante el
+prefijo \texttt{feat\_} y recuperables mecánicamente mediante la función
+\texttt{feature\_columns()} en lugar de mantenerse en una lista mantenida a mano. Es una
+decisión deliberada para que el conjunto de variables no pueda derivar silenciosamente
+respecto del código que las genera. La tabla \ref{tab:grupos_features} resume los seis
+grupos resultantes, cuyo diseño matemático se detalla a continuación.
+
+El primer grupo son los retardos de la propia demanda total,
+$\text{lag}_k(\mathit{total})_t = \mathit{total}_{t-k}$ para
+$k \in \{1, 2, 3, 7, 14, 21, 28\}$: siete variables que cubren desde la inercia de un día
+para otro hasta la memoria calendario de cuatro semanas, seleccionada porque el lag 28
+recoge el mismo día de la semana cuatro veces atrás, bajo el mismo régimen semanal que la
+sección \ref{sec:eda} identificó como dominante. El mismo esquema de siete retardos se
+aplica a cada una de las cuatro columnas de operador, aportando 28 variables adicionales:
+la reparto modal de ayer es información legítimamente disponible en el momento de la
+predicción y conserva señal real, a diferencia del reparto modal del propio día que se
+discute más abajo. A estas se suman cuatro estadísticos móviles de la demanda total (media
+y desviación típica sobre ventanas de 7 y 28 días), y seis términos de Fourier
+deterministas que codifican la estacionalidad semanal ($k=1$) y anual ($k=1$ y $k=2$)
+mediante pares seno-coseno:
+\[
+  \sin\!\left(\frac{2\pi k t}{T}\right), \qquad
+  \cos\!\left(\frac{2\pi k t}{T}\right),
+\]
+con $T=7$ para el término semanal y $T=365{,}25$ para los dos términos anuales, y $t$
+medido en días desde una época fija, \texttt{FOURIER\_EPOCH = 2023-01-01}, deliberadamente
+distinta de la fecha mínima observada en cada ejecución: fijar la época evita que la
+llegada de datos futuros modifique retroactivamente la codificación de una fecha ya
+existente.
+
+El último grupo interno, de once variables, cubre el calendario mediante
+\emph{one-hot encoding} exhaustivo del tipo de día y del tipo de festividad, incluyendo
+explícitamente el nivel centinela \texttt{'none'} y la categoría de cero observaciones
+\texttt{domingo festivo}, de modo que una fila con todo ceros sería un error de
+codificación detectable y no una ambigüedad entre ``categoría base'' y ``fallo silencioso''.
+Se añaden un indicador binario de fin de semana y un indicador de ``día puente'': un día
+laborable inmediatamente anterior o posterior a un festivo o domingo festivo, construido
+observando también el calendario del día siguiente. Esta última mirada hacia adelante no
+constituye fuga de información porque el calendario oficial de festivos español se conoce
+con más de un año de antelación y es, por tanto, dato disponible en el momento de la
+predicción; el procedimiento detectó 55 días puente en todo el periodo, todos ellos
+laborables por definición.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \input{tables/tabla_grupos_features}
+  \caption{\headlinecolor{Grupos de variables del modelo, 161 en total (\texttt{feature\_columns()}).}}
+  \label{tab:grupos_features}
+\end{table}
+
+Dos reglas anti-fuga gobiernan la construcción de este bloque de variables y se verifican
+mediante pruebas automatizadas específicas. La primera exige que todo retardo o
+estadístico móvil derivado de \texttt{total} o de cualquier columna de operador aplique
+un desplazamiento de un día, \texttt{shift(1)}, \emph{antes} de cualquier operación de
+ventana móvil: es decir, $\text{roll}_w(s.\text{shift}(1))_t$ y nunca
+$\text{roll}_w(s)_t.\text{shift}(1)$ como corrección a posteriori. Para una ventana
+móvil trailing ambos órdenes de operación son matemáticamente equivalentes, de modo que
+la regla no corrige aquí ningún error numérico observado; se exige de todos modos porque
+su corrección no depende de esa equivalencia particular, que deja de cumplirse en cuanto
+la ventana se centra (\texttt{center=True}), y porque una ventana sin desplazar en
+absoluto sí constituye una fuga real y directa: en dicho caso, la media móvil en el
+instante $t$ incorporaría el propio valor $y_t$ que se pretende predecir.
+
+La segunda regla es un guardián de fuga contemporánea sobre las columnas de operador: puesto que
+$\mathit{metro}_t + \mathit{emt}_t + \mathit{carretera}_t + \mathit{cercanias}_t =
+\mathit{total}_t$ de forma exacta (sección \ref{sec:unificacion_validacion}), cualquier
+columna de operador del \emph{mismo} día no es una variable predictiva, sino una
+reformulación aritmética del propio objetivo, y su presencia en la matriz de modelado
+haría que un modelo alcanzara un ajuste casi perfecto en entrenamiento para colapsar en
+inferencia, momento en el que el reparto modal del día en curso no puede conocerse
+todavía. Este guardián se aplica dos veces: sobre la salida de cada módulo de retardos
+individualmente y de nuevo sobre el fichero final ensamblado, que es el punto donde una
+columna mal etiquetada terminaría aterrizando realmente en la matriz.
+
+Los términos de Fourier constituyen, dentro de este esquema, la única excepción
+autorizada a la prohibición general de calcular ingeniería de características sobre el
+conjunto completo antes de la partición: a diferencia de una media móvil o de un
+escalador, cuyo valor depende de observaciones de $y$ y, por tanto, estima un parámetro que
+solo debería aprenderse en entrenamiento, el valor de un término de Fourier en la fecha
+$t$ es una función cerrada de $t$ que no observa el objetivo en ningún momento, de modo
+que calcularlo sobre el rango completo es idéntico, variable a variable, a calcularlo por
+separado sobre cada partición.
+
+\subsection{Promoción meteorológica: solo variables retardadas}\label{sec:promocion_meteo}
+
+La sección \ref{sec:eda} dejó abierta, más que resuelta, la pregunta de si la
+meteorología debía incorporarse a la matriz de modelado observada en tiempo real o bajo
+alguna forma de retardo. Este proyecto resuelve la cuestión de manera conservadora: las
+21 variables meteorológicas del esquema unificado se promocionan a variables de modelado
+exclusivamente en forma retardada, combinando los retardos de 1, 2, 3 y 7 días con una
+media móvil de 7 días (también construida con desplazamiento previo, por la misma regla
+anti-fuga de la sección anterior), lo que produce $21 \times 5 = 105$ variables nuevas y
+eleva la matriz de 56 a 161 columnas. La meteorología del propio día de la predicción no
+entra nunca en el modelo, ni siquiera como variable adicional junto a las retardadas, y
+esta prohibición se verifica mediante un guardián dedicado
+(\texttt{\_assert\_no\_same\_day\_weather}) que se reejecuta sobre el conjunto final
+ensamblado. La razón es que la meteorología observada del mismo día no es, en rigor, un
+dato disponible en el momento operativo de la predicción, sino una observación posterior
+a esta; utilizarla sin retardo equivaldría a asumir de forma implícita un pronóstico
+meteorológico perfecto, un sesgo optimista que además se concentraría precisamente en los
+días atípicos (temporales, olas de calor) en los que un pronóstico meteorológico real es
+menos fiable y en los que el efecto sobre la demanda sería, presumiblemente, mayor.
+
+El conjunto de retardos elegido para la meteorología, $\{1, 2, 3, 7\}$, es
+deliberadamente más corto que el empleado para la demanda total, $\{1, 2, 3, 7, 14, 21,
+28\}$, porque ambas series obedecen a mecanismos de memoria distintos: la autocorrelación
+de la demanda a 28 días está gobernada por el calendario (el mismo día de la semana,
+cuatro semanas atrás, bajo un régimen semanal recurrente), mientras que la
+autocorrelación atmosférica carece de un mecanismo equivalente y decae en la práctica a
+lo largo de una escala sinóptica de tres a siete días; extender los retardos
+meteorológicos a 14, 21 o 28 días habría añadido 63 columnas prácticamente redundantes
+con los términos de Fourier anuales, que ya capturan de forma más limpia la componente
+puramente estacional del clima. Queda como línea de trabajo pendiente, y explícitamente
+fuera del alcance de los resultados principales de este TFM
+(\ref{sec:limitaciones}), la construcción de una variante de sensibilidad con
+meteorología del mismo día sin retardar, que solo tendría sentido reportar como una cota
+superior bajo el supuesto idealizado de un pronóstico meteorológico perfecto, y nunca
+como modelo de referencia.
+
+\section{Particiones y fuga de datos}\label{sec:particiones_fuga}
+
+La totalidad de los modelos entrenados en los capítulos \ref{cap:metodologia} y
+\ref{cap:resultados} (baselines estadísticos, LSTM, XGBoost y sus combinaciones)
+comparten una única partición cronológica 70/15/15, calculada por una sola función,
+\texttt{chronological\_split}, que actúa como fuente única de verdad: ningún modelo
+recalcula sus propias fronteras temporales de forma independiente, precisamente para que
+un desacuerdo de un solo día entre dos modelos sobre dónde empieza el conjunto de test no
+pueda invalidar silenciosamente su comparación. La partición resultante, resumida en la
+tabla \ref{tab:particiones}, reserva 917 días (70,0\,\%) para entrenamiento, desde el 1
+de enero de 2023 hasta el 5 de julio de 2025; 196 días (15,0\,\%) para validación, hasta
+el 17 de enero de 2026; y 197 días (15,0\,\%) para test, hasta el final de la serie
+disponible, el 2 de agosto de 2026.
+
+El cálculo de estas fronteras exige dos precauciones que, de omitirse, introducirían
+errores sutiles y difíciles de detectar a posteriori. La primera es puramente numérica:
+la expresión $0{,}70 \times 1310$ evalúa en aritmética de punto flotante a
+$916{,}9999\ldots$ (esto es, $916{,}\overline{9}$ hasta la precisión de la máquina),
+de modo que un truncamiento ingenuo mediante \texttt{int()}
+produciría un conjunto de entrenamiento de 916 días en lugar de los 917 que resultan de
+$\lfloor 0{,}70 \times 1310 \rfloor$; la implementación añade una tolerancia
+$\varepsilon = 10^{-9}$ antes de truncar, precisamente para blindarse frente a este tipo
+de error de redondeo binario. La segunda precaución es de diseño: las fronteras se
+resuelven sobre fracciones acumuladas ($\lfloor 0{,}70 \, n \rfloor$ para el final de
+entrenamiento, $\lfloor 0{,}85 \, n \rfloor$ para el final de validación) en lugar de
+aplicar el porcentaje de forma independiente a cada partición, de modo que los tres
+bloques resultantes encajen exactamente, sin solapamientos ni huecos de un día entre
+ellos que un redondeo partición por partición sí podría introducir.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \input{tables/tabla_particiones}
+  \caption{\headlinecolor{Partición cronológica 70/15/15 (\texttt{src.utils.splits.chronological\_split}).}}
+  \label{tab:particiones}
+\end{table}
+
+Sobre esta partición actúa, además, una política de calentamiento (\emph{warm-up})
+derivada directamente de la ingeniería de características de la sección
+\ref{sec:ingenieria_features}: las 28 primeras filas del conjunto de entrenamiento
+(2023-01-01 a 2023-01-28) contienen valores nulos en las variables que dependen del
+retardo o de la ventana móvil más larga, 28 días, y se descartan del entrenamiento,
+reduciéndolo de 917 a 889 filas efectivas; los conjuntos de validación y de test, al
+situarse muy por delante de esa ventana inicial, no se ven afectados y conservan sus 196
+y 197 días íntegros. Esta política se aplica mediante una función,
+\texttt{apply\_warmup\_policy}, que \emph{interrumpe} la ejecución si el calentamiento
+necesario llegara a alcanzar la partición de validación o de test, en lugar de recortar
+silenciosamente el periodo de evaluación: un conjunto de evaluación acortado sin aviso
+produciría métricas que dejarían de ser comparables entre modelos y entre reejecuciones
+del pipeline, un riesgo que se considera preferible convertir en un fallo explícito y
+temprano.
+

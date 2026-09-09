@@ -1,0 +1,214 @@
+%% ============================================================================
+%% Bibliografia_TFT.bib -- Fase 10: bibliografia tecnica del TFM.
+%%
+%% monje2022deep, toque2017short y cardozo2012spatial fueron verificadas contra
+%% docs/references/Summary.md (ficha de fuentes original del brief del proyecto)
+%% durante la redaccion del Capitulo 1 y llevan ya sus metadatos completos
+%% (autoria, revista/congreso, volumen, paginas, DOI).
+%%
+%% surribas_sayago_diffuse se conserva como entrada de tipo misc con ficha
+%% minima (autor + titulo + nota): se cita EXCLUSIVAMENTE como inspiracion de
+%% ingenieria de caracteristicas (retardos, terminos de Fourier), nunca como
+%% arquitectura replicada, segun queda fijado en el contexto tecnico del proyecto.
+%% No se le atribuye revista, volumen ni ano por no disponer de la fuente
+%% primaria; su papel en la memoria no depende de esos campos.
+%% ============================================================================
+
+@book{box1970time,
+  author    = {George E. P. Box and Gwilym M. Jenkins},
+  year      = {1970},
+  title     = {Time Series Analysis: Forecasting and Control},
+  publisher = {Holden-Day},
+  address   = {San Francisco}
+}
+
+@article{hochreiter1997lstm,
+  author  = {Sepp Hochreiter and J{\"u}rgen Schmidhuber},
+  title   = {Long Short-Term Memory},
+  journal = {Neural Computation},
+  volume  = {9},
+  number  = {8},
+  pages   = {1735--1780},
+  year    = {1997},
+  publisher = {MIT Press}
+}
+
+@inproceedings{chen2016xgboost,
+  author    = {Tianqi Chen and Carlos Guestrin},
+  title     = {{XGBoost}: A Scalable Tree Boosting System},
+  booktitle = {Proceedings of the 22nd ACM SIGKDD International Conference on
+               Knowledge Discovery and Data Mining},
+  pages     = {785--794},
+  year      = {2016},
+  publisher = {ACM}
+}
+
+@article{bergmeir2012cv,
+  author  = {Christoph Bergmeir and Jos{\'e} M. Ben{\'i}tez},
+  title   = {On the Use of Cross-Validation for Time Series Predictor Evaluation},
+  journal = {Information Sciences},
+  volume  = {191},
+  pages   = {192--213},
+  year    = {2012},
+  publisher = {Elsevier}
+}
+
+@article{cerqueira2020evaluating,
+  author  = {Vitor Cerqueira and Luis Torgo and Igor Mozeti{\v{c}}},
+  title   = {Evaluating Time Series Forecasting Models: An Empirical Study on
+             Performance Estimation Methods},
+  journal = {Machine Learning},
+  volume  = {109},
+  pages   = {1997--2028},
+  year    = {2020},
+  publisher = {Springer}
+}
+
+@book{hyndman2021fpp,
+  author    = {Rob J. Hyndman and George Athanasopoulos},
+  title     = {Forecasting: Principles and Practice},
+  edition   = {3},
+  year      = {2021},
+  publisher = {OTexts},
+  address   = {Melbourne, Australia}
+}
+
+@article{zhang2003hybrid,
+  author  = {G. Peter Zhang},
+  title   = {Time Series Forecasting Using a Hybrid {ARIMA} and Neural Network Model},
+  journal = {Neurocomputing},
+  volume  = {50},
+  pages   = {159--175},
+  year    = {2003},
+  publisher = {Elsevier}
+}
+
+@article{wolpert1992stacking,
+  author  = {David H. Wolpert},
+  title   = {Stacked Generalization},
+  journal = {Neural Networks},
+  volume  = {5},
+  number  = {2},
+  pages   = {241--259},
+  year    = {1992},
+  publisher = {Elsevier}
+}
+
+@article{granger1989combining,
+  author  = {Clive W. J. Granger},
+  title   = {Invited Review: Combining Forecasts--Twenty Years Later},
+  journal = {Journal of Forecasting},
+  volume  = {8},
+  number  = {3},
+  pages   = {167--173},
+  year    = {1989},
+  publisher = {Wiley}
+}
+
+@article{bates1969combination,
+  author  = {John M. Bates and Clive W. J. Granger},
+  title   = {The Combination of Forecasts},
+  journal = {Operational Research Quarterly},
+  volume  = {20},
+  number  = {4},
+  pages   = {451--468},
+  year    = {1969},
+  publisher = {Operational Research Society}
+}
+
+@incollection{perrone1993networks,
+  author    = {Michael P. Perrone and Leon N. Cooper},
+  title     = {When Networks Disagree: Ensemble Methods for Hybrid Neural Networks},
+  booktitle = {Neural Networks for Speech and Image Processing},
+  editor    = {Richard J. Mammone},
+  pages     = {126--142},
+  year      = {1993},
+  publisher = {Chapman-Hall}
+}
+
+@article{makridakis2018m4,
+  author  = {Spyros Makridakis and Evangelos Spiliotis and Vassilios Assimakopoulos},
+  title   = {The {M4} Competition: Results, Findings, Conclusion and Way Forward},
+  journal = {International Journal of Forecasting},
+  volume  = {34},
+  number  = {4},
+  pages   = {802--808},
+  year    = {2018},
+  publisher = {Elsevier}
+}
+
+@article{makridakis2022m5,
+  author  = {Spyros Makridakis and Evangelos Spiliotis and Vassilios Assimakopoulos},
+  title   = {The {M5} Competition: Background, Organization, and Implementation},
+  journal = {International Journal of Forecasting},
+  volume  = {38},
+  number  = {4},
+  pages   = {1325--1336},
+  year    = {2022},
+  publisher = {Elsevier}
+}
+
+@article{monje2022deep,
+  author    = {Laura Monje and Ricardo A. Carrasco and Carlos Rosado and
+               Manuel S{\'a}nchez-Monta{\~n}{\'e}s},
+  title     = {Deep Learning {XAI} for Bus Passenger Forecasting: A Use Case
+               in Spain},
+  journal   = {Mathematics},
+  volume    = {10},
+  number    = {9},
+  pages     = {1428},
+  year      = {2022},
+  publisher = {MDPI},
+  doi       = {10.3390/math10091428}
+}
+
+@inproceedings{toque2017short,
+  author    = {Florian Toqu{\'e} and Mostepha Khouadjia and Etienne C{\^o}me
+               and Martin Tr{\'e}panier and Latifa Oukhellou},
+  title     = {Short and Long Term Forecasting of Multimodal Transport
+               Passenger Flows with Machine Learning Methods},
+  booktitle = {2017 IEEE 20th International Conference on Intelligent
+               Transportation Systems (ITSC)},
+  pages     = {560--566},
+  year      = {2017},
+  publisher = {IEEE},
+  doi       = {10.1109/ITSC.2017.8317939}
+}
+
+@article{cardozo2012spatial,
+  author    = {O. D. Cardozo and J. C. Garc{\'i}a-Palomares and J. Guti{\'e}rrez},
+  title     = {Application of Geographically Weighted Regression to the
+               Direct Forecasting of Transit Ridership at Station-Level},
+  journal   = {Applied Geography},
+  volume    = {34},
+  pages     = {548--558},
+  year      = {2012},
+  publisher = {Elsevier},
+  doi       = {10.1016/j.apgeog.2012.01.005}
+}
+
+@misc{surribas_sayago_diffuse,
+  author  = {Surribas-Sayago, C. and others},
+  title   = {Hybrid {CNN-LSTM-MLP} Architecture for Diffuse Solar Radiation
+             Forecasting},
+  note    = {Trabajo del dominio de la prediccion de radiacion solar difusa,
+             citado unicamente como inspiracion de la ingenieria de
+             caracteristicas de este TFM (retardos y terminos de Fourier),
+             no como arquitectura replicada (ver Capitulo 2).}
+}
+
+@misc{anthropic2026claude,
+  author       = {{Anthropic}},
+  title        = {Claude},
+  year         = {2026},
+  howpublished = {Modelo de lenguaje de gran tama{\~n}o.
+                  \url{https://claude.ai}}
+}
+
+@misc{anthropic2026claudecode,
+  author       = {{Anthropic}},
+  title        = {{Claude Code}},
+  year         = {2026},
+  howpublished = {Herramienta de desarrollo de software asistido por IA.
+                  \url{https://claude.com/claude-code}}
+}

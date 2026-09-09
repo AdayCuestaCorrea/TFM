@@ -1,0 +1,21 @@
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.7cm}>{\centering\arraybackslash}p{0.7cm}>{\raggedright\arraybackslash}p{2.3cm}>{\centering\arraybackslash}p{1.8cm}>{\raggedright\arraybackslash}p{2.1cm}>{\centering\arraybackslash}p{1.8cm}>{\centering\arraybackslash}p{1.8cm}>{\raggedright\arraybackslash}p{2.9cm}}
+\toprule
+\rowcolor{naranja}
+\textbf{Subgrupo} & \textbf{n} & \textbf{Mejor competidor} & \textbf{MAE competidor} & \textbf{Mejor híbrido} & \textbf{MAE híbrido} & \textbf{Delta MAE} & \textbf{Veredicto} \\
+\midrule
+\rowcolor{filaclara} Laborable ordinario & 133 & ensemble\_\allowbreak{}equal & 138.628 & hybrid\_\allowbreak{}weighted & 200.326 & 61.699 & no gana \\
+Laborable puente & 3 & persistence & 131.251 & hybrid & 399.637 & 268.386 & no inferencial (n insuficiente) \\
+\rowcolor{filaclara} Sábado & 27 & xgboost\_\allowbreak{}alone & 129.381 & hybrid\_\allowbreak{}weighted & 185.918 & 56.537 & no gana \\
+Domingo & 29 & xgboost\_\allowbreak{}alone & 100.200 & hybrid & 233.778 & 133.578 & no gana \\
+\rowcolor{filaclara} Festivo & 5 & ensemble\_\allowbreak{}inverse\_\allowbreak{}mae & 224.587 & hybrid & 666.572 & 441.986 & no inferencial (n insuficiente) \\
+Fin de semana & 56 & xgboost\_\allowbreak{}alone & 114.269 & hybrid\_\allowbreak{}weighted & 215.528 & 101.259 & no gana \\
+\rowcolor{filaclara} Entre semana & 141 & ensemble\_\allowbreak{}equal & 143.426 & hybrid\_\allowbreak{}weighted & 222.176 & 78.750 & no gana \\
+Calendario irregular & 8 & ensemble\_\allowbreak{}inverse\_\allowbreak{}mae & 221.011 & hybrid & 566.472 & 345.461 & no inferencial (n insuficiente) \\
+\rowcolor{filaclara} Calendario ordinario & 189 & ensemble\_\allowbreak{}equal & 136.193 & hybrid\_\allowbreak{}weighted & 204.831 & 68.638 & no gana \\
+Verano (jul-ago) & 33 & xgboost\_\allowbreak{}alone & 80.274 & hybrid\_\allowbreak{}weighted & 133.293 & 53.019 & no gana \\
+\rowcolor{filaclara} Resto del año & 164 & ensemble\_\allowbreak{}equal & 150.371 & hybrid\_\allowbreak{}weighted & 237.791 & 87.420 & no gana \\
+Periodo Semana Santa & 10 & xgboost\_\allowbreak{}alone & 332.267 & hybrid & 605.909 & 273.642 & no analizable (sin solape val-test) \\
+\rowcolor{filaclara} Demanda anómala & 16 & xgboost\_\allowbreak{}alone & 302.679 & hybrid\_\allowbreak{}weighted & 520.736 & 218.057 & no inferencial (n insuficiente) \\
+Demanda regular & 181 & ensemble\_\allowbreak{}equal & 119.662 & hybrid\_\allowbreak{}weighted & 193.727 & 74.065 & no gana \\
+\bottomrule
+\end{tabular}

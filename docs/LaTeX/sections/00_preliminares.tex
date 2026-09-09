@@ -1,0 +1,122 @@
+% ============================================================================
+% 00_preliminares.tex -- Resumen / Abstract, palabras clave / keywords y
+% agradecimientos. La portada (\begin{titlepage}) vive en TFT.tex porque debe
+% preceder al \tableofcontents y esta acoplada al \newgeometry de nivel
+% documento; este fichero solo contiene lo que va inmediatamente despues.
+% ============================================================================
+
+\begin{abstract}
+
+  El transporte público metropolitano de Madrid, gestionado de forma coordinada
+  por el Consorcio Regional de Transportes de Madrid (CRTM), integra bajo un
+  mismo marco cuatro operadores de naturaleza dispar ---Metro, EMT, autobús
+  interurbano por carretera y Cercanías---, cuya demanda diaria agregada
+  condiciona decisiones operativas reales de flota, personal y frecuencias de
+  servicio. Este Trabajo de Fin de Máster evalúa si una arquitectura híbrida
+  residual de dos etapas mejora la predicción de esa demanda frente a modelos
+  consolidados de una sola etapa. Sobre una serie diaria continua de 1.310
+  observaciones (1 de enero de 2023 a 2 de agosto de 2026), sin huecos ni
+  valores nulos, se unifican las fuentes de demanda del CRTM, la meteorología de
+  Open-Meteo y el calendario laboral municipal, y se construye una matriz de 161
+  variables predictoras ---retardos de demanda total y por operador, medias y
+  desviaciones móviles con desplazamiento previo estricto, armónicos de Fourier
+  deterministas, codificación exhaustiva de calendario y meteorología
+  retardada--- sujeta a un conjunto de guardias anti-fuga verificadas por una
+  suite de 470 pruebas automáticas. La primera etapa es una red LSTM univariante
+  cuyas predicciones de entrenamiento se generan íntegramente fuera de muestra
+  (\emph{out-of-fold}) mediante una validación cruzada expansiva de cinco
+  bloques; la segunda es un modelo XGBoost que corrige el residuo de la primera
+  a partir de las variables exógenas. El resultado central es negativo para la
+  arquitectura propuesta: el híbrido no supera a un SARIMAX seleccionado por AIC
+  ni a un XGBoost entrenado directamente sobre las mismas variables (MAE de test
+  234.223 frente a 163.627 y 156.121, respectivamente). Este hallazgo se audita
+  a la luz de la teoría de combinación de pronósticos de Granger (1989): el
+  híbrido secuencial incumple la condición de que sus componentes se basen en
+  conjuntos de información distintos, pues ambas etapas observan en última
+  instancia el mismo pasado de la serie. Los modelos más precisos del estudio son
+  dos ensambles aritméticos de SARIMAX y XGBoost ---sin ninguna red neuronal ni
+  reentrenamiento---, prácticamente indistinguibles entre sí: 139.725 de MAE de
+  test en la variante equiponderada 50/50 y 139.681 en la ponderada por el inverso
+  del MAE, ambas con un $R^2$ de 0,9755. Se selecciona la equiponderada por no
+  depender de ningún dato de validación para fijar sus pesos; su ganancia se
+  explica de forma cuantitativa mediante la identidad de reducción de varianza de
+  Bates y Granger (1969) aplicada a la correlación medida entre los errores de sus
+  componentes. En cuanto a su relación con trabajos previos, este Trabajo de Fin de
+  Máster no continúa ningún proyecto anterior propio ni ajeno, y toma de un trabajo
+  previo de quien ejerce su dirección (Surribas Sayago et al.) únicamente inspiración de
+  ingeniería de características ---la construcción de retardos, los armónicos
+  deterministas y la idea de una rama exógena---, sin replicar su arquitectura: ninguna
+  de las cifras aquí presentadas procede de aquel trabajo.
+
+  \vspace{0.5cm}
+
+  \keywords{transporte público, predicción de demanda, series temporales
+    diarias, híbrido residual LSTM-XGBoost, combinación de pronósticos,
+    validación out-of-fold}
+\end{abstract}
+
+\newpage
+\section*{Abstract}\label{sec:abstract}
+
+The metropolitan public transport system of Madrid, coordinated by the Regional
+Transport Consortium (CRTM), integrates four structurally different operators
+---the underground network, the municipal bus company (EMT), interurban coach
+concessions, and suburban rail (Cercan\'ias)--- whose aggregate daily demand
+shapes real operational decisions on fleet, staffing, and service frequency.
+This Master's Thesis evaluates whether a two-stage residual hybrid architecture
+improves the forecasting of that demand over consolidated single-stage models.
+On a continuous daily series of 1,310 observations (1 January 2023 to
+2 August 2026), with no gaps and no missing values, the CRTM demand data, the
+Open-Meteo weather data, and the municipal working calendar are unified, and a
+matrix of 161 predictor variables is engineered ---lags of total and
+per-operator demand, shift-first rolling means and standard deviations,
+deterministic Fourier harmonics, an exhaustive calendar encoding, and lagged
+weather--- subject to a set of anti-leakage guards verified by a suite of
+470 automated tests. The first stage is a univariate LSTM whose training-time
+predictions are generated strictly out-of-fold through an expanding five-block
+walk-forward cross-validation; the second is an XGBoost model that corrects the
+first stage's residual using the exogenous variables. The central result is
+negative for the proposed architecture: the hybrid beats neither an
+AIC-selected SARIMAX nor an XGBoost trained directly on the same variables
+(test MAE of 234,223 versus 163,627 and 156,121, respectively). This finding is
+audited through Granger's (1989) forecast-combination theory: the sequential
+hybrid violates the requirement that its components rest on genuinely different
+information sets, since both stages ultimately observe the same history of the
+series. The most accurate models in the study are two arithmetic ensembles of
+SARIMAX and XGBoost ---with no neural network and no retraining--- that are
+practically indistinguishable from one another: a test MAE of 139,725 for the
+50/50 equal-weight variant and 139,681 for the inverse-MAE-weighted one, both with
+an $R^2$ of 0.9755. The equal-weight variant is the one selected, since it derives
+its weights from no validation data; its gain is quantitatively explained by the
+Bates and Granger (1969) variance-reduction identity applied to the measured
+correlation between the components' errors. The contribution of this work is therefore
+methodological rather than a gain in accuracy: a negative result established under a
+pre-registered protocol, with every verdict fixed in writing before the corresponding
+metric was observed, and audited against forecast-combination theory instead of being
+reported as an unexplained failure. As for its relation to prior work, this Master's
+Thesis continues no earlier project of its own or of others, and draws from a previous
+work by its supervisor (Surribas Sayago et al.) only feature-engineering inspiration
+---the construction of lags, the deterministic harmonics, and the idea of an exogenous
+branch---, without replicating its architecture: none of the figures reported here
+derives from that work.
+
+\vspace{0.5cm}
+
+{\small\textbf{\textsl{Keywords:\hspace{0.3cm}}} public transport, demand
+forecasting, daily time series, residual LSTM-XGBoost hybrid, forecast
+combination, out-of-fold validation}
+
+\newpage
+\section*{Agradecimientos}\label{sec:agradecimientos}
+
+A la Universidad Internacional de Valencia y al profesorado del Máster
+Universitario en Big Data y Ciencia de Datos, por el marco formativo en el que
+se ha desarrollado este trabajo, y a la persona que ha ejercido su dirección,
+por la orientación metodológica y la revisión crítica a lo largo de todo el
+proceso.
+
+Al Consorcio Regional de Transportes de Madrid y al proyecto Open-Meteo, cuyos
+datos abiertos han hecho posible el estudio empírico que sustenta esta memoria.
+
+A mi familia y a las personas cercanas, por el apoyo sostenido durante el tiempo
+dedicado a este Trabajo de Fin de Máster.

@@ -1,0 +1,92 @@
+% 11pt y no 12: la guia docente (14MBID, ed. 2025-26, seccion 4 "Estructura formal") fija
+% "Letra Arial o Helvetica, 11pts". La opcion de clase compone a 10,95pt, no a 11,00
+% exactos; la diferencia es de un 0,45 % y no constituye incumplimiento.
+\documentclass[11pt,a4paper]{report}
+\input{preamble}
+
+%%%%%%-------------------+++++++++--INICIO DEL DOCUMENTO--+++++++++---------------------------%%%%%
+
+\begin{document}
+
+%------------------XXXX++++++ INICIO DE PORTADA  ++++++XXXXX-----------------%
+\begin{titlepage}
+
+  \newgeometry{left=2.5cm, bottom=3cm, top=2cm, right=2.5cm, headheight=15pt}
+
+  \tikz[remember picture,overlay] \node[opacity=1,inner sep=0pt] at (73.6mm, -124.25mm){\includegraphics{./Images/Picture_TitlePage.jpg}};
+
+  % La guia docente (seccion 4) enumera lo que debe llevar la portada: autor, tutor,
+  % fecha en formato mes y ano, nombre del Master, la identificacion literal "Trabajo Fin
+  % de Master" y el logo de la VIU. Faltaban las dos primeras; se anaden aqui.
+  % Los \vspace bajan de 14cm+5cm a 13cm+2.5cm porque la suma anterior desbordaba la
+  % portada a una segunda pagina: la guia la cuenta como una sola.
+  {\fontfamily{phv}\selectfont
+    \fontsize{25}{10.4}\fontseries{b}\selectfont
+    \vspace{13cm}
+    \textbf{\tfttitulo}
+
+    \bigskip
+
+    \fontsize{12}{12}\selectfont
+    \fontseries{m}\selectfont
+    \vspace{2.5cm}
+    \centering
+
+    {\fontsize{14}{16}\fontseries{b}\selectfont Trabajo Fin de Máster}
+
+    \medskip
+
+    Septiembre-2026
+
+    \bigskip
+
+    \begin{tabularx}{1\textwidth} {
+        || >{\raggedright\arraybackslash}X
+        || >{\centering\arraybackslash}X
+        || >{\raggedleft\arraybackslash}X ||}
+      Titulación:
+       & Alumno/a:
+       & Convocatoria:                       \\
+      Máster Universitario en Big Data y Ciencia de Datos
+       & Aday Cuesta Correa
+       & Segunda Convocatoria (2025-2026)    \\
+       & Director/a del TFT: Gonzalo Surribas Sayago
+       & Curso académico 2025-2026           \\
+    \end{tabularx}
+  }
+\end{titlepage}
+%--------------------XXXX++++++ FIN DE PORTADA  ++++++XXXXX-----------------%
+% Front matter (TOC, LOF, LOT, preliminares) numbered in roman, reset to arabic
+% at chapter 1: without this, hyperref's automatic page anchors collide because
+% the title page and the front matter share the same arabic page-counter range,
+% producing "destination with the same identifier" warnings in TFT.log.
+\pagenumbering{roman}
+% tocdepth=1 deja fuera las entradas \paragraph* de 5.10.2, que engordaban el indice general
+% sin ser puntos de navegacion reales; con ellas fuera, el indice general se mantiene dentro
+% de las "2 carillas" que indica la normativa (TFM_Docu_OLIVAS_VIU_26, "Preliminares").
+% Los indices de figuras y de cuadros se conservan: la normativa los da por opcionales, pero
+% un documento con 68 floats los necesita para navegar, y no computan contra el limite de
+% extension, que se mide sobre el cuerpo.
+\setcounter{tocdepth}{1}
+\tableofcontents
+\addcontentsline{toc}{chapter}{\listfigurename}
+\addcontentsline{toc}{chapter}{\listtablename}
+\listoffigures
+\listoftables
+
+\input{sections/00_preliminares}
+
+\clearpage
+\pagenumbering{arabic}
+\input{sections/01_introduccion}
+\input{sections/02_estado_arte}
+\input{sections/03_datos_features}
+\input{sections/04_metodologia}
+\input{sections/05_resultados}
+\input{sections/06_conclusiones}
+\input{sections/07_anexos}
+
+\bibliographystyle{plain}
+\bibliography{Bibliografia_TFT.bib}
+
+\end{document}

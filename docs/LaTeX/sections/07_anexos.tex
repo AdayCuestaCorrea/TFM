@@ -1,0 +1,563 @@
+\appendix
+
+% Los anexos y la bibliografia quedan fuera del computo de extension, asi que se numeran en
+% una secuencia propia A1, A2, ... en lugar de continuar la del cuerpo: el folio del cuerpo
+% termina en su ultima pagina real y la conformidad se lee sin restar nada.
+%
+% Por que un prefijo y no \pagenumbering{Roman}, que seria lo natural: babel-spanish
+% compone los folios romanos en versalitas (\es@scroman), de modo que los anclajes de
+% hyperref de los preliminares ya se expanden a page.I, page.II en mayuscula. Una secuencia
+% Roman aqui chocaria frontalmente con ellos y multiplicaria los avisos "destination with
+% the same identifier", que ya existen por otra causa (la portada corre en arabigo 1-2 antes
+% del \pagenumbering{roman} y colisiona con el 1-2 del cuerpo). Con el prefijo, los anclajes
+% son page.A1 ... page.A10 y no pueden colisionar con nada. En el PDF esto se traduce en un
+% tercer rango de /PageLabels con prefijo /P, que es exactamente lo que el formato preve: el
+% lector de PDF muestra "A3" en su casilla de pagina, igual que el folio impreso.
+\clearpage
+\setcounter{page}{1}
+\renewcommand{\thepage}{A\arabic{page}}
+\renewcommand{\paginastotal}{\pageref{LastPage}}
+
+\chapter{Catálogo de variables}\label{cap:anexo1}
+
+\begin{sloppypar}
+Este anexo recoge, con fines de consulta autocontenida, la taxonomía completa de las
+161 variables predictoras del modelo, obtenidas mecánicamente mediante
+\texttt{build\_features.feature\_columns()} sobre la matriz procesada
+\texttt{data/\allowbreak{}processed/\allowbreak{}features\_daily.parquet} y organizadas en los mismos seis grupos
+temáticos empleados a lo largo de toda la memoria (en el análisis exploratorio del
+capítulo \ref{cap:datos_features}, en la ingeniería de características de la sección
+\ref{sec:ingenieria_features} y en el análisis de importancia de variables del capítulo
+\ref{cap:resultados}), de modo que cualquier cifra de importancia de variable citada en
+esta memoria pueda contrastarse directamente contra el grupo y el recuento exacto de su
+familia sin necesidad de releer el código fuente.
+
+Toda variable de este catálogo lleva el prefijo \texttt{feat\_}, una convención que no
+es meramente estética: el propio código deriva el conjunto de columnas del modelo a
+partir de ese prefijo, de forma que la matriz de entrada nunca se define mediante una
+lista mantenida a mano que pudiera desincronizarse silenciosamente del código que
+realmente construye las variables. Los seis grupos son, en el orden en que aparecen en
+el cuadro \ref{tab:anexo1_grupos_features}: los siete retardos de la demanda total
+(\texttt{feat\_total\_lag\_\{1,2,3,7,14,21,28\}}); los 28 retardos de operador, siete por
+cada uno de los cuatro operadores del CRTM
+(\texttt{feat\_\allowbreak{}\{metro,emt,carretera,cercanias\}\_\allowbreak{}lag\_\{1,2,3,7,14,21,28\}}), presentes en el modelo pese a que
+\texttt{total} sea el único objetivo de predicción, en cumplimiento de la directriz del
+contexto técnico del proyecto de no podar los operadores como ``columnas sin uso''; las
+cuatro
+medias y desviaciones típicas móviles de la demanda total, ventanas de 7 y 28 días,
+todas construidas con desplazamiento previo estricto
+(\texttt{feat\_total\_roll\_\{mean,std\}\_\{7,28\}}); los seis términos armónicos de
+Fourier deterministas para la estacionalidad semanal de primer orden y la anual de
+primer y segundo orden (\texttt{feat\_fourier\_\{weekly,annual\}\_k\{1,2\}\_\{sin,cos\}});
+las once variables de calendario, que codifican de forma exhaustiva y sin nivel de
+referencia implícito el tipo de día, el tipo de festividad y los indicadores de fin de
+semana y de día puente; y, con diferencia el grupo más numeroso, las 105 variables
+meteorológicas retardadas —21 variables físicas de Open-Meteo multiplicadas por cuatro
+rezagos (1, 2, 3 y 7 días) más una media móvil de 7 días—, sujetas a la misma
+prohibición de meteorología del mismo día que se documenta y verifica en el Anexo
+\ref{cap:anexo2}.
+
+\begin{table}[htbp]
+  \centering
+  \input{tables/tabla_grupos_features}
+  \caption{\headlinecolor{Resumen de los seis grupos de variables del modelo, 161 en total (repetición de la tabla \ref{tab:grupos_features} para consulta autocontenida del anexo).}}
+  \label{tab:anexo1_grupos_features}
+\end{table}
+
+El detalle de variable individual está en los cuadros de top-15 variables por ganancia de
+cada modelo XGBoost del capítulo \ref{cap:resultados}, y la lista nominal completa de las
+161 columnas la genera \texttt{build\_features.py}, consultable en el repositorio del
+proyecto.
+\end{sloppypar}
+
+\chapter{Suite de tests y garantías anti-fuga}\label{cap:anexo2}
+
+\begin{sloppypar}
+La afirmación central de esta memoria —que un resultado negativo bien instrumentado es
+una contribución metodológica válida— solo se sostiene si el pipeline que lo produce
+está libre de los errores de fuga de información que sistemáticamente producen
+resultados optimistas y no reproducibles en la literatura de predicción de series
+temporales. Este anexo documenta la arquitectura de verificación que respalda esa
+afirmación: \textbf{470 tests}, ejecutables en su totalidad con
+\texttt{python -m pytest} desde la raíz del repositorio con el entorno
+\texttt{.\textbackslash venv\textbackslash Scripts\textbackslash python.exe} activado,
+de los cuales 257 se acumulan a lo largo de las fases de modelado (0 a 6b, cuadro
+\ref{tab:cronograma_fases}), 56 se añaden durante la redacción de la memoria
+(\texttt{test\_memoria\_figures.py} y \texttt{test\_export\_latex\_tables.py}, para
+auditar la capa de presentación y no el pipeline de modelado en sí, incluidas tres
+pruebas de regresión sobre defectos de figura detectados en la revisión final), 58
+corresponden a la
+fase diagnóstica de la anatomía del residuo de la etapa 1 (sección
+\ref{sec:anatomia_residuo_etapa1}): \texttt{test\_stage1\_residual\_anatomy.py} y
+\texttt{test\_learning\_curve.py}, 34 a la fase diagnóstica de paridad
+informativa y ablación de bloques (sección \ref{sec:paridad_informativa}):
+\texttt{test\_feature\_block\_ablation.py} y \texttt{test\_lstm\_parity\_control.py}, y los
+40 a la fase diagnóstica de desglose por subgrupos y periodos (sección
+\ref{sec:desglose_subgrupos}): \texttt{test\_subgroup\_breakdown.py} junto con las
+ampliaciones de las dos suites de la capa de presentación. Los 17 restantes
+corresponden a la auditoría global de la memoria
+(\texttt{test\_prose\_claims\_match\_artifacts.py}): fijan contra su artefacto de origen
+cada cifra de alta relevancia citada en la prosa (métricas de test, tamaños de partición,
+recuentos de filas y variables) junto con la lista completa de ficheros en que cada una
+debe aparecer, de modo que una cifra no pueda quedar obsoleta en un capítulo mientras se
+actualiza en otro. Los 8 restantes corresponden al cuaderno principal de flujo y al
+defecto que su desarrollo destapó. Cinco están en
+\texttt{test\_flujo\_notebook.py}: comprueban el informe de
+integridad de la ingesta, que la verificación del cuaderno contra
+\texttt{full\_comparison.parquet} pasa cuando debe, que \emph{levanta} cuando una métrica
+se perturba —distinguiendo además una diferencia de entorno de ejecución de un cambio
+real del \emph{pipeline}—, que el cuaderno se ejecuta de principio a fin sin errores de
+celda, y que el fichero versionado conserva sus salidas. Las tres restantes se añaden a
+\texttt{test\_features.py} y fijan las dos guardias anti-fuga del ensamblado, que hasta
+esta pasada eran \textbf{inalcanzables}: comparaban el bloque de variables contra el
+nombre \emph{desnudo} de la columna (\texttt{metro},
+\texttt{temperature\_2m\_mean}), que \texttt{feature\_columns()} descarta por
+construcción al filtrar por prefijo, de modo que la lista de infractoras nunca podía
+tener elementos. Ninguna fuga llegó a producirse —la protección real es estructural: los
+constructores solo emiten formas retardadas y móviles—, pero una comprobación que promete
+una garantía que no puede dar es peor que no tenerla, porque el siguiente lector la da por
+buena. Ahora comparan contra el nombre \emph{prefijado}, que es lo que produciría una
+regresión de constructor, y las tres pruebas las disparan. Las
+pruebas \texttt{test\_phase7\_adds\_no\_model\_to\_the\_master\_comparison},
+\texttt{test\_phase8\_adds\_no\_model\_to\_the\_master\_comparison} y
+\texttt{test\_phase9\_adds\_no\_model\_to\_the\_master\_comparison} fijan mecánicamente
+que las tres fases, puramente explicativas, no introducen ningún modelo nuevo en la tabla
+maestra de comparación ni escriben artefacto alguno bajo \texttt{models/}.
+
+La suite no se limita a comprobar que el código se ejecuta sin excepciones: una parte
+sustancial de ella está diseñada específicamente para hacer fallar el pipeline si se
+reintrodujera, ahora o en una modificación futura, alguna de las siguientes reglas
+anti-fuga, listadas de la más general a la más específica del dominio de este proyecto.
+
+\begin{enumerate}
+  \item \textbf{Desplazamiento previo estricto en todo retardo o estadístico móvil.}
+    Cualquier media o desviación típica móvil derivada de \texttt{total} o de un
+    operador debe aplicar \texttt{shift(1)} \emph{antes} de la ventana de agregación
+    (\texttt{s.shift(1).rolling(w).mean()}, nunca \texttt{s.rolling(w).mean().shift(1)}
+    como corrección a posteriori ni una ventana sin desplazar en ningún punto del
+    código), de forma que ninguna fila conozca su propio valor futuro dentro de su
+    propia estadística. Verificado en \texttt{tests/\allowbreak{}test\_features.py}, con una
+    pequeña salvedad documentada: para una ventana \emph{trailing}, desplazar antes o
+    después de la ventana produce resultados matemáticamente idénticos, y la regla se
+    exige de todas formas por su corrección estructural, no porque la alternativa
+    produjera en este caso un resultado numéricamente distinto.
+  \item \textbf{Particiones siempre cronológicas, nunca aleatorias.} Ninguna partición
+    de entrenamiento, validación o test se genera mediante barajado; todas se derivan
+    de la única función \texttt{src.utils.splits.chronological\_split}, con sus
+    fronteras fijadas por
+    \texttt{test\_split\_\allowbreak{}boundaries\_\allowbreak{}are\_\allowbreak{}exact\_\allowbreak{}and\_\allowbreak{}stable} en
+    \texttt{tests/\allowbreak{}test\_splits.py}, incluyendo la protección explícita contra el error
+    de redondeo de punto flotante que un \texttt{int()} ingenuo introduciría en el
+    cálculo del 70\,\% de 1.310 filas.
+  \item \textbf{Escalado ajustado exclusivamente sobre entrenamiento.} Todo
+    \texttt{MinMaxScaler} de la etapa LSTM se ajusta (\texttt{fit}) únicamente sobre
+    los datos de entrenamiento de su propio fold y se aplica (\texttt{transform}) sin
+    reajuste sobre validación y test, nunca mediante un \texttt{fit\_transform} sobre
+    el conjunto completo; verificado en \texttt{tests/\allowbreak{}test\_lstm.py}.
+  \item \textbf{Prohibición de ingeniería de características global antes de la
+    partición}, salvo la única excepción sancionada y justificada explícitamente: los
+    términos de Fourier son una función determinista de la fecha, no una estadística
+    estimada a partir de la variable objetivo, por lo que calcularlos sobre la serie
+    completa es matemáticamente idéntico a calcularlos por partición; propiedad fijada
+    por
+    \texttt{test\_fourier\_\allowbreak{}is\_\allowbreak{}deterministic\_\allowbreak{}and\_\allowbreak{}split\_\allowbreak{}invariant}.
+  \item \textbf{Predicciones de la etapa 1 siempre fuera de muestra (\emph{out-of-fold})
+    para alimentar la etapa 2.} Ningún residuo que entrena el modelo XGBoost de la
+    etapa 2 procede de una predicción \emph{in-sample} de la LSTM; el esquema
+    \emph{walk-forward} expansivo de 5 folds y la exclusión documentada del fold 1
+    degenerado están verificados en \texttt{tests/\allowbreak{}test\_lstm.py} y
+    \texttt{tests/\allowbreak{}test\_hybrid\_residual.py}. Esta es la decisión de diseño que el
+    documento de contexto técnico del proyecto fija por escrito como no negociable,
+    con anterioridad a la obtención de cualquier resultado.
+  \item \textbf{Guardia de fuga \emph{same-day} sobre la suma de operadores.} Puesto
+    que \texttt{metro + emt + carretera + cercanias == total} de forma exacta, un
+    operador del mismo día no es una variable predictiva sino el objetivo mismo
+    expresado de otra forma; \texttt{lag\_features.\_assert\_no\_same\_day\_leakage}
+    hace fallar la construcción de características si alguno de los cuatro operadores
+    apareciera sin retardo en la matriz de salida, comprobación reforzada sobre la
+    matriz ya ensamblada y no solo sobre cada módulo por separado.
+  \item \textbf{Guardia de fuga \emph{same-day} sobre meteorología.} Ninguna de las 21
+    variables meteorológicas del día que se predice entra en la matriz de
+    características; solo sus versiones retardadas (1, 2, 3, 7 días y media móvil de 7)
+    lo hacen, verificado por \texttt{weather\_features.\_assert\_no\_same\_day\_weather}
+    con el mismo criterio de doble comprobación, módulo individual y matriz
+    ensamblada, que la guardia de operadores.
+  \item \textbf{El modelo de control \texttt{xgboost\_alone} entrena sobre las 889
+    filas completas de entrenamiento, no sobre las 552 del conjunto residual.} Puesto
+    que este modelo no depende de los folds \emph{out-of-fold} de la LSTM, limitar sus
+    datos de entrenamiento por una razón ajena a su propio diseño penalizaría
+    artificialmente al control frente al híbrido; fijado por
+    \texttt{test\_xgboost\_\allowbreak{}alone\_\allowbreak{}trains\_\allowbreak{}on\_\allowbreak{}the\_\allowbreak{}full\_\allowbreak{}889\_\allowbreak{}row\_\allowbreak{}split}.
+  \item \textbf{El veredicto del experimento A de sensibilidad se evalúa en código, no
+    a ojo.} El criterio pre-registrado de la sección \ref{sec:experimento_a} (mejora en
+    días irregulares \emph{y} coste global acotado al 5\,\%) se calcula mediante
+    \texttt{evaluate\_criterion\_a} y no mediante una lectura subjetiva de una tabla,
+    de forma que el veredicto ``NO CUMPLIDO'' no pueda derivar hacia una lectura más
+    favorable a posteriori; verificado en \texttt{tests/\allowbreak{}test\_sensitivity\_analysis.py}.
+  \item \textbf{El tema visual institucional es un objeto compartido, no una paleta
+    duplicada.} El dashboard interactivo y la exportación estática de figuras importan
+    literalmente el mismo objeto \texttt{VIU\_TEMPLATE}, no dos definiciones
+    equivalentes que pudieran divergir silenciosamente con el tiempo; verificado por
+    \texttt{test\_interactive\_\allowbreak{}and\_\allowbreak{}static\_\allowbreak{}paths\_\allowbreak{}share\_\allowbreak{}one\_\allowbreak{}template\_\allowbreak{}object} en
+    \texttt{tests/\allowbreak{}test\_theme.py}. No es una regla anti-fuga de datos en sentido
+    estricto, pero cumple el mismo papel de garantía estructural para la capa de
+    presentación de resultados que las nueve reglas anteriores cumplen para el
+    pipeline de modelado.
+\end{enumerate}
+
+Cada una de estas diez comprobaciones incluye, además de su verificación sobre datos
+reales, al menos una prueba negativa que inyecta deliberadamente la condición de fuga
+correspondiente sobre un caso de prueba mínimo y comprueba que el código
+\emph{sí} falla; una guardia que nunca se ha visto obligada a disparar en la práctica es
+indistinguible de una guardia que no existe, y este proyecto no se conforma con esa
+ambigüedad.
+\end{sloppypar}
+
+\chapter{Reproducibilidad y entorno}\label{cap:anexo3}
+
+\begin{sloppypar}
+
+Este anexo documenta lo estrictamente necesario para regenerar, desde una instalación
+limpia, cualquier cifra, tabla o figura de esta memoria, sin dejar ninguna decisión de
+entorno implícita en la memoria de quien ejecutó el pipeline originalmente.
+
+\textbf{Repositorio.} Todo el código de este trabajo ---ingesta, ingeniería de
+características, modelos, evaluación, cuadernos y las fuentes \LaTeX{} de esta
+memoria--- es de acceso público en \url{https://github.com/AdayCuestaCorrea/TFM}. Las
+menciones a ``el repositorio'' en este anexo y en el Anexo \ref{cap:anexo2} se refieren
+siempre a esa dirección. Los datos de partida no se redistribuyen desde allí por ser de
+terceros: proceden de las fuentes abiertas identificadas en el cuadro
+\ref{tab:fuentes_datos}, con las convenciones de lectura que allí se detallan.
+
+\textbf{Entorno de ejecución.} Python 3.13.5, en un entorno virtual dedicado
+(\texttt{./\allowbreak{}venv}), con todas las dependencias fijadas por versión exacta, nunca por
+rango, en \texttt{requirements.txt}, entre ellas:
+
+{\small
+\begin{itemize}[nosep]
+  \item \texttt{numpy==2.2.6}, \texttt{pandas==2.3.3}, \texttt{scikit-learn==1.7.2}
+  \item \texttt{xgboost==3.0.5}, \texttt{tensorflow==2.20.0}, \texttt{statsmodels==0.14.6}
+  \item \texttt{plotly==6.3.0}, \texttt{pyarrow==22.0.0}, \texttt{kaleido==1.3.0}
+\end{itemize}
+}
+
+Dos pines documentan una incompatibilidad real y no una preferencia: \texttt{pyarrow},
+porque \texttt{pandas} necesita un motor Parquet explícito, y \texttt{kaleido} en su rama
+1.x y nunca en la 0.2.1, porque esta cuelga de forma indefinida y sin excepción al
+exportar figuras bajo \texttt{plotly} 6.x ---un fallo silencioso, más costoso de
+diagnosticar que un error de instalación.
+
+\textbf{Fijación de semillas aleatorias.} La semilla global \texttt{GLOBAL\_SEED = 42} se
+define una sola vez, en \texttt{src/\allowbreak{}utils/\allowbreak{}seed.py}, y desde ahí se aplica a
+\texttt{random}, \texttt{numpy} y \texttt{tensorflow} en todo punto de entrada que
+entrena; ningún módulo de \texttt{src/\allowbreak{}models/} la redefine localmente, porque un
+segundo literal \texttt{42} en otro lugar es la forma más discreta de que dos ejecuciones
+dejen de ser comparables sin que nada lo advierta. Además de sembrar los generadores,
+\texttt{set\_global\_seed} exige a TensorFlow núcleos deterministas
+(\texttt{TF\_\allowbreak{}DETERMINISTIC\_\allowbreak{}OPS=1} y
+\texttt{tf.config.\allowbreak{}experimental.\allowbreak{}enable\_\allowbreak{}op\_\allowbreak{}determinism()}):
+sembrar por sí solo no garantiza resultados bit a bit idénticos si el motor de cómputo
+conserva reducciones no deterministas, y es la reproducibilidad bit a bit, no una
+aproximada, la que este trabajo se fijó como convención.
+
+\textbf{Comandos de reproducción de principio a fin.} Ejecutados en este orden desde la
+raíz del repositorio, con el entorno virtual activado
+(\texttt{.\allowbreak{}\textbackslash{}venv\allowbreak{}\textbackslash{}Scripts%
+\allowbreak{}\textbackslash{}Activate.ps1} en PowerShell), regeneran de forma
+determinista la totalidad de los artefactos citados en esta memoria, sin reentrenar ni
+repredecir ningún modelo más allá de lo que cada paso indica explícitamente:
+
+{\small
+\begin{enumerate}[nosep]
+  \item \texttt{python -m src.ingestion.unify} — unifica las tres fuentes crudas en
+    \texttt{data/\allowbreak{}interim/\allowbreak{}unified\_daily.parquet}.
+  \item \texttt{python -m src.features.build\_features} — construye la matriz de 161
+    variables en \texttt{data/\allowbreak{}processed/\allowbreak{}features\_daily.parquet}.
+  \item \texttt{python -m src.models.baselines.run\_baselines} — baselines y SARIMAX
+    seleccionado por AIC (~6 min, dominados por la rejilla de búsqueda).
+  \item \texttt{python -m src.models.lstm.window\_comparison} — compara las ventanas
+    $W \in \{14, 28, 60\}$ sobre validación y persiste
+    \texttt{lstm\_window\_comparison.parquet} (tabla \ref{tab:ventana_lstm}).
+  \item \texttt{python -m src.models.lstm.oof} — \emph{walk-forward} expansivo de 5 folds;
+    escribe \texttt{lstm\_oof\_predictions.parquet} y \texttt{lstm\_oof\_fold\_log.parquet}
+    (sección \ref{sec:esquema_oof}).
+  \item \texttt{python -m src.models.lstm.final\_model} — etapa 1 final sobre las 889
+    filas; \texttt{lstm\_val\_test\_predictions.parquet} y
+    \texttt{lstm\_stage1\_final.keras}.
+  \item \texttt{python -m src.models.hybrid\_residual.xgboost\_residual} — etapa 2 sobre
+    el conjunto residual de 552 filas.
+  \item \texttt{python -m src.models.hybrid\_residual.xgboost\_alone} — modelo de control
+    sobre las 889 filas de entrenamiento.
+  \item \texttt{python -m src.models.hybrid\_residual.combine} — combina las etapas 1 y 2
+    en la predicción híbrida final.
+  \item \texttt{python -m src.models.hybrid\_residual.xgboost\_residual\_weighted} —
+    experimento A (sección \ref{sec:experimento_a}): etapa 2 con peso triple en los días
+    de calendario irregular.
+  \item \texttt{python -m src.evaluation.ensemble\_baseline} — experimento B (sección
+    \ref{sec:mecanismo_ensemble}): ensamble SARIMAX + XGBoost-alone, sin reentrenamiento.
+  \item \texttt{python -m src.evaluation.sensitivity\_report} — consolida ambos en
+    \texttt{sensitivity\_comparison.parquet} y evalúa en código el criterio
+    pre-registrado del experimento A.
+  \item \texttt{python -m src.evaluation.lstm\_learning\_curve} — diagnóstico de la
+    sección \ref{sec:anatomia_residuo_etapa1}: 20 ajustes de la etapa 1 (6 fracciones x 3
+    semillas, más las semillas 3 y 4 en la fracción 1,00, base del control de paridad de
+    la sección \ref{sec:paridad_lstm}), solo validación;
+    \texttt{lstm\_learning\_curve.parquet}. No persiste ningún modelo.
+  \item \texttt{python -m src.evaluation.stage1\_residual\_anatomy} — tablas de la
+    anatomía del residuo y veredictos de los cuatro criterios pre-registrados. No
+    reentrena nada.
+  \item \texttt{python -m src.evaluation.feature\_block\_ablation} — diagnóstico de la
+    sección \ref{sec:paridad_informativa}: \texttt{xgboost\_alone} sobre cuatro
+    subconjuntos de variables; \texttt{feature\_block\_ablation.parquet}. No persiste
+    ningún modelo.
+  \item \texttt{python -m src.evaluation.subgroup\_breakdown} — diagnóstico de la sección
+    \ref{sec:desglose_subgrupos}: reanálisis por quince subgrupos pre-registrados, con
+    \emph{bootstrap} de bloques móviles y corrección Benjamini-Hochberg;
+    \texttt{subgroup\_breakdown.parquet} y \texttt{subgroup\_rolling\_mae.parquet}. No
+    reentrena ni persiste ningún modelo.
+  \item \texttt{python -m src.evaluation.lstm\_parity\_control} — diagnóstico de la
+    sección \ref{sec:paridad_lstm}: LSTM en paridad informativa, 10 ajustes (2 ámbitos x 5
+    semillas), solo validación; \texttt{lstm\_parity\_control.parquet}. No persiste ningún
+    modelo.
+  \item \texttt{python -m src.evaluation.export\_figures} — exporta las 34 figuras
+    estáticas de \texttt{reports/\allowbreak{}figures/}, como proceso secuencial independiente de
+    cualquier kernel de Jupyter.
+  \item \texttt{python -m src.evaluation.export\_latex\_tables} — vuelca las 32 tablas
+    LaTeX de \texttt{docs/\allowbreak{}LaTeX/\allowbreak{}tables/}.
+  \item \texttt{jupyter nbconvert -{}-to notebook -{}-execute -{}-inplace
+    notebooks/\allowbreak{}07\_flujo\_completo.ipynb} — ejecuta el cuaderno principal de
+    flujo (aproximadamente 40 segundos), que recorre las seis etapas del trabajo
+    recomputando en vivo la ingesta, las variables, la partición, los baselines, el
+    SARIMAX y los dos modelos XGBoost, y \textbf{contrasta cada métrica recomputada
+    contra el valor publicado} en \texttt{full\_comparison.parquet}: si alguna se desvía
+    más de $10^{-6}$ en términos relativos, el cuaderno levanta una excepción y la
+    ejecución falla. No escribe ningún artefacto.
+  \item \texttt{python -m pytest} — ejecuta la suite completa de 470 tests (descrita
+    en el Anexo \ref{cap:anexo2}).
+  \item \texttt{latexmk -pdf -interaction=nonstopmode -halt-on-error TFT.tex}, ejecutado
+    desde \texttt{docs/\allowbreak{}LaTeX/}, compila esta memoria hasta obtener \texttt{TFT.pdf}.
+\end{enumerate}
+}
+
+\textbf{Cuadro de mando interactivo.} La etapa de despliegue del ciclo KDD (sección
+\ref{sec:planificacion}) se materializa en el cuaderno
+\texttt{notebooks/\allowbreak{}06\_dashboard.ipynb}, que se abre con \texttt{jupyter lab}
+una vez ejecutados los pasos anteriores y presenta, sobre los artefactos ya persistidos,
+los cinco elementos de visualización comprometidos en la propuesta inicial del trabajo:
+demanda real, demanda predicha, comparación entre modelos, error de predicción e
+importancia de variables del modelo XGBoost. El cuaderno lee exclusivamente de
+\texttt{data/\allowbreak{}processed/} y no entrena ni predice nada; la exportación de las figuras
+estáticas de esta memoria se realiza aparte, mediante
+\texttt{export\_figures}, fuera de todo kernel de Jupyter.
+
+\textbf{Cuaderno principal de flujo.} El cuaderno
+\texttt{notebooks/\allowbreak{}07\_flujo\_completo.ipynb} recorre el trabajo completo en las
+seis etapas del ciclo —carga y comprobación de datos, preparación de variables, partición
+temporal, ejecución de los modelos principales, comparación de resultados y gráficos
+finales—, importando en todos los casos de \texttt{src/} sin duplicar lógica. Se distingue
+del cuadro de mando anterior en propósito y en método: aquel visualiza artefactos ya
+persistidos de forma interactiva; este \textbf{reejecuta el pipeline}. Recomputa en vivo la
+ingesta y sus validaciones de integridad, la matriz de 161 variables, la partición
+cronológica, los cuatro baselines, el SARIMAX —del que solo se carga el orden
+$(2,1,2)\times(0,1,2,7)$ ya seleccionado por AIC, pues es la búsqueda en rejilla, y no el
+ajuste, lo que consume los seis minutos del paso 3— y los dos modelos XGBoost. La etapa 1
+LSTM es el único modelo que se carga de artefacto, y por una razón metodológica y no de
+coste: la etapa 2 debe corregir los residuos del mismo modelo de etapa 1 que produjo los
+resultados aquí reportados, de modo que reentrenar la red calcularía los residuos contra un
+modelo distinto del que documenta esta memoria. El cuaderno se versiona \emph{con sus
+salidas guardadas}, de forma que pueda leerse sin ejecutarlo, y no escribe nada en
+\texttt{data/} ni en \texttt{models/}.
+
+\textbf{Identidad visual institucional.} El color naranja empleado en la memoria es una
+\textbf{aproximación} visual documentada del color corporativo de la universidad, no el
+valor Pantone o hexadecimal oficial ---no disponible durante el desarrollo de este
+proyecto---, y se codifica de forma literal en \textbf{exactamente dos puntos}, uno por
+cada capa del proyecto y sin ningún tercero: la capa de figuras Python lo define una sola
+vez en \texttt{VIU\_COLORS[\textquotedbl{}primary\textquotedbl{}] = \textquotedbl{}\#E8590C\textquotedbl{}}
+(\texttt{src/\allowbreak{}evaluation/\allowbreak{}theme.py}), de donde lo heredan las 31
+figuras estáticas; y la capa LaTeX lo define una sola vez en \texttt{preamble.tex}
+(\texttt{\textbackslash{}definecolor} de las macros \texttt{naranja} y \texttt{slcolor}),
+de donde lo heredan los títulos de capítulo y las cabeceras de las 29 tablas volcadas por
+\texttt{export\_latex\_tables.py} mediante \texttt{\textbackslash{}rowcolor\{naranja\}}.
+Sustituir el color por el valor oficial en cuanto esté disponible es, por diseño, un
+cambio de dos líneas ---una por capa--- que se propaga automáticamente a todas las
+figuras y tablas de esta memoria sin tocar ningún otro fichero del proyecto.
+\end{sloppypar}
+
+\chapter{Declaración de uso de inteligencia artificial generativa}\label{cap:anexo4}
+
+\begin{sloppypar}
+
+Este anexo declara el uso de herramientas de inteligencia artificial generativa en la
+realización de este Trabajo Fin de Máster, delimita las tareas en las que se emplearon
+y deja explícito qué decisiones permanecen, sin excepción, bajo la responsabilidad del
+autor.
+
+\section{Herramientas empleadas y alcance}\label{sec:ia_herramientas}
+
+En la realización de este Trabajo Fin de Máster se han utilizado herramientas de
+inteligencia artificial generativa, en concreto Claude (Anthropic), en su interfaz
+conversacional y en su versión para desarrollo de software (Claude Code), durante el
+periodo abril--septiembre de 2026 \cite{anthropic2026claude,anthropic2026claudecode}.
+
+Su uso se ha concentrado en cuatro tareas.
+
+\textbf{Implementación del código.} La escritura de los módulos de Python del
+repositorio (ingesta, ingeniería de características, modelado, evaluación y generación
+de figuras y tablas), así como de la suite de 470 pruebas automáticas que verifica su
+comportamiento (Anexo \ref{cap:anexo2}), se ha realizado con asistencia de IA a partir
+de especificaciones técnicas definidas por el autor. Las decisiones de arquitectura del
+pipeline, el protocolo \emph{out-of-fold}, las reglas anti-fuga, la partición
+cronológica y el diseño de los controles diagnósticos fueron fijadas por el autor antes
+de su implementación y verificadas contra los resultados obtenidos.
+
+\textbf{Redacción de la memoria.} El texto de este documento se ha redactado con apoyo
+de IA a partir de los resultados experimentales, las decisiones metodológicas y la
+estructura argumental establecidos por el autor. Los borradores generados han sido
+revisados y validados por el autor, que asume la responsabilidad sobre su contenido.
+
+\textbf{Revisión y auditoría documental.} Se ha empleado asistencia de IA para verificar
+la correspondencia entre las cifras citadas en la memoria y los artefactos generados por
+el código, detectar inconsistencias internas y comprobar el cumplimiento de los
+requisitos formales.
+
+\textbf{Búsqueda bibliográfica.} Al inicio del desarrollo de este TFM el autor empleó
+asistencia de IA para localizar de forma expeditiva las referencias del proyecto. Cada
+ficha fue revisada después de forma independiente: se comprobó su existencia, se
+consultó la fuente primaria y, cuando correspondía, se descargó el documento original.
+Las referencias de esta memoria no son citas inventadas ni alucinadas por el modelo;
+todas están verificadas contra su fuente.
+
+\section{Tareas no delegadas}\label{sec:ia_no_delegadas}
+
+La definición del problema y de los objetivos, la selección de las fuentes de datos, las
+decisiones metodológicas ---incluidas las que fijaron criterios de aceptación antes de
+observar resultados---, la interpretación de los hallazgos y la formulación de las
+conclusiones son responsabilidad del autor. En particular, la decisión de mantener y
+documentar el resultado negativo de la arquitectura híbrida, en lugar de explorar
+configuraciones alternativas hasta obtener un resultado favorable, es una decisión
+metodológica del autor y constituye la aportación central del trabajo.
+
+El autor asume la responsabilidad plena sobre la metodología, los datos, los resultados,
+las referencias y el contenido final de esta memoria.
+
+\section{Referencia de las herramientas}\label{sec:ia_referencias}
+
+Las fichas de las herramientas empleadas, recogidas también en la bibliografía general,
+son las siguientes:
+
+\begin{itemize}[nosep]
+  \item Anthropic. (2026). \emph{Claude} [modelo de lenguaje de gran tamaño].
+    \url{https://claude.ai}.
+  \item Anthropic. (2026). \emph{Claude Code} [herramienta de desarrollo de software
+    asistido por IA]. \url{https://claude.com/claude-code}.
+\end{itemize}
+
+\end{sloppypar}
+
+
+\chapter{Cuadros diagnósticos extendidos}\label{cap:anexo5}
+
+Este anexo recoge los cuadros de detalle de las secciones \ref{sec:anatomia_residuo_etapa1},
+\ref{sec:paridad_informativa} y \ref{sec:desglose_subgrupos}. El argumento, las cifras
+titulares y los veredictos preregistrados permanecen íntegros en el cuerpo del capítulo
+\ref{cap:resultados}; aquí solo se traslada el detalle tabular, al que el texto sigue
+remitiendo por número de cuadro.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \input{tables/tabla_autocorrelacion_residuo}
+  \caption{\headlinecolor{Autocorrelación (ACF) y autocorrelación parcial (PACF) del residuo de la etapa 1 en los retardos semanales, con las columnas de Ljung-Box (descriptivas; ver el texto). Serie primaria: modelo final sobre 393 días contiguos de validación y test.}}
+  \label{tab:autocorrelacion_residuo}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\textwidth}{!}{\input{tables/tabla_residuo_dia_semana}}
+  \caption{\headlinecolor{Perfil del residuo de la etapa 1 por día de la semana: media, mediana, desviación típica, error absoluto medio y media relativa a la $\sigma$ global del residuo. Serie primaria (393 días).}}
+  \label{tab:residuo_dia_semana}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\textwidth}{!}{\input{tables/tabla_residuo_calendario}}
+  \caption{\headlinecolor{Magnitud del residuo de la etapa 1 por régimen de calendario (tipo de día y tipo de festivo). El residuo se concentra 6,52x en festivos y 2,96x en puentes frente a los laborables ordinarios. La fila ``laborable'' ($n=269$) es la suma de ``laborable, ordinary'' (254) y ``laborable, bridge day'' (15); no es un grupo adicional independiente.}}
+  \label{tab:residuo_calendario}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\textwidth}{!}{\input{tables/tabla_residuo_meteo}}
+  \caption{\headlinecolor{Diez variables meteorológicas retardadas con mayor correlación parcial (en valor absoluto) con el residuo de la etapa 1. ``Rho parcial'' controla por los cuatro términos anuales de Fourier; ninguna es significativa tras Benjamini-Hochberg (q=0,10).}}
+  \label{tab:residuo_meteo}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\textwidth}{!}{\input{tables/tabla_cadena_error}}
+  \caption{\headlinecolor{Cadena de error \texttt{lstm\_alone} $\rightarrow$ \texttt{hybrid} $\rightarrow$ \texttt{xgboost\_alone} por partición. ``Delta MAE'' es el paso respecto a la fila anterior (negativo = reduce el MAE); ``Cuota del hueco'' expresa ese paso como fracción de la distancia total \texttt{lstm\_alone}-\texttt{xgboost\_alone}. No es una descomposición.}}
+  \label{tab:cadena_error}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\textwidth}{!}{\input{tables/tabla_curva_aprendizaje}}
+  \caption{\headlinecolor{Curva de aprendizaje de la LSTM de etapa 1: MAE de validación mediano (mín-máx sobre 3 semillas; 5 en la fracción 1,00, que es la base de comparación del control de paridad de la sección \ref{sec:paridad_lstm}) por fracción del bloque de entrenamiento. ``Fits degenerados'' cuenta las semillas cuyo ajuste colapsó a una predicción cuasi-constante. La referencia \texttt{xgboost\_alone} (val) es 244.843.}}
+  \label{tab:curva_aprendizaje}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\textwidth}{!}{\input{tables/tabla_ablacion_bloques}}
+  \caption{\headlinecolor{Ablación de bloques de variables sobre \texttt{xgboost\_alone} (control diagnóstico). MAE de validación y test por subconjunto, con los hiperparámetros seleccionados en cada búsqueda y el cambio relativo de MAE de validación frente a \texttt{completo}. Estudio de retirada de bloques, NO una descomposición: los bloques no son disjuntos en información y las columnas no suman a nada.}}
+  \label{tab:ablacion_bloques}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\textwidth}{!}{\input{tables/tabla_paridad_lstm}}
+  \caption{\headlinecolor{LSTM en paridad informativa por ámbito de variables exógenas (control diagnóstico, 5 semillas, solo validación). MAE de validación mediano con banda mín-máx, porcentaje del hueco univariante$\to$\texttt{xgboost\_alone} cerrado, número de ajustes degenerados y \texttt{best\_epoch} mediano. Base univariante: mediana de 5 semillas 416.324; mejor semilla 411.142.}}
+  \label{tab:paridad_lstm}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\textwidth}{!}{\input{tables/tabla_subgrupos_test}}
+  \caption{\headlinecolor{Desglose por subgrupo, partición test (ámbito de veredicto). ``Delta MAE'' es MAE del mejor híbrido menos MAE del mejor competidor; positivo significa que el híbrido es peor. El veredicto es único por subgrupo y se lee sobre esta partición.}}
+  \label{tab:subgrupos_test}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\textwidth}{!}{\input{tables/tabla_subgrupos_val}}
+  \caption{\headlinecolor{Desglose por subgrupo, partición validación (requisito de réplica). La columna ``Veredicto'' repite el veredicto preregistrado único por subgrupo; esta tabla solo difiere de la \ref{tab:subgrupos_test} en las columnas de MAE y diferencia.}}
+  \label{tab:subgrupos_val}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\textwidth}{!}{\input{tables/tabla_subgrupos_inferencia}}
+  \caption{\headlinecolor{Diferencia de MAE (mejor híbrido $-$ mejor competidor) con intervalo de confianza \emph{bootstrap} del 95\,\%, p bruto y p ajustado por Benjamini-Hochberg ($q=0{,}10$), para la familia inferencial en la partición test. En verano el IC se suprime porque la fracción de réplicas utilizables cae a $0{,}81$; la p se conserva.}}
+  \label{tab:subgrupos_inferencia}
+\end{table}

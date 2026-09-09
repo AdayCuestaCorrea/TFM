@@ -1,0 +1,195 @@
+% ============================================================================
+% preamble.tex -- Shared preamble for TFT.tex (Fase 7: modularizacion)
+% Split out of the original monolithic TFT.tex so the class configuration,
+% VIU visual identity (orange chapter titles, Helvetica family, header logo)
+% and the new memoria-support packages live in one place.
+% ============================================================================
+
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+% Margenes exigidos por la guia docente (14MBID, ed. 2025-26, seccion 4): 4,4cm superior,
+% 2,19cm inferior, 3cm izquierdo y derecho. No son una eleccion de diseno y no deben
+% "mejorarse": scripts/audit_guia_docente.py los lee de aqui y falla si no coinciden.
+% headheight=15pt: fancyhdr lo necesita para el logo de cabecera.
+% footskip=20pt: con bottom=2,19cm la caja de texto termina en y=779,8pt; el valor por
+% defecto (30pt) empujaria el pie a 1,1cm del borde. A 20pt queda a 1,5cm, dentro del
+% margen inferior como corresponde a un pie, y sin rozar el corte de pagina.
+\usepackage[left=3cm,right=3cm,top=4.4cm,bottom=2.19cm,headheight=15pt,footskip=20pt]{geometry}
+
+\usepackage{titletoc}
+% Keywords command
+
+\providecommand{\keywords}[1]
+{
+  \small
+  \textbf{\textsl{Palabras clave:\hspace{0.3cm}}} #1
+}
+
+\usepackage[table]{xcolor}
+\definecolor{naranja}{HTML}{E65113}
+\usepackage[shortlabels]{enumitem}
+\definecolor{slcolor}{HTML}{E65113}
+% Pasada B (B5): banda para el sombreado alterno de filas de datos que emite
+% export_latex_tables.dataframe_to_tabular. Es un tinte del propio naranja institucional
+% (naranja al 7 % sobre blanco), no un color nuevo, para que la tabla siga leyendose como
+% un unico objeto junto a su cabecera \rowcolor{naranja}.
+\definecolor{filaclara}{HTML}{FDF0E9}
+\newcommand{\headlinecolor}{\color{slcolor}}
+\usepackage{titlesec}
+
+\definecolor{gray75}{gray}{0.75}
+\newcommand{\hsp}{\hspace{-10pt}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%------------------COMANDOS PARA EL TIPO DE LETRA---------------------------%
+\usepackage[T1]{fontenc}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+% Helvetica has no italic; use the real oblique instead of a missing-shape fallback.
+\AtBeginDocument{\renewcommand{\itshape}{\slshape}}
+
+% Interlineado 1,15, exigido por la guia docente (seccion 4). \setstretch multiplica la
+% linea base de la clase (13,6pt a 11pt), de modo que resulta 15,64pt. La alternativa
+% —interpretar el "1,15" de Word, cuya linea sencilla para Arial 11 es ~12,65pt— daria
+% 14,55pt; se elige la lectura de LaTeX por ser la mas conservadora de las dos: compone
+% mas holgado, luego nunca queda por debajo de lo exigido.
+% Se usa \linespread (LaTeX base) y no setspace: setspace no esta instalado en esta
+% MiKTeX y para lo que aqui se necesita —un factor uniforme sobre \baselineskip— hace
+% exactamente lo mismo. Instalar un paquete para no escribir una linea seria peor trato.
+\linespread{1.15}
+
+% \raggedright on the title body: a \Huge justified title has almost no interword glue to
+% absorb a long compound (LSTM-XGBoost), so justification pushes the last fragment past the
+% right margin. Titles are conventionally set ragged-right anyway; this removes the whole
+% class rather than rewording individual chapter titles.
+\titleformat{\chapter}[hang]{\vspace{-3cm}\headlinecolor\Huge\bfseries\raggedright}{\thechapter.\hsp}{20pt}{\Huge\bfseries}
+
+\titleformat{\subsection}[hang]{\normalsize\bfseries}{}{20pt}{\large\bfseries}
+% NOTE: \titleformat{\appendix} was removed here. \appendix is a sectioning
+% *switch*, not a sectioning command, so styling it was always a no-op in the
+% original template; chapters issued after \appendix already inherit the
+% \chapter format above.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%-------------------COMANDOS PARA TABLAS  E IMAGENES ---------------------%
+\usepackage{tikz}
+\usepackage{tabularx}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%-----------------COMANDOS PARA CABECERAS Y PIE DE PAGINA -----------------%
+\usepackage{lastpage}
+\usepackage{fancyhdr}
+
+% ============================================================================
+% Fase 7 additions: memoria-support packages (results tables, figures, Gantt).
+% ============================================================================
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{float}
+
+% Pasada de reduccion de extension: los 67 floats pasaron de [H] a [htbp]. Con los
+% parametros por defecto (topfraction .7, textfraction .2, totalnumber 3) LaTeX se niega a
+% colocar mas de tres floats por pagina y exige reservar un 20% de la mancha para texto, de
+% modo que en un capitulo con 48 floats degenera en paginas de float casi vacias -- que es
+% justo lo que [H] ya producia. Relajados, texto y float comparten pagina de verdad.
+% \FloatBarrier por seccion (placeins) evita el efecto colateral: un float no puede
+% desplazarse a la seccion siguiente y perder el contexto argumental que lo introduce.
+\usepackage[section]{placeins}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{5}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.75}
+
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage{pgfgantt}    % cronograma de fases, seccion 1.4
+\usepackage{pdflscape}   % tabla comparativa de literatura apaisada, seccion 2.4
+
+% Resolves ./Images/ (legacy assets: logo, cover picture) and the pipeline's
+% exported figures in reports/figures/, without duplicating PNGs into docs/.
+\graphicspath{{./Images/}{../../reports/figures/}}
+
+% Single source of truth for the project title: used on the cover page and
+% in the running footer, so a title change never requires touching both.
+\newcommand{\tfttitulo}{Predicción de la demanda diaria de transporte público en Madrid mediante una arquitectura híbrida residual LSTM-XGBoost}
+
+% Total que muestra el pie. En el cuerpo es la ultima pagina del capitulo 6
+% (\label{CuerpoLastPage}, al final de 06_conclusiones.tex), no la del documento: la
+% extension que cuenta para el limite es la del cuerpo, y asi se lee del folio sin restar
+% anexos ni bibliografia. 07_anexos.tex lo redefine a \pageref{LastPage} al entrar en los
+% anexos, que llevan su propia secuencia A1, A2, ... Es un macro y no dos \fancypagestyle
+% porque los inicios de capitulo fuerzan el estilo "plain": redefinir el estilo no bastaria,
+% habria que interceptar tambien esa conmutacion.
+\newcommand{\paginastotal}{\pageref{CuerpoLastPage}}
+
+\fancypagestyle{plain}{%
+  \renewcommand{\headrulewidth}{0pt}
+\fancyhead{}
+\fancyfoot{}
+% El pie llevaba el titulo completo y ocupaba dos lineas. Con bottom=2,19cm ya no cabe:
+% la segunda linea quedaria a ~0,8cm del corte. Se sustituye por la identificacion del
+% documento, que ademas cubre un requisito de la guia (seccion 4: la memoria debe
+% identificarse como "Trabajo Fin de Master"). El titulo sigue en la portada.
+\fancyfoot[R]{{\scriptsize\thepage\ de \paginastotal | Trabajo Fin de Máster}}
+% "overlay" alone is enough for an absolute-position node; the node is unnamed and
+% never referenced across pages, so "remember picture" (which forces a second
+% coordinate-resolution pass per shipout) was pure overhead. Tried as a candidate
+% fix for the handful of harmless "destination with the same identifier" hyperref
+% warnings in TFT.log (a fancyhdr+lastpage+hyperref interaction, PDF-navigation
+% metadata only, confirmed not to affect the printed page) -- it did not eliminate
+% them, but the simplification is correct on its own merits and kept regardless.
+\fancyhead[L]{\tikz[overlay]\node[opacity=0.4] at (-3mm, 10mm){\includegraphics[scale=0.18]{./Images/image3.png}};}
+\fancyheadoffset{0pt}
+}
+
+\pagestyle{plain}
+
+% Los anexos llevan numeracion propia (A1, A2, ... A12), de tres caracteres, y el campo de
+% numero de pagina del indice (\@pnumwidth, 1,55em por defecto) esta dimensionado para dos.
+% Con la caja de texto anterior el exceso se absorbia; con el ancho de 15cm que exige la
+% guia, las tres entradas del Anexo D cruzaban el margen derecho. Se ensancha el campo, que
+% es donde esta el defecto, en vez de acortar los titulos de esas secciones.
+\makeatletter
+\renewcommand{\@pnumwidth}{2.2em}
+\renewcommand{\@tocrmarg}{3.2em}
+\makeatother
+
+% hyperref must be loaded last so it correctly patches the other packages'
+% cross-referencing hooks (titlesec, caption, etc.).
+\usepackage[hidelinks]{hyperref}
+
+% Long code identifiers (test_phase9_adds_no_model_to_the_master_comparison,
+% feat_is_bridge_day) are single unbreakable words that push past the right margin when
+% they fall at the end of a prose line. The generated tables already break them at the
+% underscore (ensemble\_\allowbreak{}equal); this extends that same rule to the whole
+% document, so the defect is fixed as a class rather than line by line. We break only at
+% '_' -- where a reader already perceives a word boundary -- and never insert a hyphen,
+% which would be indistinguishable from a real character of the identifier and would
+% break copy-paste. \AtBeginDocument so it wins over any package redefinition of \_.
+\AtBeginDocument{%
+  \let\viuorigunderscore\_
+  \renewcommand{\_}{\viuorigunderscore\allowbreak}%
+}
+
+% Pasada B (B3a): la sangria de primera linea es el UNICO indicador de parrafo nuevo en este
+% documento (\parskip = 0pt, medido: dos parrafos consecutivos se separan exactamente un
+% \baselineskip de 14,45pt). Con la sangria por defecto de 17,5pt, sobre una mancha
+% justificada de 12pt en Helvetica, el limite de parrafo es casi invisible y el lector no
+% encuentra donde apoyarse. Se ensancha a 2,5em (~30pt), que sigue siendo convencional en
+% composicion academica espanola y NO cuesta ninguna altura vertical: la alternativa,
+% introducir \parskip, habria anadido ~2pt x 197 parrafos del cuerpo contra un limite de
+% extension ya al borde.
+\setlength{\parindent}{2.5em}
+
+% Complement to the rule above, for identifiers whose only separators are '/' or '.'
+% (src/evaluation/subgroup_breakdown.py), which no macro redefinition can reach. This
+% grants TeX extra stretchability on a final pass, so it sets a slightly loose line
+% instead of letting a long word run past the margin. It changes no glyph and no font
+% size; it only lets justification absorb what would otherwise overflow.
+\setlength{\emergencystretch}{3em}

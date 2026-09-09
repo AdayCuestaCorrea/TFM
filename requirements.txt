@@ -1,0 +1,37 @@
+# TFM - Multivariate prediction of public transport demand in Madrid
+# Python 3.13.x (venv at ./venv)
+#
+# Compatibility notes (verified against wheel metadata, not assumed):
+#   - tensorflow 2.20.0 declares `numpy>=1.26.0` with NO upper bound. The classic
+#     "numpy>=2.0 vs tensorflow<2.16" ABI conflict does not apply here: TF >= 2.16
+#     is built against the numpy 2.x ABI. We still pin numpy to 2.2.6 rather than
+#     leaving it open, because an unbounded resolver would pull numpy 2.5.x, which
+#     is newer than the ABI TF 2.20.0 wheels were compiled against.
+#   - Only tensorflow 2.20.0 / 2.21.0 ship cp313 win_amd64 wheels; 2.20.0 is chosen
+#     as the more mature of the two. Keras 3.x is pulled in as a TF dependency.
+#   - pandas is held at 2.x on purpose: pandas 3.0 changes copy-on-write and string
+#     dtype defaults, which would silently alter feature-engineering behaviour.
+
+numpy==2.2.6
+pandas==2.3.3
+scikit-learn==1.7.2
+xgboost==3.0.5
+tensorflow==2.20.0
+statsmodels==0.14.6
+# scipy arrives transitively (scikit-learn, statsmodels) but is pinned explicitly because
+# the Phase 7 residual-anatomy diagnostic imports it directly (signal.periodogram,
+# stats.spearmanr / t / rankdata) -- same policy as ipywidgets and kaleido.
+scipy==1.18.0
+matplotlib==3.10.6
+plotly==6.3.0
+openpyxl==3.1.5
+pyarrow==22.0.0
+jupyter==1.1.1
+# Dashboard (Phase 6). ipywidgets arrives transitively via jupyter but is pinned
+# explicitly because the dashboard imports it directly.
+ipywidgets==8.1.8
+# kaleido 1.3.0, NOT 0.2.1: plotly 6.x dropped support for the v0 API, and
+# fig.write_image() hangs indefinitely against 0.2.1 rather than erroring. v1 drives a
+# headless Chrome instead of a bundled binary.
+kaleido==1.3.0
+pytest==8.4.2

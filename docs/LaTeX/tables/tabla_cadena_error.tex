@@ -1,0 +1,13 @@
+\begin{tabular}{>{\centering\arraybackslash}p{1.4cm}>{\raggedright\arraybackslash}p{2.4cm}>{\centering\arraybackslash}p{1.6cm}>{\centering\arraybackslash}p{1.6cm}>{\centering\arraybackslash}p{1.3cm}>{\centering\arraybackslash}p{1.3cm}>{\centering\arraybackslash}p{1.6cm}>{\centering\arraybackslash}p{1.5cm}>{\centering\arraybackslash}p{1.7cm}}
+\toprule
+\rowcolor{naranja}
+\textbf{Partición} & \textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{MAPE (\%)} & \textbf{R²} & \textbf{Delta MAE} & \textbf{Delta MAE (\%)} & \textbf{Cuota del hueco (\%)} \\
+\midrule
+\rowcolor{filaclara} test & lstm\_\allowbreak{}alone & 280.952 & 431.714 & 6,62 & 0,8948 & 0 & 0,0 & 0,0 \\
+test & hybrid & 234.223 & 328.131 & 5,49 & 0,9392 & -46.729 & -16,6 & 37,4 \\
+\rowcolor{filaclara} test & xgboost\_\allowbreak{}alone & 156.121 & 234.154 & 3,30 & 0,9690 & -78.103 & -33,3 & 62,6 \\
+val & lstm\_\allowbreak{}alone & 411.142 & 655.479 & 11,81 & 0,8023 & 0 & 0,0 & 0,0 \\
+\rowcolor{filaclara} val & hybrid & 280.738 & 415.562 & 7,09 & 0,9205 & -130.405 & -31,7 & 78,4 \\
+val & xgboost\_\allowbreak{}alone & 244.843 & 355.027 & 5,68 & 0,9420 & -35.895 & -12,8 & 21,6 \\
+\bottomrule
+\end{tabular}
