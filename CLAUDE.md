@@ -2,7 +2,7 @@
 
 Technical context for Claude Code. Not an end-user README.
 
-Project root: `C:\MisCosas\Universidad\TFM`. Python 3.13.5 via `.\venv\Scripts\python.exe`
+Project root: `C:\MisCosas\Universidad\TFM-HISTORICO`. Python 3.13.5 via `.\venv\Scripts\python.exe`
 (or `.\venv\Scripts\Activate.ps1`). Pins in `requirements.txt`. Tests: `python -m pytest`.
 LaTeX: `latexmk -pdf -interaction=nonstopmode -halt-on-error TFT.tex` from `docs/LaTeX/`.
 

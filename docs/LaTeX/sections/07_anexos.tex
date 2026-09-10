@@ -66,8 +66,8 @@ prohibición de meteorología del mismo día que se documenta y verifica en el A
 
 El detalle de variable individual está en los cuadros de top-15 variables por ganancia de
 cada modelo XGBoost del capítulo \ref{cap:resultados}, y la lista nominal completa de las
-161 columnas la genera \texttt{build\_features.py}, consultable en el repositorio del
-proyecto.
+161 columnas la genera \texttt{src/features/build\_features.py}, consultable en el
+repositorio del proyecto.
 \end{sloppypar}
 
 \chapter{Suite de tests y garantías anti-fuga}\label{cap:anexo2}
@@ -78,51 +78,32 @@ una contribución metodológica válida— solo se sostiene si el pipeline que l
 está libre de los errores de fuga de información que sistemáticamente producen
 resultados optimistas y no reproducibles en la literatura de predicción de series
 temporales. Este anexo documenta la arquitectura de verificación que respalda esa
-afirmación: \textbf{470 tests}, ejecutables en su totalidad con
+afirmación: \textbf{470 tests}, recolectados y ejecutados con
 \texttt{python -m pytest} desde la raíz del repositorio con el entorno
 \texttt{.\textbackslash venv\textbackslash Scripts\textbackslash python.exe} activado,
 de los cuales 257 se acumulan a lo largo de las fases de modelado (0 a 6b, cuadro
-\ref{tab:cronograma_fases}), 56 se añaden durante la redacción de la memoria
-(\texttt{test\_memoria\_figures.py} y \texttt{test\_export\_latex\_tables.py}, para
-auditar la capa de presentación y no el pipeline de modelado en sí, incluidas tres
-pruebas de regresión sobre defectos de figura detectados en la revisión final), 58
-corresponden a la
-fase diagnóstica de la anatomía del residuo de la etapa 1 (sección
-\ref{sec:anatomia_residuo_etapa1}): \texttt{test\_stage1\_residual\_anatomy.py} y
-\texttt{test\_learning\_curve.py}, 34 a la fase diagnóstica de paridad
-informativa y ablación de bloques (sección \ref{sec:paridad_informativa}):
-\texttt{test\_feature\_block\_ablation.py} y \texttt{test\_lstm\_parity\_control.py}, y los
-40 a la fase diagnóstica de desglose por subgrupos y periodos (sección
-\ref{sec:desglose_subgrupos}): \texttt{test\_subgroup\_breakdown.py} junto con las
-ampliaciones de las dos suites de la capa de presentación. Los 17 restantes
-corresponden a la auditoría global de la memoria
-(\texttt{test\_prose\_claims\_match\_artifacts.py}): fijan contra su artefacto de origen
-cada cifra de alta relevancia citada en la prosa (métricas de test, tamaños de partición,
-recuentos de filas y variables) junto con la lista completa de ficheros en que cada una
-debe aparecer, de modo que una cifra no pueda quedar obsoleta en un capítulo mientras se
-actualiza en otro. Los 8 restantes corresponden al cuaderno principal de flujo y al
-defecto que su desarrollo destapó. Cinco están en
-\texttt{test\_flujo\_notebook.py}: comprueban el informe de
-integridad de la ingesta, que la verificación del cuaderno contra
-\texttt{full\_comparison.parquet} pasa cuando debe, que \emph{levanta} cuando una métrica
-se perturba —distinguiendo además una diferencia de entorno de ejecución de un cambio
-real del \emph{pipeline}—, que el cuaderno se ejecuta de principio a fin sin errores de
-celda, y que el fichero versionado conserva sus salidas. Las tres restantes se añaden a
-\texttt{test\_features.py} y fijan las dos guardias anti-fuga del ensamblado, que hasta
-esta pasada eran \textbf{inalcanzables}: comparaban el bloque de variables contra el
-nombre \emph{desnudo} de la columna (\texttt{metro},
-\texttt{temperature\_2m\_mean}), que \texttt{feature\_columns()} descarta por
-construcción al filtrar por prefijo, de modo que la lista de infractoras nunca podía
-tener elementos. Ninguna fuga llegó a producirse —la protección real es estructural: los
-constructores solo emiten formas retardadas y móviles—, pero una comprobación que promete
-una garantía que no puede dar es peor que no tenerla, porque el siguiente lector la da por
-buena. Ahora comparan contra el nombre \emph{prefijado}, que es lo que produciría una
-regresión de constructor, y las tres pruebas las disparan. Las
-pruebas \texttt{test\_phase7\_adds\_no\_model\_to\_the\_master\_comparison},
-\texttt{test\_phase8\_adds\_no\_model\_to\_the\_master\_comparison} y
-\texttt{test\_phase9\_adds\_no\_model\_to\_the\_master\_comparison} fijan mecánicamente
-que las tres fases, puramente explicativas, no introducen ningún modelo nuevo en la tabla
-maestra de comparación ni escriben artefacto alguno bajo \texttt{models/}.
+\ref{tab:cronograma_fases}) y el resto se añaden durante la redacción de la memoria:
+auditan la capa de presentación (figuras y cuadros), las tres fases diagnósticas de las
+secciones \ref{sec:anatomia_residuo_etapa1}, \ref{sec:paridad_informativa} y
+\ref{sec:desglose_subgrupos}, el cuaderno principal de flujo, y la coherencia interna del
+propio documento: \texttt{test\_prose\_claims\_match\_artifacts.py} fija contra su
+artefacto de origen cada cifra de alta relevancia citada en la prosa —métricas de test,
+tamaños de partición, recuentos de filas y variables— junto con la lista completa de
+ficheros en que cada una debe aparecer, de modo que una cifra no pueda quedar obsoleta en
+un capítulo mientras se actualiza en otro. Tres pruebas más fijan mecánicamente que las
+tres fases diagnósticas, puramente explicativas, no introducen ningún modelo nuevo en la
+tabla maestra de comparación ni escriben artefacto alguno bajo \texttt{models/}.
+
+Una incidencia de la última revisión merece registro porque ilustra el modo de fallo que
+esta suite existe para evitar. Las dos guardias anti-fuga del ensamblado eran
+\textbf{inalcanzables}: comparaban el bloque de variables contra el nombre \emph{desnudo}
+de la columna (\texttt{metro}, \texttt{temperature\_2m\_mean}), que
+\texttt{feature\_columns()} descarta por construcción al filtrar por prefijo, de modo que
+la lista de infractoras nunca podía tener elementos. Ninguna fuga llegó a producirse —la
+protección real es estructural: los constructores solo emiten formas retardadas y
+móviles—, pero una comprobación que promete una garantía que no puede dar es peor que no
+tenerla, porque el siguiente lector la da por buena. Ahora comparan contra el nombre
+\emph{prefijado}, que es lo que produciría una regresión de constructor, y disparan.
 
 La suite no se limita a comprobar que el código se ejecuta sin excepciones: una parte
 sustancial de ella está diseñada específicamente para hacer fallar el pipeline si se
@@ -131,78 +112,68 @@ anti-fuga, listadas de la más general a la más específica del dominio de este
 
 \begin{enumerate}
   \item \textbf{Desplazamiento previo estricto en todo retardo o estadístico móvil.}
-    Cualquier media o desviación típica móvil derivada de \texttt{total} o de un
-    operador debe aplicar \texttt{shift(1)} \emph{antes} de la ventana de agregación
-    (\texttt{s.shift(1).rolling(w).mean()}, nunca \texttt{s.rolling(w).mean().shift(1)}
-    como corrección a posteriori ni una ventana sin desplazar en ningún punto del
-    código), de forma que ninguna fila conozca su propio valor futuro dentro de su
-    propia estadística. Verificado en \texttt{tests/\allowbreak{}test\_features.py}, con una
-    pequeña salvedad documentada: para una ventana \emph{trailing}, desplazar antes o
-    después de la ventana produce resultados matemáticamente idénticos, y la regla se
-    exige de todas formas por su corrección estructural, no porque la alternativa
-    produjera en este caso un resultado numéricamente distinto.
+    Toda media o desviación típica móvil derivada de \texttt{total} o de un operador
+    aplica \texttt{shift(1)} \emph{antes} de la ventana
+    (\texttt{s.shift(1).rolling(w).mean()}, nunca la corrección a posteriori ni una
+    ventana sin desplazar), de forma que ninguna fila conozca su propio valor dentro de
+    su propia estadística. Verificado en \texttt{tests/\allowbreak{}test\_features.py},
+    con una salvedad documentada: para una ventana \emph{trailing} ambos órdenes son
+    matemáticamente idénticos, y la regla se exige por corrección estructural.
   \item \textbf{Particiones siempre cronológicas, nunca aleatorias.} Ninguna partición
-    de entrenamiento, validación o test se genera mediante barajado; todas se derivan
-    de la única función \texttt{src.utils.splits.chronological\_split}, con sus
-    fronteras fijadas por
-    \texttt{test\_split\_\allowbreak{}boundaries\_\allowbreak{}are\_\allowbreak{}exact\_\allowbreak{}and\_\allowbreak{}stable} en
-    \texttt{tests/\allowbreak{}test\_splits.py}, incluyendo la protección explícita contra el error
-    de redondeo de punto flotante que un \texttt{int()} ingenuo introduciría en el
-    cálculo del 70\,\% de 1.310 filas.
+    se genera mediante barajado; todas derivan de la única función
+    \texttt{src.utils.splits.chronological\_split}, con sus fronteras fijadas por
+    \texttt{test\_split\_\allowbreak{}boundaries\_\allowbreak{}are\_\allowbreak{}exact\_\allowbreak{}and\_\allowbreak{}stable}
+    en \texttt{tests/\allowbreak{}test\_splits.py}, incluida la protección contra el error
+    de redondeo que un \texttt{int()} ingenuo introduciría al calcular el 70\,\% de
+    1.310 filas.
   \item \textbf{Escalado ajustado exclusivamente sobre entrenamiento.} Todo
-    \texttt{MinMaxScaler} de la etapa LSTM se ajusta (\texttt{fit}) únicamente sobre
-    los datos de entrenamiento de su propio fold y se aplica (\texttt{transform}) sin
-    reajuste sobre validación y test, nunca mediante un \texttt{fit\_transform} sobre
-    el conjunto completo; verificado en \texttt{tests/\allowbreak{}test\_lstm.py}.
+    \texttt{MinMaxScaler} de la etapa LSTM se ajusta (\texttt{fit}) solo sobre el
+    entrenamiento de su propio fold y se aplica (\texttt{transform}) sin reajuste sobre
+    validación y test, nunca mediante un \texttt{fit\_transform} sobre el conjunto
+    completo; verificado en \texttt{tests/\allowbreak{}test\_lstm.py}.
   \item \textbf{Prohibición de ingeniería de características global antes de la
-    partición}, salvo la única excepción sancionada y justificada explícitamente: los
-    términos de Fourier son una función determinista de la fecha, no una estadística
-    estimada a partir de la variable objetivo, por lo que calcularlos sobre la serie
-    completa es matemáticamente idéntico a calcularlos por partición; propiedad fijada
-    por
+    partición}, salvo la única excepción sancionada: los términos de Fourier son una
+    función determinista de la fecha, no una estadística estimada a partir del objetivo,
+    de modo que calcularlos sobre la serie completa equivale a calcularlos por partición;
+    fijado por
     \texttt{test\_fourier\_\allowbreak{}is\_\allowbreak{}deterministic\_\allowbreak{}and\_\allowbreak{}split\_\allowbreak{}invariant}.
   \item \textbf{Predicciones de la etapa 1 siempre fuera de muestra (\emph{out-of-fold})
-    para alimentar la etapa 2.} Ningún residuo que entrena el modelo XGBoost de la
-    etapa 2 procede de una predicción \emph{in-sample} de la LSTM; el esquema
+    para alimentar la etapa 2.} Ningún residuo que entrena el XGBoost de la etapa 2
+    procede de una predicción \emph{in-sample} de la LSTM; el esquema
     \emph{walk-forward} expansivo de 5 folds y la exclusión documentada del fold 1
-    degenerado están verificados en \texttt{tests/\allowbreak{}test\_lstm.py} y
-    \texttt{tests/\allowbreak{}test\_hybrid\_residual.py}. Esta es la decisión de diseño que el
-    documento de contexto técnico del proyecto fija por escrito como no negociable,
-    con anterioridad a la obtención de cualquier resultado.
+    degenerado se verifican en \texttt{tests/\allowbreak{}test\_lstm.py} y
+    \texttt{tests/\allowbreak{}test\_hybrid\_residual.py}. Es la decisión de diseño fijada
+    por escrito como no negociable con anterioridad a cualquier resultado.
   \item \textbf{Guardia de fuga \emph{same-day} sobre la suma de operadores.} Puesto
     que \texttt{metro + emt + carretera + cercanias == total} de forma exacta, un
-    operador del mismo día no es una variable predictiva sino el objetivo mismo
-    expresado de otra forma; \texttt{lag\_features.\_assert\_no\_same\_day\_leakage}
-    hace fallar la construcción de características si alguno de los cuatro operadores
-    apareciera sin retardo en la matriz de salida, comprobación reforzada sobre la
-    matriz ya ensamblada y no solo sobre cada módulo por separado.
+    operador del mismo día no es variable predictiva sino el objetivo expresado de otra
+    forma; \texttt{lag\_features.\_assert\_no\_same\_day\_leakage} hace fallar la
+    construcción si alguno apareciera sin retardo, comprobado sobre la matriz ensamblada
+    y no solo módulo a módulo.
   \item \textbf{Guardia de fuga \emph{same-day} sobre meteorología.} Ninguna de las 21
-    variables meteorológicas del día que se predice entra en la matriz de
-    características; solo sus versiones retardadas (1, 2, 3, 7 días y media móvil de 7)
-    lo hacen, verificado por \texttt{weather\_features.\_assert\_no\_same\_day\_weather}
-    con el mismo criterio de doble comprobación, módulo individual y matriz
-    ensamblada, que la guardia de operadores.
+    variables meteorológicas del día predicho entra en la matriz; solo sus versiones
+    retardadas (1, 2, 3, 7 días y media móvil de 7), verificado por
+    \texttt{weather\_features.\_assert\_no\_same\_day\_weather} con el mismo criterio de
+    doble comprobación que la guardia de operadores.
   \item \textbf{El modelo de control \texttt{xgboost\_alone} entrena sobre las 889
-    filas completas de entrenamiento, no sobre las 552 del conjunto residual.} Puesto
-    que este modelo no depende de los folds \emph{out-of-fold} de la LSTM, limitar sus
-    datos de entrenamiento por una razón ajena a su propio diseño penalizaría
-    artificialmente al control frente al híbrido; fijado por
+    filas completas de entrenamiento, no sobre las 552 del conjunto residual.} No
+    depende de los folds \emph{out-of-fold} de la LSTM, y limitar sus datos por una
+    razón ajena a su diseño penalizaría artificialmente al control frente al híbrido;
+    fijado por
     \texttt{test\_xgboost\_\allowbreak{}alone\_\allowbreak{}trains\_\allowbreak{}on\_\allowbreak{}the\_\allowbreak{}full\_\allowbreak{}889\_\allowbreak{}row\_\allowbreak{}split}.
   \item \textbf{El veredicto del experimento A de sensibilidad se evalúa en código, no
     a ojo.} El criterio pre-registrado de la sección \ref{sec:experimento_a} (mejora en
     días irregulares \emph{y} coste global acotado al 5\,\%) se calcula mediante
-    \texttt{evaluate\_criterion\_a} y no mediante una lectura subjetiva de una tabla,
-    de forma que el veredicto ``NO CUMPLIDO'' no pueda derivar hacia una lectura más
-    favorable a posteriori; verificado en \texttt{tests/\allowbreak{}test\_sensitivity\_analysis.py}.
+    \texttt{evaluate\_criterion\_a}, de forma que el veredicto ``NO CUMPLIDO'' no pueda
+    derivar a posteriori hacia una lectura más favorable; verificado en
+    \texttt{tests/\allowbreak{}test\_sensitivity\_analysis.py}.
   \item \textbf{El tema visual institucional es un objeto compartido, no una paleta
-    duplicada.} El dashboard interactivo y la exportación estática de figuras importan
-    literalmente el mismo objeto \texttt{VIU\_TEMPLATE}, no dos definiciones
-    equivalentes que pudieran divergir silenciosamente con el tiempo; verificado por
-    \texttt{test\_interactive\_\allowbreak{}and\_\allowbreak{}static\_\allowbreak{}paths\_\allowbreak{}share\_\allowbreak{}one\_\allowbreak{}template\_\allowbreak{}object} en
-    \texttt{tests/\allowbreak{}test\_theme.py}. No es una regla anti-fuga de datos en sentido
-    estricto, pero cumple el mismo papel de garantía estructural para la capa de
-    presentación de resultados que las nueve reglas anteriores cumplen para el
-    pipeline de modelado.
+    duplicada.} El cuadro de mando interactivo y la exportación estática importan
+    literalmente el mismo objeto \texttt{VIU\_TEMPLATE}, no dos definiciones que
+    pudieran divergir en silencio; verificado por
+    \texttt{test\_interactive\_\allowbreak{}and\_\allowbreak{}static\_\allowbreak{}paths\_\allowbreak{}share\_\allowbreak{}one\_\allowbreak{}template\_\allowbreak{}object}
+    en \texttt{tests/\allowbreak{}test\_theme.py}. No es anti-fuga en sentido estricto,
+    pero cumple para la capa de presentación el mismo papel de garantía estructural.
 \end{enumerate}
 
 Cada una de estas diez comprobaciones incluye, además de su verificación sobre datos
@@ -224,10 +195,12 @@ entorno implícita en la memoria de quien ejecutó el pipeline originalmente.
 \textbf{Repositorio.} Todo el código de este trabajo ---ingesta, ingeniería de
 características, modelos, evaluación, cuadernos y las fuentes \LaTeX{} de esta
 memoria--- es de acceso público en \url{https://github.com/AdayCuestaCorrea/TFM}. Las
-menciones a ``el repositorio'' en este anexo y en el Anexo \ref{cap:anexo2} se refieren
-siempre a esa dirección. Los datos de partida no se redistribuyen desde allí por ser de
-terceros: proceden de las fuentes abiertas identificadas en el cuadro
-\ref{tab:fuentes_datos}, con las convenciones de lectura que allí se detallan.
+menciones a ``el repositorio'' en los anexos de esta memoria se refieren
+siempre a esa dirección. Los datos de partida no se versionan allí: proceden de tres
+fuentes abiertas cuyo origen, formato y convenciones de lectura detalla el cuadro
+\ref{tab:fuentes_datos}, y hay que descargarlos y colocarlos sin renombrar en
+\texttt{data/\allowbreak{}raw/} antes del primer comando de la secuencia siguiente, que
+es el único punto del pipeline que los lee.
 
 \textbf{Entorno de ejecución.} Python 3.13.5, en un entorno virtual dedicado
 (\texttt{./\allowbreak{}venv}), con todas las dependencias fijadas por versión exacta, nunca por
@@ -248,19 +221,20 @@ exportar figuras bajo \texttt{plotly} 6.x ---un fallo silencioso, más costoso d
 diagnosticar que un error de instalación.
 
 \textbf{Fijación de semillas aleatorias.} La semilla global \texttt{GLOBAL\_SEED = 42} se
-define una sola vez, en \texttt{src/\allowbreak{}utils/\allowbreak{}seed.py}, y desde ahí se aplica a
-\texttt{random}, \texttt{numpy} y \texttt{tensorflow} en todo punto de entrada que
-entrena; ningún módulo de \texttt{src/\allowbreak{}models/} la redefine localmente, porque un
-segundo literal \texttt{42} en otro lugar es la forma más discreta de que dos ejecuciones
-dejen de ser comparables sin que nada lo advierta. Además de sembrar los generadores,
-\texttt{set\_global\_seed} exige a TensorFlow núcleos deterministas
-(\texttt{TF\_\allowbreak{}DETERMINISTIC\_\allowbreak{}OPS=1} y
+define una sola vez, en \texttt{src/\allowbreak{}utils/\allowbreak{}seed.py}, y desde ahí se
+aplica a \texttt{random}, \texttt{numpy} y \texttt{tensorflow} en todo punto de entrada
+que entrena; ningún módulo de \texttt{src/\allowbreak{}models/} la redefine localmente.
+Además de sembrar los generadores, \texttt{set\_global\_seed} exige a TensorFlow núcleos
+deterministas (\texttt{TF\_\allowbreak{}DETERMINISTIC\_\allowbreak{}OPS=1} y
 \texttt{tf.config.\allowbreak{}experimental.\allowbreak{}enable\_\allowbreak{}op\_\allowbreak{}determinism()}):
-sembrar por sí solo no garantiza resultados bit a bit idénticos si el motor de cómputo
-conserva reducciones no deterministas, y es la reproducibilidad bit a bit, no una
-aproximada, la que este trabajo se fijó como convención.
+sembrar por sí solo no garantiza resultados bit a bit idénticos si el motor conserva
+reducciones no deterministas, y es la reproducibilidad bit a bit la que este trabajo se
+fijó como convención.
 
-\textbf{Comandos de reproducción de principio a fin.} Ejecutados en este orden desde la
+\textbf{Comandos de reproducción de principio a fin.} Partiendo de un clon del
+repositorio, el entorno se crea con \texttt{python -m venv venv} y se puebla con
+\texttt{pip install -r requirements.txt}.
+Ejecutados después en este orden desde la
 raíz del repositorio, con el entorno virtual activado
 (\texttt{.\allowbreak{}\textbackslash{}venv\allowbreak{}\textbackslash{}Scripts%
 \allowbreak{}\textbackslash{}Activate.ps1} en PowerShell), regeneran de forma
@@ -275,63 +249,57 @@ repredecir ningún modelo más allá de lo que cada paso indica explícitamente:
     variables en \texttt{data/\allowbreak{}processed/\allowbreak{}features\_daily.parquet}.
   \item \texttt{python -m src.models.baselines.run\_baselines} — baselines y SARIMAX
     seleccionado por AIC (~6 min, dominados por la rejilla de búsqueda).
-  \item \texttt{python -m src.models.lstm.window\_comparison} — compara las ventanas
-    $W \in \{14, 28, 60\}$ sobre validación y persiste
+  \item \texttt{python -m src.models.lstm.window\_comparison} — ventanas
+    $W \in \{14, 28, 60\}$ sobre validación;
     \texttt{lstm\_window\_comparison.parquet} (tabla \ref{tab:ventana_lstm}).
-  \item \texttt{python -m src.models.lstm.oof} — \emph{walk-forward} expansivo de 5 folds;
-    escribe \texttt{lstm\_oof\_predictions.parquet} y \texttt{lstm\_oof\_fold\_log.parquet}
-    (sección \ref{sec:esquema_oof}).
+  \item \texttt{python -m src.models.lstm.oof} — \emph{walk-forward} expansivo de 5 folds
+    (sección \ref{sec:esquema_oof}); \texttt{lstm\_oof\_predictions.parquet} y
+    \texttt{lstm\_oof\_fold\_log.parquet}.
   \item \texttt{python -m src.models.lstm.final\_model} — etapa 1 final sobre las 889
     filas; \texttt{lstm\_val\_test\_predictions.parquet} y
-    \texttt{lstm\_stage1\_final.keras}.
+    \texttt{models/\allowbreak{}lstm\_stage1\_final.keras}.
   \item \texttt{python -m src.models.hybrid\_residual.xgboost\_residual} — etapa 2 sobre
     el conjunto residual de 552 filas.
   \item \texttt{python -m src.models.hybrid\_residual.xgboost\_alone} — modelo de control
     sobre las 889 filas de entrenamiento.
   \item \texttt{python -m src.models.hybrid\_residual.combine} — combina las etapas 1 y 2
     en la predicción híbrida final.
+  \item \texttt{python -m src.evaluation.full\_comparison} — tabla maestra de comparación;
+    \texttt{full\_comparison.parquet}, contra la que se verifican la ablación de bloques y
+    el cuaderno principal de flujo.
   \item \texttt{python -m src.models.hybrid\_residual.xgboost\_residual\_weighted} —
-    experimento A (sección \ref{sec:experimento_a}): etapa 2 con peso triple en los días
-    de calendario irregular.
+    experimento A (sección \ref{sec:experimento_a}): peso triple en días de calendario
+    irregular.
   \item \texttt{python -m src.evaluation.ensemble\_baseline} — experimento B (sección
     \ref{sec:mecanismo_ensemble}): ensamble SARIMAX + XGBoost-alone, sin reentrenamiento.
-  \item \texttt{python -m src.evaluation.sensitivity\_report} — consolida ambos en
-    \texttt{sensitivity\_comparison.parquet} y evalúa en código el criterio
-    pre-registrado del experimento A.
-  \item \texttt{python -m src.evaluation.lstm\_learning\_curve} — diagnóstico de la
-    sección \ref{sec:anatomia_residuo_etapa1}: 20 ajustes de la etapa 1 (6 fracciones x 3
-    semillas, más las semillas 3 y 4 en la fracción 1,00, base del control de paridad de
-    la sección \ref{sec:paridad_lstm}), solo validación;
-    \texttt{lstm\_learning\_curve.parquet}. No persiste ningún modelo.
+  \item \texttt{python -m src.evaluation.sensitivity\_report} — consolida ambos y evalúa
+    en código el criterio pre-registrado del experimento A;
+    \texttt{sensitivity\_comparison.parquet}.
+  \item \texttt{python -m src.evaluation.lstm\_learning\_curve} — sección
+    \ref{sec:anatomia_residuo_etapa1}: 20 ajustes de la etapa 1 (6 fracciones x 3
+    semillas, más las semillas 3 y 4 en la fracción 1,00, base del control de la sección
+    \ref{sec:paridad_lstm}), solo validación; \texttt{lstm\_learning\_curve.parquet}.
   \item \texttt{python -m src.evaluation.stage1\_residual\_anatomy} — tablas de la
-    anatomía del residuo y veredictos de los cuatro criterios pre-registrados. No
-    reentrena nada.
-  \item \texttt{python -m src.evaluation.feature\_block\_ablation} — diagnóstico de la
-    sección \ref{sec:paridad_informativa}: \texttt{xgboost\_alone} sobre cuatro
-    subconjuntos de variables; \texttt{feature\_block\_ablation.parquet}. No persiste
-    ningún modelo.
-  \item \texttt{python -m src.evaluation.subgroup\_breakdown} — diagnóstico de la sección
+    anatomía del residuo y veredictos de los cuatro criterios pre-registrados.
+  \item \texttt{python -m src.evaluation.feature\_block\_ablation} — sección
+    \ref{sec:paridad_informativa}: \texttt{xgboost\_alone} sobre cuatro subconjuntos de
+    variables; \texttt{feature\_block\_ablation.parquet}.
+  \item \texttt{python -m src.evaluation.subgroup\_breakdown} — sección
     \ref{sec:desglose_subgrupos}: reanálisis por quince subgrupos pre-registrados, con
     \emph{bootstrap} de bloques móviles y corrección Benjamini-Hochberg;
-    \texttt{subgroup\_breakdown.parquet} y \texttt{subgroup\_rolling\_mae.parquet}. No
-    reentrena ni persiste ningún modelo.
-  \item \texttt{python -m src.evaluation.lstm\_parity\_control} — diagnóstico de la
-    sección \ref{sec:paridad_lstm}: LSTM en paridad informativa, 10 ajustes (2 ámbitos x 5
-    semillas), solo validación; \texttt{lstm\_parity\_control.parquet}. No persiste ningún
-    modelo.
+    \texttt{subgroup\_breakdown.parquet} y \texttt{subgroup\_rolling\_mae.parquet}.
+  \item \texttt{python -m src.evaluation.lstm\_parity\_control} — sección
+    \ref{sec:paridad_lstm}: LSTM en paridad informativa, 10 ajustes (2 ámbitos x 5
+    semillas), solo validación; \texttt{lstm\_parity\_control.parquet}.
   \item \texttt{python -m src.evaluation.export\_figures} — exporta las 34 figuras
-    estáticas de \texttt{reports/\allowbreak{}figures/}, como proceso secuencial independiente de
-    cualquier kernel de Jupyter.
+    estáticas de \texttt{reports/\allowbreak{}figures/}, fuera de todo kernel de Jupyter.
   \item \texttt{python -m src.evaluation.export\_latex\_tables} — vuelca las 32 tablas
     LaTeX de \texttt{docs/\allowbreak{}LaTeX/\allowbreak{}tables/}.
   \item \texttt{jupyter nbconvert -{}-to notebook -{}-execute -{}-inplace
     notebooks/\allowbreak{}07\_flujo\_completo.ipynb} — ejecuta el cuaderno principal de
-    flujo (aproximadamente 40 segundos), que recorre las seis etapas del trabajo
-    recomputando en vivo la ingesta, las variables, la partición, los baselines, el
-    SARIMAX y los dos modelos XGBoost, y \textbf{contrasta cada métrica recomputada
-    contra el valor publicado} en \texttt{full\_comparison.parquet}: si alguna se desvía
-    más de $10^{-6}$ en términos relativos, el cuaderno levanta una excepción y la
-    ejecución falla. No escribe ningún artefacto.
+    flujo (~40 s) y \textbf{contrasta cada métrica recomputada contra el valor publicado}
+    en \texttt{full\_comparison.parquet}: si alguna se desvía más de $10^{-6}$ en términos
+    relativos, levanta una excepción.
   \item \texttt{python -m pytest} — ejecuta la suite completa de 470 tests (descrita
     en el Anexo \ref{cap:anexo2}).
   \item \texttt{latexmk -pdf -interaction=nonstopmode -halt-on-error TFT.tex}, ejecutado
@@ -345,8 +313,9 @@ repredecir ningún modelo más allá de lo que cada paso indica explícitamente:
 una vez ejecutados los pasos anteriores y presenta, sobre los artefactos ya persistidos,
 los cinco elementos de visualización comprometidos en la propuesta inicial del trabajo:
 demanda real, demanda predicha, comparación entre modelos, error de predicción e
-importancia de variables del modelo XGBoost. El cuaderno lee exclusivamente de
-\texttt{data/\allowbreak{}processed/} y no entrena ni predice nada; la exportación de las figuras
+importancia de variables del modelo XGBoost. El cuaderno lee de
+\texttt{data/\allowbreak{}processed/} y de los modelos ya entrenados de
+\texttt{models/}, y no entrena ni predice nada; la exportación de las figuras
 estáticas de esta memoria se realiza aparte, mediante
 \texttt{export\_figures}, fuera de todo kernel de Jupyter.
 
@@ -354,34 +323,27 @@ estáticas de esta memoria se realiza aparte, mediante
 \texttt{notebooks/\allowbreak{}07\_flujo\_completo.ipynb} recorre el trabajo completo en las
 seis etapas del ciclo —carga y comprobación de datos, preparación de variables, partición
 temporal, ejecución de los modelos principales, comparación de resultados y gráficos
-finales—, importando en todos los casos de \texttt{src/} sin duplicar lógica. Se distingue
-del cuadro de mando anterior en propósito y en método: aquel visualiza artefactos ya
-persistidos de forma interactiva; este \textbf{reejecuta el pipeline}. Recomputa en vivo la
-ingesta y sus validaciones de integridad, la matriz de 161 variables, la partición
-cronológica, los cuatro baselines, el SARIMAX —del que solo se carga el orden
-$(2,1,2)\times(0,1,2,7)$ ya seleccionado por AIC, pues es la búsqueda en rejilla, y no el
-ajuste, lo que consume los seis minutos del paso 3— y los dos modelos XGBoost. La etapa 1
-LSTM es el único modelo que se carga de artefacto, y por una razón metodológica y no de
-coste: la etapa 2 debe corregir los residuos del mismo modelo de etapa 1 que produjo los
-resultados aquí reportados, de modo que reentrenar la red calcularía los residuos contra un
-modelo distinto del que documenta esta memoria. El cuaderno se versiona \emph{con sus
-salidas guardadas}, de forma que pueda leerse sin ejecutarlo, y no escribe nada en
-\texttt{data/} ni en \texttt{models/}.
+finales—, importando de \texttt{src/} sin duplicar lógica. Se distingue del cuadro de mando
+anterior en propósito y en método: aquel visualiza artefactos ya persistidos; este
+\textbf{reejecuta el pipeline}, recomputando en vivo la ingesta y sus validaciones, la
+matriz de 161 variables, la partición cronológica, los cuatro baselines, el SARIMAX —del
+que solo se carga el orden $(2,1,2)\times(0,1,2,7)$ ya seleccionado por AIC— y los dos
+modelos XGBoost. La etapa 1 LSTM es el único modelo que se carga de artefacto, por una
+razón metodológica y no de coste: la etapa 2 debe corregir los residuos del mismo modelo
+que produjo los resultados aquí reportados, y reentrenar la red los calcularía contra un
+modelo distinto del que documenta esta memoria. Se versiona \emph{con sus salidas
+guardadas}, de forma que pueda leerse sin ejecutarlo, y no escribe nada en \texttt{data/}
+ni en \texttt{models/}.
 
 \textbf{Identidad visual institucional.} El color naranja empleado en la memoria es una
-\textbf{aproximación} visual documentada del color corporativo de la universidad, no el
-valor Pantone o hexadecimal oficial ---no disponible durante el desarrollo de este
-proyecto---, y se codifica de forma literal en \textbf{exactamente dos puntos}, uno por
-cada capa del proyecto y sin ningún tercero: la capa de figuras Python lo define una sola
-vez en \texttt{VIU\_COLORS[\textquotedbl{}primary\textquotedbl{}] = \textquotedbl{}\#E8590C\textquotedbl{}}
-(\texttt{src/\allowbreak{}evaluation/\allowbreak{}theme.py}), de donde lo heredan las 31
-figuras estáticas; y la capa LaTeX lo define una sola vez en \texttt{preamble.tex}
-(\texttt{\textbackslash{}definecolor} de las macros \texttt{naranja} y \texttt{slcolor}),
-de donde lo heredan los títulos de capítulo y las cabeceras de las 29 tablas volcadas por
-\texttt{export\_latex\_tables.py} mediante \texttt{\textbackslash{}rowcolor\{naranja\}}.
-Sustituir el color por el valor oficial en cuanto esté disponible es, por diseño, un
-cambio de dos líneas ---una por capa--- que se propaga automáticamente a todas las
-figuras y tablas de esta memoria sin tocar ningún otro fichero del proyecto.
+\textbf{aproximación} documentada del color corporativo de la universidad, no el valor
+oficial ---no disponible durante el desarrollo del proyecto---, y se codifica literalmente
+en \textbf{exactamente dos puntos}, uno por capa: la capa de figuras en
+\texttt{VIU\_COLORS[\textquotedbl{}primary\textquotedbl{}] = \textquotedbl{}\#E8590C\textquotedbl{}}
+(\texttt{src/\allowbreak{}evaluation/\allowbreak{}theme.py}) y la capa \LaTeX{} en
+\texttt{docs/\allowbreak{}LaTeX/\allowbreak{}preamble.tex} (\texttt{\textbackslash{}definecolor} de \texttt{naranja} y
+\texttt{slcolor}). Sustituirlo por el valor oficial es, por diseño, un cambio de dos
+líneas que se propaga a todas las figuras y cuadros sin tocar ningún otro fichero.
 \end{sloppypar}
 
 \chapter{Declaración de uso de inteligencia artificial generativa}\label{cap:anexo4}

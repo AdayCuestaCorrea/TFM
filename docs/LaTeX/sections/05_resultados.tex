@@ -3,11 +3,9 @@
 Este capítulo es el núcleo empírico del TFM: presenta y discute los resultados de los
 once modelos descritos o derivados en el capítulo \ref{cap:metodologia}, evaluados sobre
 las particiones de validación y test definidas en la sección \ref{sec:particiones_fuga}.
-Toda cifra citada aquí procede directamente de \texttt{src/\allowbreak{}evaluation/\allowbreak{}metrics.py} a través
-de \texttt{report\_tables.py}; ninguna se teclea a mano, y cada tabla llega al documento
-mediante \texttt{\textbackslash input\{tables/\allowbreak{}...\}} desde el fichero que
-\texttt{export\_latex\_tables.py} genera a partir de los artefactos persistidos por las
-fases 3 a 5b. La respuesta al contraste central del TFM (\ref{sec:contraste_central}) se
+Ninguna cifra se teclea a mano: todas llegan al documento desde los artefactos
+persistidos por las fases 3 a 5b, por la cadena que detalla el Anexo \ref{cap:anexo3}.
+La respuesta al contraste central del TFM (\ref{sec:contraste_central}) se
 somete a tres controles diagnósticos independientes: la anatomía del residuo de la etapa 1
 (\ref{sec:anatomia_residuo_etapa1}), la paridad informativa entre etapas
 (\ref{sec:paridad_informativa}) y el desglose por subgrupos y periodos con corrección por
@@ -84,17 +82,14 @@ diagnóstico de sobreajuste y no como un resultado más de la tabla maestra.
 
 La figura \ref{fig:demand_actual_vs_predicted_test} muestra la serie real de demanda
 total superpuesta a la predicción del modelo ganador, \texttt{ensemble\_equal}, sobre la
-partición de test; la de validación reproduce el mismo patrón. El ajuste visual confirma lo que las
-tablas de la sección anterior ya cuantificaban: la predicción sigue de cerca tanto la
-oscilación semanal (el diente de sierra laborable/fin de semana identificado en la
+partición de test; la de validación reproduce el mismo patrón. La predicción sigue de
+cerca tanto la oscilación semanal (el diente de sierra laborable/fin de semana de la
 sección \ref{sec:eda}) como las transiciones asociadas a festivos aislados, sin el retraso
-de fase que delataría un modelo que en realidad estuviera prediciendo el valor del día
-anterior en lugar del día en curso. Las mayores desviaciones puntuales, visibles como
-picos aislados entre la serie real y la predicha, se concentran en los días de calendario
-irregular, festivos y puentes, cuyo comportamiento cuantitativo se desglosa con detalle en
-la sección \ref{sec:error_dia}; el resto de la serie, que constituye la inmensa mayoría de
-las observaciones, se sigue con una fidelidad que resulta coherente con el MAPE de test
-del 3,13\,\% reportado en la tabla \ref{tab:comparacion_test}.
+de fase que delataría un modelo que en realidad predijera el valor del día anterior. Las
+mayores desviaciones puntuales se concentran en los días de calendario irregular, festivos
+y puentes, desglosados en la sección \ref{sec:error_dia}; el resto de la serie se sigue
+con una fidelidad coherente con el MAPE de test del 3,13\,\% de la tabla
+\ref{tab:comparacion_test}.
 
 \begin{figure}[htbp]
   \centering

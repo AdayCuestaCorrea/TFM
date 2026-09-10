@@ -164,6 +164,19 @@
 % cross-referencing hooks (titlesec, caption, etc.).
 \usepackage[hidelinks]{hyperref}
 
+% \url por defecto solo rompe tras '/', y ni siquiera eso basta para una direccion metida
+% en una columna p{} estrecha: en el cuadro 3.1 el tramo 'crtm-evolucion-demanda-diaria/'
+% se salia 47,1pt del margen derecho, que es la clase de defecto de la incidencia 12b --
+% TeX compone la celda sin protestar y los glifos sobrantes cruzan el margen en silencio,
+% con el contador de Overfull marcando cero. Se anaden los puntos de corte que faltan a
+% \UrlBreaks (del paquete url, que hyperref ya carga: sin dependencia nueva) y se permite
+% que el espaciado interno de la URL estire un poco. No se inserta ningun guion: los cortes
+% caen en caracteres que ya estan en la direccion, de modo que copiarla sigue funcionando.
+\makeatletter
+\g@addto@macro\UrlBreaks{\do\-\do\.\do\:}
+\makeatother
+\Urlmuskip=0mu plus 1mu\relax
+
 % Long code identifiers (test_phase9_adds_no_model_to_the_master_comparison,
 % feat_is_bridge_day) are single unbreakable words that push past the right margin when
 % they fall at the end of a prose line. The generated tables already break them at the

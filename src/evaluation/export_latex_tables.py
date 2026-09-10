@@ -104,6 +104,7 @@ def dataframe_to_tabular(
     df: pd.DataFrame,
     decimals: dict[str, int] | None = None,
     column_spec: str | None = None,
+    url_columns: set[str] | None = None,
 ) -> str:
     """Render `df` as a bare booktabs `tabular` with an orange header row.
 
@@ -114,12 +115,19 @@ def dataframe_to_tabular(
             or plain `escape_latex` if not.
         column_spec: Explicit LaTeX column spec (e.g. 'lrrr'). Defaults to 'l' for
             object/string columns and 'r' for numeric columns, inferred per column.
+        url_columns: Columns whose cells hold a bare URL. They are wrapped in `\\url{}`
+            and NOT passed through `escape_latex`: hyperref's `\\url` is verbatim-like, so
+            escaping first would print the escape sequences literally, and its own break
+            points after `/` and `-` are what let a long address wrap inside a `p{}`
+            column. The DataFrame keeps the plain URL, so the value stays checkable
+            against the live address without stripping markup.
 
     Returns:
         The full `\\begin{tabular}...\\end{tabular}` block as a string, ending with a
         newline, ready to be written directly to a `.tex` file.
     """
     decimals = decimals or {}
+    url_columns = url_columns or set()
 
     if column_spec is None:
         column_spec = "".join(
@@ -142,7 +150,9 @@ def dataframe_to_tabular(
         cells = []
         for col in df.columns:
             value = row[col]
-            if pd.api.types.is_bool_dtype(type(value)) or isinstance(value, bool):
+            if col in url_columns:
+                cells.append(rf"\url{{{value}}}")
+            elif pd.api.types.is_bool_dtype(type(value)) or isinstance(value, bool):
                 cells.append("Sí" if value else "No")
             elif pd.api.types.is_numeric_dtype(df[col]):
                 cells.append(format_number(value, decimals.get(col, 0)))
@@ -171,11 +181,14 @@ def write_table(
     filename: str,
     decimals: dict[str, int] | None = None,
     column_spec: str | None = None,
+    url_columns: set[str] | None = None,
 ) -> Path:
     """Render and write one table to `docs/LaTeX/tables/<filename>`."""
     TABLES_DIR.mkdir(parents=True, exist_ok=True)
     path = TABLES_DIR / filename
-    path.write_text(dataframe_to_tabular(df, decimals, column_spec), encoding="utf-8")
+    path.write_text(
+        dataframe_to_tabular(df, decimals, column_spec, url_columns), encoding="utf-8"
+    )
     return path
 
 
@@ -320,22 +333,38 @@ def build_comparativa_estado_arte() -> pd.DataFrame:
 
 
 def build_fuentes_datos() -> pd.DataFrame:
-    """Static inventory of the three raw sources (CLAUDE.md Data Inventory)."""
+    """Static inventory of the three raw sources (CLAUDE.md Data Inventory).
+
+    `Origen` carries the page that actually serves each file. It exists because the
+    reproduction sequence of Annex C cannot run without these three files and the
+    repository does not redistribute them (`data/` is gitignored and was never versioned),
+    so without an address the very first step is unreachable. The column states where the
+    data comes from and nothing more: no licence or redistribution claim is made here or
+    in the annex, because the terms were not established and asserting them would be worse
+    than omitting them.
+
+    Landing pages, not direct download links: the file-level URLs carry a resource id that
+    the portals rotate, whereas the dataset page survives it and is one click away from the
+    download.
+    """
     rows = [
         {
             "Fichero": "CRTM_Evolucion_demanda_diaria.xlsx",
             "Contenido": "Demanda diaria por operador (metro, EMT, carretera, cercanías) y total",
             "Formato": "Excel, hoja 'diaria', cabecera en fila 2",
+            "Origen": "https://datos.crtm.es/documents/crtm::crtm-evolucion-demanda-diaria/about",
         },
         {
             "Fichero": "open-meteo-40.39N3.68W666m.csv",
             "Contenido": "22 variables meteorológicas diarias (temperatura, precipitación, viento, presión, radiación)",
             "Formato": "CSV, cabecera real en línea 4",
+            "Origen": "https://open-meteo.com/en/docs/historical-weather-api",
         },
         {
             "Fichero": "300082-1-calendario_laboral-csv.csv",
             "Contenido": "Día de la semana, tipo de día (laborable/sábado/domingo/festivo) y festividad",
             "Formato": "CSV separado por ';', UTF-8 con BOM",
+            "Origen": "https://datos.madrid.es/dataset/300082-0-calendario_laboral",
         },
     ]
     return pd.DataFrame(rows)
@@ -866,11 +895,19 @@ def export_all() -> list[Path]:
     emit(
         build_fuentes_datos(),
         "tabla_fuentes_datos.tex",
+        # Four columns now, same 14.5cm declared total as the three-column version: the
+        # \resizebox at the \input site scales the declared width, so keeping the total
+        # fixed keeps the effective font size where it was. Origen gets 3.6cm because the
+        # widest unbreakable run in the three addresses is a host name ('datos.crtm.es' --
+        # \url breaks after '/' and '-' but not after '.'), and a p{} narrower than its
+        # widest token overflows silently past the margin (incidencia 12b).
         column_spec=(
-            r">{\raggedright\arraybackslash}p{4.4cm}"
-            r">{\raggedright\arraybackslash}p{6.6cm}"
             r">{\raggedright\arraybackslash}p{3.5cm}"
+            r">{\raggedright\arraybackslash}p{4.6cm}"
+            r">{\raggedright\arraybackslash}p{2.8cm}"
+            r">{\raggedright\arraybackslash}p{3.6cm}"
         ),
+        url_columns={"Origen"},
     )
     emit(
         build_esquema_unificado(),

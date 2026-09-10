@@ -141,43 +141,31 @@ con la que se responden en la sección \ref{sec:respuesta_preguntas}:
 
 \section{Planificación temporal, cronograma y ciclo de vida}\label{sec:planificacion}
 
-El ciclo de vida seguido por este proyecto es, con honestidad, una reconstrucción
-documentada del proceso realmente ejecutado y no un cronograma planificado a priori con
-fechas de calendario: el documento de contexto técnico del proyecto, versionado y
-mantenido a lo largo de todo el desarrollo, no registra fechas absolutas por fase, sino
-el cierre
-sucesivo de cada una de ellas verificado por una suite de tests que crece de forma
-monótona. El patrón de trabajo responde, en esencia, al ciclo clásico de descubrimiento
-de conocimiento en bases de datos (KDD) —selección de los datos, integración de las
-fuentes, limpieza y preparación, transformación en variables predictoras, modelado,
-evaluación e interpretación, y despliegue—, pero aplicado de forma \textbf{incremental y
-verificada}: ninguna fase se dio por cerrada
-sin que su suite de tests correspondiente pasara en verde, y ninguna fase posterior
-reabrió una decisión de diseño de una fase anterior sin dejar constancia explícita del
-motivo.
+El ciclo de vida seguido es una reconstrucción documentada del proceso realmente ejecutado
+y no un cronograma planificado a priori: el registro técnico del proyecto no anota fechas
+absolutas por fase, sino el cierre sucesivo de cada una verificado por una suite de tests
+que crece de forma monótona. El patrón responde al ciclo clásico de descubrimiento de
+conocimiento en bases de datos (KDD) —selección, integración, limpieza, transformación en
+variables predictoras, modelado, evaluación y despliegue—, aplicado de forma
+\textbf{incremental y verificada}: ninguna fase se dio por cerrada sin su suite en verde,
+y ninguna posterior reabrió una decisión anterior sin dejar constancia del motivo.
 
-La figura \ref{fig:gantt_fases} y el cuadro \ref{tab:cronograma_fases}
-documentan esta secuencia de fases con su eje temporal deliberadamente
-relativo (de la Fase 0 a las Fases 7-11) y no en fechas de calendario, en
-coherencia con la naturaleza de reconstrucción documentada del proceso y no de
-planificación prospectiva. La última etapa de ese ciclo, el \emph{despliegue}, se
-materializa en el cuadro de mando interactivo construido en la Fase 6, que reúne los
-cinco elementos de visualización comprometidos en la propuesta inicial: demanda real,
-demanda predicha, comparación entre modelos, error de predicción e importancia de
-variables del modelo XGBoost; el Anexo \ref{cap:anexo3} documenta cómo ejecutarlo.
+La figura \ref{fig:gantt_fases} y el cuadro \ref{tab:cronograma_fases} documentan la
+secuencia con eje temporal deliberadamente relativo (Fase 0 a Fases 7-11), en coherencia
+con esa naturaleza reconstructiva. La última etapa del ciclo, el \emph{despliegue}, se
+materializa en el cuadro de mando de la Fase 6, que reúne los cinco elementos de
+visualización comprometidos en la propuesta inicial —demanda real, demanda predicha,
+comparación entre modelos, error de predicción e importancia de variables—; el Anexo
+\ref{cap:anexo3} documenta cómo ejecutarlo.
 
-Tres bloques agrupan las once fases del proyecto. El primero, de preparación de datos
-(Fases 0-2), cubre el andamiaje inicial del repositorio, la ingestión y unificación de
-las tres fuentes crudas, y la ingeniería de la matriz de 161 variables predictoras. El
-segundo, de modelado (Fases 3-5b), concentra el grueso del trabajo experimental de este
-TFM: el establecimiento de los baselines estadísticos, el entrenamiento de la etapa 1
-LSTM bajo el esquema \emph{out-of-fold}, la construcción y evaluación de la arquitectura
-híbrida residual, y los dos experimentos de sensibilidad acotados que cierran la
-exploración empírica. El tercero, de explotación y documentación (Fases 6-11), traduce
-los artefactos numéricos generados por el bloque anterior en un panel interactivo de
-resultados, un refinamiento visual bajo una identidad gráfica coherente, y finalmente
-esta misma memoria, modularizada capítulo por capítulo y trazada de principio a fin en
-\texttt{docs/\allowbreak{}LaTeX/\allowbreak{}REPORT\_MAPPING.md}.
+Tres bloques agrupan las once fases. La \textbf{preparación de datos} (Fases 0-2) cubre el
+andamiaje del repositorio, la ingestión y unificación de las tres fuentes crudas y la
+ingeniería de la matriz de 161 variables. El \textbf{modelado} (Fases 3-5b) concentra el
+grueso del trabajo experimental: baselines estadísticos, etapa 1 LSTM bajo esquema
+\emph{out-of-fold}, arquitectura híbrida residual y los dos experimentos de sensibilidad
+acotados. La \textbf{explotación y documentación} (Fases 6-11) traduce esos artefactos en
+el panel interactivo, su refinamiento visual y esta misma memoria, trazada de principio a
+fin en \texttt{docs/\allowbreak{}LaTeX/\allowbreak{}REPORT\_MAPPING.md}.
 
 \begin{figure}[htbp]
   \centering
@@ -231,12 +219,9 @@ esta misma memoria, modularizada capítulo por capítulo y trazada de principio 
 
 \begin{sloppypar}
 La columna de tests acumulados del cuadro \ref{tab:cronograma_fases} congela su recuento
-en el cierre de la Fase 6b (257 pruebas), el último hito de modelado antes de que
-comenzara la redacción de la memoria; las Fases 8 y 9 de esa redacción añaden, a su
-vez, sus propias suites de verificación (\texttt{test\_memoria\_figures.py} y
-\texttt{test\_export\_latex\_tables.py}) que auditan la propia capa de presentación y no
-el pipeline de modelado, y que se documentan de forma separada en el anexo
-\ref{cap:anexo2}.
+en el cierre de la Fase 6b (257 pruebas), último hito de modelado antes de la redacción;
+las suites que esta añade auditan la capa de presentación y no el pipeline, y se
+documentan por separado en el Anexo \ref{cap:anexo2}.
 \end{sloppypar}
 
 \section{Estructura del documento}\label{sec:estructura_documento}
@@ -248,5 +233,5 @@ características (OE1). El segundo formaliza el diseño experimental de OE2 a OE
 \ref{cap:metodologia}). El tercero evalúa y concluye (capítulos \ref{cap:resultados} y
 \ref{cap:conclusiones}). Cierran la memoria el catálogo de variables (\ref{cap:anexo1}),
 la suite de tests (\ref{cap:anexo2}), la reproducibilidad del entorno
-(\ref{cap:anexo3}) y la declaración de uso de inteligencia artificial generativa
-(\ref{cap:anexo4}).
+(\ref{cap:anexo3}), la declaración de uso de inteligencia artificial generativa
+(\ref{cap:anexo4}) y los cuadros diagnósticos extendidos (\ref{cap:anexo5}).

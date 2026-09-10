@@ -13,6 +13,7 @@ exportadas" prose claim that passed by accident on a boundary rule). So
 is right.
 """
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -108,24 +109,41 @@ def test_notebook_executes_clean():
 
     Executed into a temporary output so the committed notebook keeps the outputs it was
     published with; nbconvert is invoked without --inplace for exactly that reason.
+
+    Two invocation details are load-bearing and must not be "tidied" back:
+
+    1. `-m nbconvert`, NOT `-m jupyter nbconvert`. The `jupyter` dispatcher does not import
+       nbconvert -- it SPAWNS the `jupyter-nbconvert` console script, whose Windows stub
+       embeds an absolute interpreter path fixed at install time. Rename the project
+       directory and that stub points at an interpreter that no longer exists, so it exits
+       1 with both streams empty and the failure is unreadable. The module entry point runs
+       in the interpreter already running pytest, with no PATH or stub dependency.
+    2. `PYTHONPATH` pinned to ROOT. nbconvert starts the kernel with cwd = notebooks/, where
+       `src` is not importable, so resolution falls through to whatever an editable install
+       recorded -- which after a directory rename can be a stale copy of the tree. Pinning
+       PYTHONPATH makes the test resolve `src` to THIS repository unconditionally.
     """
     assert NOTEBOOK.exists(), f"missing {NOTEBOOK}"
 
     result = subprocess.run(
         [
-            sys.executable, "-m", "jupyter", "nbconvert",
+            sys.executable, "-m", "nbconvert",
             "--to", "notebook", "--execute",
             "--ExecutePreprocessor.timeout=900",
             "--output-dir", str(ROOT / "reports" / ".nbconvert_check"),
             str(NOTEBOOK),
         ],
         cwd=ROOT,
+        env={**os.environ, "PYTHONPATH": str(ROOT)},
         capture_output=True,
         text=True,
     )
+    # Both streams: a launcher that dies before nbconvert starts writes to neither, and a
+    # failure message quoting only stderr would then say nothing at all.
     assert result.returncode == 0, (
-        "el cuaderno no se ejecuto limpio:\n"
-        f"{result.stderr[-4000:]}"
+        "el cuaderno no se ejecuto limpio "
+        f"(codigo {result.returncode}):\n"
+        f"{(result.stdout + result.stderr)[-4000:]}"
     )
 
 

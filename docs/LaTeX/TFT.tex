@@ -64,15 +64,16 @@
 % tocdepth=1 deja fuera las entradas \paragraph* de 5.10.2, que engordaban el indice general
 % sin ser puntos de navegacion reales; con ellas fuera, el indice general se mantiene dentro
 % de las "2 carillas" que indica la normativa (TFM_Docu_OLIVAS_VIU_26, "Preliminares").
-% Los indices de figuras y de cuadros se conservan: la normativa los da por opcionales, pero
-% un documento con 68 floats los necesita para navegar, y no computan contra el limite de
-% extension, que se mide sobre el cuerpo.
+% Los indices de figuras y de cuadros se retiran. La normativa los da por opcionales ("tambien
+% se puede incluir ... indices de imagenes, figuras y tablas") y el indice general, que si es
+% obligatorio, no lo son. Entre los tres suman 4.158 palabras compuestas -- 1.282 el general,
+% 1.431 el de figuras, 1.445 el de cuadros -- y bajo la lectura literal del limite de 30.000
+% ("el texto completo, incluido anexos") computan sin ser prosa de autor. Retirarlos recupera
+% 2.876 palabras sin coste de contenido; la navegacion la sostienen el indice general y los
+% \ref cruzados. Si direccion fija una convencion de recuento que excluya el aparato de
+% indices, esto se revierte restaurando las cuatro lineas.
 \setcounter{tocdepth}{1}
 \tableofcontents
-\addcontentsline{toc}{chapter}{\listfigurename}
-\addcontentsline{toc}{chapter}{\listtablename}
-\listoffigures
-\listoftables
 
 \input{sections/00_preliminares}
 

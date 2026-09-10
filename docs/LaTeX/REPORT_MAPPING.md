@@ -773,6 +773,245 @@ cosméticas y sin efecto en el contenido.
     infracciones de margen** y todos los bloqueantes en OK salvo el recuento de palabras,
     en espera de direccion.
 
+18. **Reduccion de extension bajo la lectura literal del limite de 30.000 (tramos 0 y 1).**
+    Ejecutada bajo el supuesto de que rige la convencion **C1** (todo lo compuesto, sin el
+    pie repetido). **Deroga parcialmente la incidencia 17i**, que decia «no se ha recortado
+    nada»: ya no es cierto. La consulta de `docs/CONSULTA_DIRECCION.md` sigue sin respuesta;
+    lo que sigue es reversible y no prejuzga la decision.
+
+    **Tramo 0 — material no autoral.** Los 4.158 de indices se midieron pagina a pagina:
+    indice general 1.282, de figuras 1.431, de cuadros 1.445. Los dos ultimos son
+    opcionales para la guia y se retiran de `TFT.tex` (`\listoffigures`, `\listoftables` y
+    sus dos `\addcontentsline`); el general se conserva, es obligatorio. **-2.884.** La
+    bibliografia (434) se **reporta y no se toca**: excluirla es reinterpretar el criterio,
+    que es justo lo que esta pendiente de direccion.
+
+    **Tramo 1 — redundancia, sin perder ningun hallazgo.** Anexo B, desglose mecanico de
+    tests por fichero (**-286**, conservando 470 y 257 y el hallazgo de las guardias
+    inalcanzables de la incidencia 16, que pasa a parrafo propio); Anexo C, glosas de la
+    lista de 22 comandos y de los parrafos de cuaderno de flujo, semillas e identidad
+    visual (**-227**); §2.4, los cinco ejes narrados uno a uno que ya tabula el Cuadro 2.1
+    (**-172**, intactos el *research gap* y la lectura de Granger; **corregido de paso un
+    contador obsoleto**: «de un total de 310» -> 470); §6.1 y dos parrafos de §6.2
+    (**-479**, intactos §6.4, §6.5 y **los dos parrafos de veredicto ambiguo de §6.2**, que
+    son objeciones metodologicas de §5.9 y §5.10); §1.3, narracion de proceso (**-225**);
+    cabecera del cap. 5 y §5.2, que duplicaban el Anexo C (**-66**).
+
+    **Resultado medido.** C1 **40.278 -> 36.164** (**-4.114**); cuerpo **76 -> 73 paginas**;
+    C4 **31.068 -> 29.822** y C5 **29.286 -> 28.284**, ambas ahora **por debajo de 30.000**.
+    `pytest` **469/470**, `latexmk` **96 paginas**, 0 errores, 0 referencias indefinidas,
+    `audit_guia_docente.py --strict` con **todos los bloqueantes en OK**.
+
+    **Fallo preexistente, no causado por esta pasada:**
+    `test_flujo_notebook.py::test_notebook_executes_clean`. `jupyter nbconvert` termina con
+    codigo 1 **sin escribir nada en stdout ni stderr** y en ~2,6 s, cuando la ejecucion
+    completa cuesta ~40 s: muere antes de abrir el kernel. Verificado con `git stash`:
+    falla identicamente sobre el commit `6bfd86d` sin modificar. Es una averia del entorno
+    Jupyter, no del cuaderno ni de la memoria.
+
+    **Tramo 2 no ejecutado, y por que.** Quedan **6.164** palabras hasta 30.000 y ya no hay
+    de donde sacarlas sin tocar contenido aprobado. La medicion decisiva: retirando *ademas*
+    la bibliografia, los tres indices y **el interior de los 32 cuadros y los pies de las 34
+    figuras** —vaciar el documento de todo lo que no es prosa de autor— el recuento se
+    quedaria igualmente en **32.350**. No existe combinacion de recortes no autorales que
+    llegue a 30.000: el resto tiene que salir de §5.9, §5.10 y §5.11 (6.379 palabras), que
+    responden a las seis peticiones explicitas de direccion. Se detiene aqui y se pregunta.
+
+19. **Auditoria de los anexos contra el arbol publicado.** Los anexos se habian escrito
+    antes del repositorio publico, del cuaderno 07, de los anexos D y E y de la pasada de
+    reduccion de la incidencia 18. Se auditaron los 22 pasos del Anexo C, cada ruta,
+    modulo e identificador citado en A, B y C, y los recuentos, contra el arbol real. No se
+    reentrena nada; `models/` y `data/processed/` quedan sin tocar.
+
+    a. **El Anexo C no generaba `full_comparison.parquet`.** La secuencia nunca ejecutaba
+       `python -m src.evaluation.full_comparison`, **unico** escritor de ese artefacto
+       (`full_comparison.py:352`), y dos pasos posteriores lo leen: la ablacion de bloques
+       (`feature_block_ablation.py:143`) y el cuaderno 07 via `load_published`, cuyo propio
+       mensaje de error **nombra el comando que el anexo omitia**. Un lector siguiendo el
+       anexo en orden se paraba en la ablacion. Insertado como paso 10, tras `combine`
+       —sus dependencias son baselines, hibrido, `xgboost_alone.joblib` y features, todas
+       presentes en ese punto; no depende de los ensambles—.
+
+    b. **Los datos de partida eran inobtenibles.** El anexo remitia a «las fuentes abiertas
+       identificadas en el cuadro 3.1», y el cuadro 3.1 tenia tres columnas —Fichero,
+       Contenido, Formato— que **no identificaban ninguna fuente**. No habia una sola URL de
+       datos en `sections/*.tex` ni entrada en el `.bib` para CRTM, Open-Meteo ni el
+       calendario. Con `data/` en `.gitignore` y nunca versionado, el paso 1 era irrealizable
+       desde un clon. Anadida una cuarta columna `Origen` en `build_fuentes_datos`, con las
+       tres direcciones **verificadas por peticion real (HTTP 200, sin redireccion)** antes
+       de escribirlas, y reescrita la frase del anexo para decir donde colocar los ficheros.
+       Se usan paginas de conjunto de datos y no enlaces directos: el id de recurso rota, la
+       pagina no. **No se afirma licencia ni condicion de redistribucion en ningun punto**:
+       los terminos no se establecieron, y afirmarlos seria peor que omitirlos.
+
+    c. **No habia paso de instalacion.** El anexo presuponia `venv` activado y citaba
+       `requirements.txt` como catalogo de pines sin decir nunca que se instalara. Anadida
+       la frase de `python -m venv venv` + `pip install -r requirements.txt`.
+
+    d. **`\url` no rompe donde hacia falta, y el contador de Overfull volvio a no verlo.**
+       Con las URL en una columna `p{}` de 3,6 cm, `crtm-evolucion-demanda-diaria/` se salia
+       **47,1pt** del margen derecho y `historical-weather-api` 6,7pt, con `Overfull` a cero:
+       la incidencia 12b otra vez, detectada solo por la medicion `pymupdf`. Corregido en
+       `preamble.tex` anadiendo `-`, `.` y `:` a `\UrlBreaks` (del paquete `url`, que
+       hyperref ya carga: sin dependencia nueva) mas `\Urlmuskip`. Regla de documento
+       completo, no parche de celda, y no inserta ningun guion.
+
+    e. **El Anexo E no se nombraba en ninguna parte.** `cap:anexo5` aparecia **una sola vez
+       en todo `sections/`: su propio `\label`**. La enumeracion de anexos de §1.5 se
+       detenia en el D. Anadido alli (unica edicion del cuerpo de esta pasada, +5 palabras,
+       sin delta de paginas).
+
+    f. **Dos afirmaciones inexactas.** El cuaderno 06 no lee «exclusivamente de
+       `data/processed/`»: carga tambien `models/xgboost_{residual,alone}.joblib`
+       (`dashboard_data.py:38-39`). Y el alcance declarado de «el repositorio» cubria solo
+       los anexos B y C, dejando fuera la mencion del Anexo A, que ademas nombraba
+       `build_features.py` sin su ruta. Corregidas ambas. «470 tests, **ejecutables en su
+       totalidad**» pasa a «recolectados y ejecutados»: la frase no afirmaba que pasaran,
+       pero se leia asi, y `test_flujo_notebook.py::test_notebook_executes_clean` esta rojo
+       por la averia de entorno de la incidencia 18.
+
+    g. **La URL del repositorio no resuelve hoy.** `https://github.com/AdayCuestaCorrea/TFM`
+       devuelve **404** y la API de GitHub lista 9 repositorios publicos en esa cuenta,
+       ninguno llamado `TFM`. Es deliberado —privado de momento, con la direccion como
+       colaboradora, publico llegada la entrega—, de modo que **el texto no se toca**: sera
+       cierto en la defensa. Queda registrado como **puerta de salida previa a la entrega**,
+       porque mientras siga en 404 la frase «es de acceso publico en...» es falsa y es lo
+       primero que un tribunal comprueba.
+
+    **Verificado tambien, y correcto —no volver a auditarlo:** los 19 modulos `python -m`
+    del Anexo C existen todos en la ruta citada y en el indice de git; 470 tests
+    (`--collect-only`), 257 `TOTAL_TESTS_BEFORE_MEMORIA`, 34 PNG y 32 `tabla_*.tex`
+    coinciden con la prosa y con `PROSE_CLAIMS`; todos los identificadores citados en el
+    Anexo B existen; cero referencias en `sections/` a `docs/references/`,
+    `CONSULTA_DIRECCION*`, `CLAUDE.md` o al directorio antiguo; nada describe el
+    repositorio como privado o pendiente; la descripcion del cuaderno 07 (reparto
+    recomputa/carga, salvaguarda a `rtol=1e-6`, versionado con salidas) es exacta.
+
+20. **Resuelta la averia de entorno de la incidencia 18: dos defectos, ambos del renombrado
+    del directorio, ninguno del cuaderno.** `test_notebook_executes_clean` volvia rojo
+    (469/470) saliendo con codigo 1 en ~2,6 s **sin escribir nada en stdout ni stderr**. La
+    causa no era Jupyter: era que el directorio de trabajo paso de `TFM` a `TFM-HISTORICO`
+    mientras un `TFM` distinto seguia en disco. Ningun modelo se reentrena; el cuaderno **no
+    se re-ejecuta ni se modifica**, y `models/` y `data/processed/` quedan sin tocar.
+
+    a. **La salida silenciosa: un `.exe` de consola con el interprete cableado.** El test
+       invocaba `-m jupyter nbconvert`. El despachador de `jupyter_core` **no importa**
+       nbconvert: **lanza** `venv\Scripts\jupyter-nbconvert.exe`, y esos lanzadores de
+       Windows llevan grabada una ruta absoluta fijada al instalar —
+       `#!C:\MisCosas\Universidad\TFM\venv\Scripts\python.exe`, que ya no existe—. El
+       lanzador muere antes de nada y **no escribe en ninguna de las dos corrientes**, que
+       es exactamente el sintoma. Confirmado por contraste: el `.exe` da codigo 1 mudo
+       mientras `python -m nbconvert --version` da 0 y `7.17.1`. No es especifico de
+       nbconvert (`jupyter kernelspec list` calla igual); `jupyter --version` y `--paths`
+       funcionan porque `jupyter_core` los resuelve en proceso sin lanzar nada. **No era
+       una dependencia ausente ni un desajuste de version**: nbconvert 7.17.1, nbclient
+       0.11.0, nbformat 5.11.0, ipykernel 7.3.0, jupyter_client 8.9.1 y jupyter_core 5.9.1
+       estan instalados y son compatibles, y el kernelspec `python3` resuelve bien y
+       coincide con el declarado por el cuaderno.
+
+    b. **Enmascarado detras del anterior: la instalacion editable apuntaba al arbol viejo.**
+       Al saltarse el despachador aparece el fallo real, un `FileNotFoundError` sobre
+       `C:\MisCosas\Universidad\TFM\data\raw\CRTM_...xlsx`: el kernel importaba `src` del
+       **directorio hermano obsoleto**, porque el buscador de la instalacion editable
+       conservaba `MAPPING = {'src': 'C:\\MisCosas\\Universidad\\TFM\\src'}` de antes del
+       renombrado, y aquel arbol no tiene `data/`. El resto de la suite estaba verde porque
+       `pytest.ini` fija `pythonpath = .`, que precede al buscador editable en `sys.path`;
+       el kernel no tiene esa ayuda, porque nbconvert lo arranca con cwd en `notebooks/`,
+       donde `src` no esta.
+
+    c. **La correccion.** En `test_flujo_notebook.py`: punto de entrada de modulo
+       (`-m nbconvert`, sin despachador ni dependencia de PATH), `PYTHONPATH` fijado a la
+       raiz del repositorio —de modo que la prueba resuelve `src` a **este** arbol pase lo
+       que pase con cualquier instalacion editable— y el mensaje de fallo pasa a citar
+       `stdout + stderr` y el codigo de salida: con `stderr` a secas, el caso mudo no decia
+       **nada**, debilidad que este incidente destapo. Las tres decisiones quedan razonadas
+       en el docstring para que una pasada futura no las «ordene» de vuelta. Fuera del
+       codigo, `pip install -e . --no-deps` regenera el mapeo a `TFM-HISTORICO\src`
+       (`--no-deps` deliberado: **no toca ni un pin**, luego la justificacion de
+       TensorFlow/numpy queda intacta y `requirements.txt` no se modifica).
+
+    d. **Medido tras la correccion:** cuaderno en codigo 0 y 37,6 s, 26 celdas de codigo, 0
+       errores, 14 figuras Plotly, ninguna celda sin salida, y la salvaguarda declarando
+       `110/110 valores coinciden con full_comparison.parquet` con desviacion relativa
+       maxima `0.000e+00`. `python -m pytest` **470/470 sin omitidas** (el recuento no
+       cambia: no se anade ni se retira ninguna prueba, luego la lista de sincronizacion de
+       la incidencia 12g **no se dispara** y `test_prose_claims_match_artifacts` sigue en
+       17/17). Cero palabras de delta: no se edita ningun `.tex`.
+
+    e. **Los 60 lanzadores mudos, reparados sin tocar un solo pin.** El renombrado dejo
+       **60 de los 62** `.exe` de `venv\Scripts\` apuntando al interprete inexistente —no
+       solo los de Jupyter: tambien `pip.exe`, `pytest.exe`, `ipython.exe`,
+       `tensorboard.exe`—, todos fallando mudos. La suite era inmune (invoca siempre
+       `sys.executable -m ...`), pero un `pytest` tecleado en la terminal fallaba en
+       silencio, que es la trampa que costo la sesion de diagnostico entera.
+
+       **Metodo, y por que no `--force-reinstall`.** Un lanzador de Windows es
+       `[binario][#!<ruta>\n][zip]`, y el zip admite prefijo de longitud arbitraria (formato
+       autoextraible), de modo que la ruta se **reescribe in situ**. No descarga nada, no
+       reinstala ningun paquete y no ejecuta resolucion de dependencias: **es imposible que
+       mueva un pin**. `pip install --force-reinstall --no-deps <paquete>` sin `==version`
+       habria traido la **ultima** version de cada uno —justo lo que el pinado de
+       TensorFlow/numpy prohibe—, y con `==version` habria implicado redescargar
+       TensorFlow entero para reescribir seis lanzadores. Verificado despues: `kaleido`
+       1.3.0, `numpy` 2.2.6, `tensorflow` 2.20.0, `plotly` 6.3.0, `xgboost` 3.0.5,
+       `pandas` 2.3.3, `scikit-learn` 1.7.2 — sin mover. Copia de seguridad de `Scripts\`
+       antes de tocar nada. Los cuatro comandos exigidos devuelven 0 **con salida**:
+       `pytest --version`, `pip --version`, `jupyter --version` y —la que antes callaba—
+       `jupyter kernelspec list`.
+
+    f. **Tres dependencias mas de la ruta antigua, que no eran lanzadores.** El barrido
+       posterior desmintio la hipotesis de que solo los `.exe` estuviesen afectados:
+       `venv\Scripts\activate`, `activate.bat` y `activate.fish` fijaban `VIRTUAL_ENV` al
+       directorio inexistente (`Activate.ps1`, el que cita el documento de contexto, se
+       salvo porque deriva la ruta en tiempo de ejecucion). Corregidos igual, por
+       reescritura de texto. Se dejan a proposito dos residuos inertes: la linea
+       `command = ...` de `pyvenv.cfg`, que es el registro historico de como se creo el
+       entorno y no se lee en ejecucion, y el `co_filename` grabado en los `.pyc` de
+       `site-packages` (solo afecta a la ruta que muestra un traceback; se regeneran solos).
+       El bytecode obsoleto de `src/` y `tests/` si se purgo, porque hacia que los
+       tracebacks del proyecto citasen el arbol viejo. No queda ningun `.pth`, buscador
+       editable, configuracion de Jupyter, `kernel.json` (usa `python` relativo) ni ajuste
+       de VS Code apuntando a la ruta antigua.
+
+       **Pendiente, no corregido aqui:** `CLAUDE.md` sigue declarando
+       `Project root: C:\MisCosas\Universidad\TFM`. Es fichero versionado y de instrucciones
+       del proyecto, no entorno; se deja a decision expresa.
+
+    g. **El directorio `C:\MisCosas\Universidad\TFM` era el arbol publicado — renombrado, no
+       borrado.** No es un residuo del renombrado: es un clon de publicacion con **un solo
+       commit** (`094ebc6`, 09/09/2026 17:23, «TFM: Madrid public transport demand
+       forecasting (memoria + pipeline)»), arbol limpio, sin stashes ni ramas extra, y
+       `git ls-remote` confirma que **`refs/heads/main` de GitHub es exactamente ese
+       commit**. Los dos repositorios comparten remoto
+       (`https://github.com/AdayCuestaCorrea/TFM.git`); el `origin/main` local de
+       `TFM-HISTORICO` (`6bfd86d`) es una referencia de seguimiento **obsoleta**, y `094ebc6`
+       **no existe** en su base de objetos. Contenido: sus 172 ficheros son **identicos bit a
+       bit** a los de `HEAD` en `TFM-HISTORICO` (0 blobs distintos), que ademas tiene 5 mas,
+       excluidos de la publicacion a proposito (`docs/CONSULTA_DIRECCION.md`,
+       `docs/references/Summary.md`, `Images/image{4,5,6}.png`). **No contiene nada que no
+       este ya en `TFM-HISTORICO`**, pero es la unica copia local del commit publicado, de
+       modo que borrarlo perderia el vinculo local con la historia de GitHub —problema
+       distinto del que se estaba resolviendo—.
+
+       **Resuelto por renombrado:** pasa a `C:\MisCosas\Universidad\TFM-publicado`
+       (`Rename-Item`). Conserva intacto el objeto del commit publicado, hace inequivoco su
+       papel, elimina la confusion con el directorio de trabajo y **libera el nombre `TFM`**,
+       que la secuencia de exportacion necesita libre para volver a correr. Verificado tras
+       el renombrado: `HEAD` sigue en `094ebc6`, arbol limpio, `origin/main` intacto.
+
+    **Ensayo de clon limpio.** Clon real, `venv` nuevo, `pip install -r requirements.txt` y
+    los pasos 1 y 2 con los tres ficheros crudos copiados en `data/raw/`. Se clono el
+    **repositorio local**, no el publico, porque este sigue privado: es una prueba **mas
+    debil**, no detecta un fichero que exista en local y quede excluido del arbol publicado.
+    Repetir contra el clon publico cuando se publique.
+
+    **Estado:** `python -m pytest` -> **469/470** (unico fallo, el del cuaderno, incidencia
+    18); `latexmk` -> **96 paginas, cuerpo en 73**, 0 errores, 0 referencias/citas
+    indefinidas; `audit_guia_docente.py --strict` -> **0 infracciones de margen**, todos los
+    bloqueantes en OK. Recuento C1 **36.164 -> 36.255** (**+91**); C4 **29.944** y C5
+    **28.330**, ambas aun por debajo de 30.000 —C4 con solo 56 palabras de holgura, de modo
+    que cualquier adicion futura bajo esa convencion la rompe—.
+
 ---
 
 ## 6. Cómo regenerar todo desde cero
@@ -818,7 +1057,8 @@ persistidas) y los dos exportadores leen exclusivamente de
 
 La secuencia completa de reproducción desde datos crudos —ingestión, features,
 baselines, `lstm.window_comparison`, `lstm.oof`, `lstm.final_model`,
-`xgboost_residual`, `xgboost_alone`, `combine`, `xgboost_residual_weighted`,
+`xgboost_residual`, `xgboost_alone`, `combine`, `full_comparison`,
+`xgboost_residual_weighted`,
 `ensemble_baseline`, `sensitivity_report`, y luego los dos exportadores, el cuaderno
 principal de flujo, `pytest` y `latexmk`— está enumerada paso a paso en el Anexo C de la
 memoria (`sections/07_anexos.tex`).

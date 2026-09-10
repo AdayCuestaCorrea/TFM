@@ -233,68 +233,46 @@ empírico.
   \end{table}
 \end{landscape}
 
-En el eje \textbf{(a) ámbito y granularidad}, este TFM es, de los seis estudios de la
-tabla, el único que agrega la demanda diaria de los cuatro operadores del CRTM (Metro,
-EMT, carretera y Cercanías) en una única serie de sistema completo, frente a la
-granularidad de una sola línea de autobús en Monje et al. \cite{monje2022deep}, una red
-de metro tratada estación por estación en Cardozo et al. \cite{cardozo2012spatial}, o
-series completamente ajenas al transporte (manchas solares, población de linces, tipo de
-cambio) en el propio trabajo de Zhang \cite{zhang2003hybrid}. 
+Los cuatro primeros ejes se leen directamente en el cuadro y no se reproducen aquí uno a
+uno; conviene destacar de ellos lo que sitúa a este trabajo fuera del rango de los cinco
+estudios de referencia. En \textbf{ámbito} (a) es el único que agrega los cuatro
+operadores del CRTM en una serie de sistema completo, frente a una sola línea de autobús
+en Monje et al. \cite{monje2022deep}, a una red de metro estación por estación en Cardozo
+et al. \cite{cardozo2012spatial} o a series ajenas al transporte en Zhang
+\cite{zhang2003hybrid}. En \textbf{horizonte} (b), sus 1.310 días continuos (2023-2026)
+son íntegramente posteriores a la pandemia, a diferencia de los 26 meses prepandemia de
+Monje et al., cuya estructura de demanda quedó alterada de forma permanente en 2020-2021.
+En \textbf{matriz exógena} (c), ningún otro combina una base meteorológica físicamente
+retardada de 105 variables con una codificación de calendario que detecta 55 días puente;
+la meteorología del mismo día queda excluida para no asumir un pronóstico atmosférico
+perfecto en inferencia, decisión resuelta antes de entrenar ningún modelo. En
+\textbf{protocolo de validación} (d) es el único que combina partición cronológica de
+frontera única, esquema \emph{walk-forward out-of-fold} de 5 bloques expansivos para la
+etapa 1 y pronóstico SARIMAX \emph{walk-forward} de un paso sin reestimación, frente al
+holdout simple de Monje et al. o los residuos \emph{in-sample} de Zhang; las 257 pruebas
+que fijan las reglas anti-fuga del capítulo \ref{cap:datos_features} (de un total de 470,
+Anexo \ref{cap:anexo2}) no tienen equivalente declarado en ninguno de los cinco.
 
-En el eje \textbf{(b) horizonte temporal}, la serie de 1.310 días continuos (2023-2026), íntegramente
-posterior a la pandemia de COVID-19 y sin un solo hueco ni valor nulo, contrasta con
-horizontes bien más cortos y en algún caso anteriores a la pandemia (los 26 meses
-prepandemia de Monje et al.), cuya estructura de demanda, alterada de forma permanente
-por los cambios de movilidad de 2020-2021, no es directamente extrapolable al periodo
-que interesa a este proyecto.
+El eje decisivo es el \textbf{(e) aporte empírico}, porque es donde este TFM no reporta
+una mejora sino la auditoría deliberada de un fallo. A diferencia de Zhang, cuyo híbrido
+ARIMA-red neuronal supera a ambos componentes en las tres series que evalúa, la
+arquitectura híbrida LSTM-XGBoost de este proyecto \textbf{no} bate ni a SARIMAX ni a
+\texttt{xgboost\_alone} (capítulo \ref{cap:resultados}), y el modelo finalmente más
+preciso es un ensamble de esos mismos dos componentes de una sola etapa (MAE de test
+139.725 en su variante equiponderada 50/50 y 139.681 en la ponderada por el inverso del
+MAE). Leído a la luz de la condición de Granger desarrollada en la sección
+\ref{sec:arquitecturas_hibridas}, y no como una simple discrepancia frente a Zhang, ese
+contraste es en sí mismo la aportación: una auditoría con validación \emph{out-of-fold}
+estricta de las condiciones bajo las cuales la hibridación secuencial de un componente no
+lineal y uno exógeno \emph{no} mejora sobre sus partes, frente a aquellas bajo las cuales
+un ensamble paralelo de modelos con información parcialmente descorrelacionada sí lo hace.
 
-En el eje \textbf{(c) matriz exógena}, ningún otro estudio
-de la tabla combina una base meteorológica físicamente retardada de 105 variables con
-una codificación exhaustiva de calendario que incluye la detección automática de 55 días
-puente: Monje et
-al. se limitan a un indicador binario de festivo y al mes, Toqué et al. no especifican
-en la fuente disponible el tratamiento exógeno aplicado, y Zhang no emplea ninguna
-variable exógena en absoluto al modelar el residuo a partir de sus propios rezagos. La
-meteorología del mismo día queda explícitamente excluida para no asumir un pronóstico
-atmosférico perfecto en inferencia, decisión registrada de forma explícita como
-disyuntiva abierta en el registro de fases del proyecto y resuelta antes de entrenar
-ningún modelo.
-
-En el eje \textbf{(d) protocolo de validación}, este TFM es el único que combina una
-partición cronológica de frontera única con un esquema \emph{walk-forward}
-\emph{out-of-fold} de 5 bloques expansivos para las predicciones de la etapa 1 y un
-pronóstico SARIMAX igualmente \emph{walk-forward} de un solo paso sin reestimación,
-frente al holdout cronológico simple de una sola ejecución de Monje et al. o los
-residuos \emph{in-sample} del propio Zhang; las 257 pruebas automatizadas que fijan las
-reglas anti-fuga descritas en el capítulo \ref{cap:datos_features} (de un total de 310,
-Anexo \ref{cap:anexo2}) no tienen equivalente declarado en ninguno de los cinco estudios
-de referencia.
-
-En el eje \textbf{(e) aporte empírico}, este TFM no reporta una mejora sino una auditoría
-deliberada de un fallo. A diferencia de Zhang, cuyo híbrido ARIMA-red
-neuronal supera a ambos componentes en las tres series que evalúa, la arquitectura
-híbrida LSTM-XGBoost de este proyecto \textbf{no} bate ni a SARIMAX ni a
-\texttt{xgboost\_alone} (capítulo \ref{cap:resultados}), y el modelo finalmente más preciso
-es un ensamble de esos mismos dos componentes de una sola etapa (MAE de test 139.725 en su
-variante equiponderada 50/50 y 139.681 en la ponderada por el inverso del MAE). Leído a la
-luz de la condición de Granger desarrollada en
-la sección \ref{sec:arquitecturas_hibridas}, y no como una simple discrepancia de
-resultados frente a Zhang, este contraste es en sí mismo el aporte empírico de este
-TFM: una auditoría metodológicamente rigurosa, con validación \emph{out-of-fold}
-estricta, de las condiciones bajo las cuales la hibridación secuencial de un componente
-no lineal y uno exógeno \emph{no} mejora sobre sus partes, frente a las condiciones bajo
-las cuales un ensamble paralelo de modelos con información parcialmente descorrelacionada
-sí lo hace.
-
-Es precisamente esta ausencia de un antecedente directo que audite un
-resultado híbrido negativo bajo un protocolo de validación igualmente estricto, sobre una
-serie de demanda de transporte público real, agregada y multimodal, la que constituye el
-\emph{research gap} que este TFM ocupa: no la ausencia de arquitecturas híbridas en la
-literatura de predicción de demanda —que existen, y Zhang es su fundamento teórico—, sino
-la ausencia de una evaluación de cuándo y por qué esas arquitecturas fallan frente a
-alternativas más simples, evaluación que solo es posible con el rigor de validación que
-este capítulo ha argumentado como condición necesaria en la sección
-\ref{sec:modelado_series}.
+Es precisamente la ausencia de un antecedente directo que audite un resultado híbrido
+negativo bajo un protocolo igualmente estricto, sobre una serie de demanda de transporte
+público real, agregada y multimodal, la que constituye el \emph{research gap} que este TFM
+ocupa: no la ausencia de arquitecturas híbridas en la literatura —que existen, y Zhang es
+su fundamento teórico—, sino la ausencia de una evaluación de cuándo y por qué fallan
+frente a alternativas más simples.
 
 De ese hueco se derivan las hipótesis de trabajo, que esta memoria no formula aquí por
 segunda vez: están enunciadas como las cinco preguntas de investigación PI1--PI5 de la
