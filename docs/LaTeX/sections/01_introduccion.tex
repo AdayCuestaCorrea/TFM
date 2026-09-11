@@ -6,7 +6,7 @@ integra bajo un mismo marco tarifario y de gobernanza cuatro operadores de natur
 muy distinta: Metro de Madrid, la red de superficie de la Empresa Municipal de
 Transportes (EMT), las concesiones de autobús interurbano por carretera y los servicios
 de Cercanías operados por Renfe. Anticipar con precisión la demanda diaria agregada de
-este sistema no es un ejercicio académico: alimenta decisiones operativas reales de
+este sistema alimenta decisiones operativas de
 asignación de flota y personal, de dimensionamiento de frecuencias y de planificación
 de contingencia ante episodios de demanda anómala (festivos, puentes, eventos
 meteorológicos extremos), y lo hace con una urgencia particular en el periodo que cubre
@@ -28,33 +28,35 @@ propuesta formaliza esa combinación como un híbrido residual de dos etapas: un
 neuronal recurrente LSTM univariante en la primera etapa, que captura la dinámica
 temporal pura de la serie de demanda total, y un modelo XGBoost en la segunda etapa,
 que corrige el residuo $e_t = y_t - \hat y^{\text{LSTM}}_t$ a partir de una matriz de
-161 variables exógenas de calendario y meteorología retardada, de modo que
+161 variables predictoras —retardos y estadísticos móviles de la propia demanda,
+calendario y meteorología retardada—, de modo que
 $\hat y^{\text{final}} = \hat y^{\text{LSTM}} + \hat e^{\text{XGBoost}}$.
 
-Conviene adelantar aquí, con la misma honestidad con la que se presenta en el capítulo
+Conviene adelantar aquí, tal como se presenta en el capítulo
 \ref{cap:resultados}, el resultado central de este trabajo: la arquitectura híbrida,
 tal como queda diseñada e implementada, \textbf{no supera} a un modelo SARIMAX
-clásico ni a un XGBoost entrenado directamente sobre las mismas variables exógenas
+clásico ni a un XGBoost entrenado directamente sobre las mismas 161 variables predictoras
 (MAE de test 234.223 frente a 163.627 y 156.121, respectivamente), y el modelo más
 preciso de todo el estudio resulta ser un ensamble simple de esos mismos dos componentes
 de una sola etapa: 139.725 de MAE de test en su variante equiponderada 50/50 y 139.681 en
-su variante ponderada por el inverso del MAE. Este TFM no oculta ese resultado
-negativo tras la presentación de su motivación inicial; al contrario, lo convierte en
-el objeto de estudio central, auditado con el mismo rigor metodológico con el que se
-evaluaría un resultado positivo: validación estrictamente cronológica, protocolo
-\emph{out-of-fold} y comparación exhaustiva contra controles.
+su variante ponderada por el inverso del MAE. Este TFM convierte ese resultado
+negativo en el objeto de estudio central, auditado con el mismo rigor metodológico con el que se
+evaluaría un resultado positivo: validación estrictamente cronológica, protocolo de
+predicción fuera de muestra (\emph{out-of-fold}, OOF) y comparación exhaustiva contra
+controles.
 
 \section{Objetivo general y específicos}\label{sec:objetivos}
 
 El \textbf{objetivo general} de este TFM es evaluar, bajo un protocolo de validación
-estrictamente cronológico y libre de fuga de información, si una arquitectura híbrida
+estrictamente cronológico, con controles específicos contra las principales formas de
+fuga de información identificadas en el diseño experimental, si una arquitectura híbrida
 residual LSTM-XGBoost mejora la predicción de la demanda diaria agregada de transporte
-público en Madrid frente a baselines estadísticos consolidados y frente a modelos de
+público en Madrid frente a modelos de referencia (\emph{baselines}) estadísticos consolidados y frente a modelos de
 aprendizaje automático de una sola etapa entrenados sobre las mismas variables
-exógenas, empleando para ello datos reales del CRTM en el periodo 2023-2026.
+predictoras, empleando para ello datos reales del CRTM en el periodo 2023-2026.
 
 Este objetivo general se descompone en cinco objetivos específicos, cada uno de los
-cuales corresponde a una fase completa del pipeline desarrollado, aunque no todos se
+cuales corresponde a una fase completa del flujo de procesamiento (\emph{pipeline}) desarrollado, aunque no todos se
 verifican del mismo modo. Esos cinco objetivos consolidan los diez enunciados en la
 propuesta inicial del trabajo: las etapas instrumentales que allí figuraban por separado,
 el análisis exploratorio y el análisis de importancia de variables, se integran aquí
@@ -64,23 +66,24 @@ suprimido. OE2, OE4 y OE5 son objetivos \emph{comparativos} (enfrentan
 modelos entre sí) y quedan respondidos de forma directa y explícita por las
 preguntas de investigación PI1-PI5 de la sección \ref{sec:preguntas_investigacion}. OE1
 y OE3, en cambio, son objetivos de \textbf{diseño e integridad estructural} del
-pipeline: construir una matriz libre de fuga y generar residuos genuinamente fuera de
-muestra. No admiten una comparación de desempeño entre modelos y, por tanto, no se
-responden mediante una pregunta de investigación, sino que se verifican de forma
-exhaustiva mediante la suite de tests y las garantías anti-fuga documentadas en el Anexo
+pipeline: construir una matriz con guardias anti-fuga que fallan de forma explícita y
+generar residuos genuinamente fuera de muestra. No admiten una comparación de desempeño
+entre modelos y, por tanto, no se responden mediante una pregunta de investigación, sino
+que se verifican de forma exhaustiva mediante la suite de pruebas automatizadas y las guardias anti-fuga
+documentadas en el Anexo
 \ref{cap:anexo2}, condición previa y necesaria para que las respuestas a PI1-PI5 sean
 fiables:
 
 \begin{itemize}
-  \item \textbf{OE1 — Ingestión y matriz de características libre de fuga
+  \item \textbf{OE1 — Ingesta y matriz de características con guardias anti-fuga
     \textnormal{[diseño e integridad; verificado en el Anexo \ref{cap:anexo2}, sin PI
-    asociada]}.} Construir un pipeline de ingestión que unifique las tres fuentes
+    asociada]}.} Construir un pipeline de ingesta que unifique las tres fuentes
     crudas del proyecto (CRTM, Open-Meteo y el calendario laboral municipal) en una
     serie diaria continua y verificada, y diseñar sobre ella una matriz de 161
     variables predictoras —retardos de demanda total y por operador, medias y
     desviaciones móviles con desplazamiento previo estricto, armónicos de Fourier
     deterministas, codificación exhaustiva de calendario y meteorología retardada—
-    sujeta a un conjunto de guardias anti-fuga verificadas por una suite de tests que
+    sujeta a un conjunto de guardias anti-fuga verificadas por una suite de pruebas automatizadas que
     crece con cada fase del proyecto (capítulo \ref{cap:datos_features}).
   \item \textbf{OE2 — Baselines estadísticos y SARIMAX seleccionado por AIC
     \textnormal{[respondido por PI1, PI2]}.}
@@ -88,7 +91,8 @@ fiables:
     estacional, medias móviles y un modelo SARIMAX con exógenas de calendario,
     seleccionado mediante rejilla de criterio de información de Akaike sobre 324
     combinaciones de orden— evaluados bajo un protocolo de pronóstico
-    \emph{walk-forward} de un solo paso, de modo que la arquitectura híbrida se mida
+    progresivo (\emph{walk-forward}) de un solo paso (un día hacia adelante, actualizado con la
+    demanda observada del día anterior), de modo que la arquitectura híbrida se mida
     frente a un adversario estadístico ya de por sí exigente y no frente a un baseline
     trivial (sección \ref{sec:baselines}).
   \item \textbf{OE3 — Etapa 1: LSTM univariante con validación \emph{out-of-fold}
@@ -96,15 +100,15 @@ fiables:
     asociada]}.}
     Entrenar una red LSTM univariante sobre la dinámica temporal pura de la demanda
     total y generar sus predicciones de entrenamiento mediante un esquema
-    \emph{walk-forward} expansivo de 5 bloques, de manera que ningún residuo empleado
-    en la etapa siguiente proceda de una predicción \emph{in-sample} (sección
+    \emph{walk-forward} expansivo de 5 folds, de manera que ningún residuo empleado
+    en la etapa siguiente proceda de una predicción dentro de muestra (\emph{in-sample}) (sección
     \ref{sec:esquema_oof}), en cumplimiento de una decisión de diseño que el
     documento de contexto técnico del proyecto fija por escrito como no negociable,
     con anterioridad a la obtención de cualquier resultado.
   \item \textbf{OE4 — Etapa 2: XGBoost sobre el residuo \emph{out-of-fold}
     \textnormal{[respondido por PI3, PI4]}.} Entrenar
     un modelo XGBoost sobre los residuos \emph{out-of-fold} sanos de la etapa 1
-    utilizando la matriz completa de 161 variables exógenas, y contrastar el resultado
+    utilizando la matriz completa de 161 variables predictoras, y contrastar el resultado
     del híbrido completo frente a dos controles diseñados específicamente para aislar
     si la etapa 1 aporta valor o introduce ruido: la propia etapa 1 en solitario y un
     XGBoost entrenado directamente sobre la demanda total con idéntica matriz de
@@ -115,8 +119,8 @@ fiables:
     repesado de los días de calendario irregular mejora al híbrido y si una
     combinación aritmética simple de los dos modelos de una sola etapa supera a ambos
     por separado, e interpretar el conjunto de resultados a la luz de la teoría de
-    combinación de pronósticos de Granger \cite{granger1989combining}, ya citada por
-    Zhang \cite{zhang2003hybrid} como condición necesaria para que una hibridación
+    combinación de pronósticos de \textcite{granger1989combining}, ya citada por
+    \textcite{zhang2003hybrid} como condición necesaria para que una hibridación
     mejore a sus componentes (sección \ref{sec:analisis_sensibilidad}).
 \end{itemize}
 
@@ -130,7 +134,7 @@ con la que se responden en la sección \ref{sec:respuesta_preguntas}:
   \item \textbf{PI1.} ¿Bate el híbrido a SARIMAX en validación y en test
     simultáneamente?
   \item \textbf{PI2.} ¿Bate el híbrido a \texttt{xgboost\_alone}, entrenado sobre las
-    mismas variables exógenas?
+    mismas variables predictoras?
   \item \textbf{PI3.} ¿Reduce el híbrido específicamente el error en festivos y
     puentes frente a SARIMAX y \texttt{xgboost\_alone}?
   \item \textbf{PI4.} ¿Funciona la etapa 2 como mecanismo de corrección residual,
@@ -143,7 +147,7 @@ con la que se responden en la sección \ref{sec:respuesta_preguntas}:
 
 El ciclo de vida seguido es una reconstrucción documentada del proceso realmente ejecutado
 y no un cronograma planificado a priori: el registro técnico del proyecto no anota fechas
-absolutas por fase, sino el cierre sucesivo de cada una verificado por una suite de tests
+absolutas por fase, sino el cierre sucesivo de cada una verificado por una suite de pruebas automatizadas
 que crece de forma monótona. El patrón responde al ciclo clásico de descubrimiento de
 conocimiento en bases de datos (KDD) —selección, integración, limpieza, transformación en
 variables predictoras, modelado, evaluación y despliegue—, aplicado de forma
@@ -159,7 +163,7 @@ comparación entre modelos, error de predicción e importancia de variables—; 
 \ref{cap:anexo3} documenta cómo ejecutarlo.
 
 Tres bloques agrupan las once fases. La \textbf{preparación de datos} (Fases 0-2) cubre el
-andamiaje del repositorio, la ingestión y unificación de las tres fuentes crudas y la
+andamiaje del repositorio, la ingesta y unificación de las tres fuentes crudas y la
 ingeniería de la matriz de 161 variables. El \textbf{modelado} (Fases 3-5b) concentra el
 grueso del trabajo experimental: baselines estadísticos, etapa 1 LSTM bajo esquema
 \emph{out-of-fold}, arquitectura híbrida residual y los dos experimentos de sensibilidad
@@ -188,7 +192,7 @@ fin en \texttt{docs/\allowbreak{}LaTeX/\allowbreak{}REPORT\_MAPPING.md}.
     \gantttitlelist{0,...,9}{1} \\
     \ganttgroup{Preparación de datos}{0}{2} \\
     \ganttbar{Fase 0 -- Andamiaje}{0}{0} \\
-    \ganttbar{Fase 1 -- Ingestión}{1}{1} \\
+    \ganttbar{Fase 1 -- Ingesta}{1}{1} \\
     \ganttbar{Fase 2 -- Ingeniería de características}{2}{2} \\
     \ganttgroup{Modelado}{3}{6} \\
     \ganttbar{Fase 3 -- Baselines}{3}{3} \\
@@ -196,7 +200,7 @@ fin en \texttt{docs/\allowbreak{}LaTeX/\allowbreak{}REPORT\_MAPPING.md}.
     \ganttbar{Fase 5 -- Híbrido residual}{5}{5} \\
     \ganttbar{Fase 5b -- Sensibilidad}{6}{6} \\
     \ganttgroup{Explotación y documentación}{7}{9} \\
-    \ganttbar{Fase 6 -- Dashboard}{7}{7} \\
+    \ganttbar{Fase 6 -- Cuadro de mando}{7}{7} \\
     \ganttbar{Fase 6b -- Refinamiento visual}{8}{8} \\
     \ganttbar{Fases 7-11 -- Redacción de la memoria}{9}{9}
   \end{ganttchart}%
@@ -213,12 +217,12 @@ fin en \texttt{docs/\allowbreak{}LaTeX/\allowbreak{}REPORT\_MAPPING.md}.
   \resizebox{\textwidth}{!}{%
     \input{tables/tabla_cronograma_fases}%
   }
-  \caption{\headlinecolor{Fases del proyecto, entregable principal, artefacto persistido y tests acumulados (fuente: \texttt{export\_latex\_tables.PHASES}).}}
+  \caption{\headlinecolor{Fases del proyecto, entregable principal, artefacto persistido y pruebas automatizadas acumuladas (fuente: \texttt{export\_latex\_tables.PHASES}).}}
   \label{tab:cronograma_fases}
 \end{table}
 
 \begin{sloppypar}
-La columna de tests acumulados del cuadro \ref{tab:cronograma_fases} congela su recuento
+La columna de pruebas acumuladas del cuadro \ref{tab:cronograma_fases} congela su recuento
 en el cierre de la Fase 6b (257 pruebas), último hito de modelado antes de la redacción;
 las suites que esta añade auditan la capa de presentación y no el pipeline, y se
 documentan por separado en el Anexo \ref{cap:anexo2}.
@@ -232,6 +236,6 @@ en tres bloques. El primero fundamenta el trabajo: los capítulos \ref{cap:estad
 características (OE1). El segundo formaliza el diseño experimental de OE2 a OE5 (capítulo
 \ref{cap:metodologia}). El tercero evalúa y concluye (capítulos \ref{cap:resultados} y
 \ref{cap:conclusiones}). Cierran la memoria el catálogo de variables (\ref{cap:anexo1}),
-la suite de tests (\ref{cap:anexo2}), la reproducibilidad del entorno
+la suite de pruebas automatizadas (\ref{cap:anexo2}), la reproducibilidad del entorno
 (\ref{cap:anexo3}), la declaración de uso de inteligencia artificial generativa
 (\ref{cap:anexo4}) y los cuadros diagnósticos extendidos (\ref{cap:anexo5}).

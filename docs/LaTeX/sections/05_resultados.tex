@@ -3,7 +3,7 @@
 Este capítulo es el núcleo empírico del TFM: presenta y discute los resultados de los
 once modelos descritos o derivados en el capítulo \ref{cap:metodologia}, evaluados sobre
 las particiones de validación y test definidas en la sección \ref{sec:particiones_fuga}.
-Ninguna cifra se teclea a mano: todas llegan al documento desde los artefactos
+Ninguna cifra se introduce manualmente: todas llegan al documento desde los artefactos
 persistidos por las fases 3 a 5b, por la cadena que detalla el Anexo \ref{cap:anexo3}.
 La respuesta al contraste central del TFM (\ref{sec:contraste_central}) se
 somete a tres controles diagnósticos independientes: la anatomía del residuo de la etapa 1
@@ -61,18 +61,18 @@ anteriores: la persistencia estacional, el mejor de ellos, supera en torno a un 
 MAE al peor miembro de la familia LSTM, y la persistencia simple y las dos medias móviles presentan
 $R^2$ próximos a cero o directamente negativos, confirmando sobre el conjunto completo de
 modelos la advertencia ya adelantada en el capítulo \ref{cap:metodologia}: superar a la
-persistencia simple es un listón trivial en esta serie, y el resultado interesante de este
+persistencia simple es un umbral trivial en esta serie, y el resultado interesante de este
 capítulo se juega enteramente entre los siete modelos restantes.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{model_comparison_bar_test.png}
-  \caption{\headlinecolor{Comparación de modelos en la partición test. Barras agrupadas de MAE, RMSE, MAPE y R², ordenadas de mejor a peor por MAE. El color codifica la familia del modelo.}}
+  \caption{\headlinecolor{Comparación de modelos en la partición test. Barras agrupadas de MAE, RMSE, MAPE y $R^2$, ordenadas de mejor a peor por MAE. El color codifica la familia del modelo.}}
   \label{fig:model_comparison_bar_test}
 \end{figure}
 
 Ninguna cifra de la partición de entrenamiento se presenta junto a estas dos tablas como
-si fuera una estimación honesta de desempeño: train es, por construcción, una muestra
+si fuera una estimación válida de desempeño: train es, por construcción, una muestra
 \emph{in-sample} para todo modelo que se ajusta sobre ella, y su inclusión aquí induciría
 a compararla incorrectamente con val o test, un error que la sección
 \ref{sec:analisis_residuos} evita explícitamente al tratar el desempeño en train como
@@ -94,7 +94,7 @@ con una fidelidad coherente con el MAPE de test del 3,13\,\% de la tabla
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{demand_actual_vs_predicted_test.png}
-  \caption{\headlinecolor{Demanda diaria real y predicha por el modelo ensemble\_equal en la partición test. Serie observada y predicha superpuestas.}}
+  \caption{\headlinecolor{Demanda diaria real y predicha por el modelo \texttt{ensemble\_equal} en la partición test. Serie observada y predicha superpuestas.}}
   \label{fig:demand_actual_vs_predicted_test}
 \end{figure}
 
@@ -104,7 +104,7 @@ El análisis de residuos permite distinguir un modelo que generaliza de uno que 
 El caso más claro de esta distinción en todo el proyecto es \texttt{xgboost\_alone}: su
 coeficiente de determinación en entrenamiento alcanza 0,9929, un ajuste casi perfecto,
 frente a un MAE de test de 156.121; esa brecha entre un $R^2$ de entrenamiento
-prácticamente unitario y un error de test sustancial es la evidencia de que el modelo
+prácticamente unitario y un error de test sustancial es indicativa de que el modelo
 memoriza una parte relevante de su conjunto de entrenamiento en lugar de limitarse a
 capturar la estructura genuinamente generalizable de la demanda. La figura
 \ref{fig:residual_distribution_xgboost_alone} hace visible esta brecha comparando las
@@ -118,14 +118,14 @@ fuera indicativa de generalización.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{residual_distribution_xgboost_alone.png}
-  \caption{\headlinecolor{Distribución del error de predicción del modelo xgboost\_alone en la partición test. La brecha train-test es la evidencia visual del sobreajuste (R² train=0,9929 vs. MAE test=156.121).}}
+  \caption{\headlinecolor{Distribución del error de predicción del modelo \texttt{xgboost\_alone} en la partición test. La brecha train-test es la evidencia visual del sobreajuste ($R^2$ train = 0,9929 frente a MAE test = 156.121).}}
   \label{fig:residual_distribution_xgboost_alone}
 \end{figure}
 
 Los modelos derivados de la etapa 1 LSTM, \texttt{hybrid} entre ellos, no disponen de esta
 misma comparación train-test, puesto que la fase 4 únicamente persistió predicciones del
 modelo final sobre las particiones de validación y de test, no sobre entrenamiento; no se
-fuerza aquí una comparación que los datos disponibles no permiten hacer honestamente. La
+fuerza aquí una comparación que los datos disponibles no permiten. La
 figura \ref{fig:residual_distribution_hybrid} muestra, en su lugar, la distribución del
 error de \texttt{hybrid} en test sin más: una distribución visiblemente más dispersa que
 la de \texttt{xgboost\_alone}, coherente con el MAE de test casi 50\,\% mayor que se
@@ -134,16 +134,15 @@ cuantificó en la sección \ref{sec:tabla_maestra}.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{residual_distribution_hybrid.png}
-  \caption{\headlinecolor{Distribución del error de predicción del modelo hybrid en la partición test.}}
+  \caption{\headlinecolor{Distribución del error de predicción del modelo \texttt{hybrid} en la partición test.}}
   \label{fig:residual_distribution_hybrid}
 \end{figure}
 
 Por contraste, la figura \ref{fig:residual_distribution_ensemble_equal} muestra la
 distribución de error del modelo ganador, \texttt{ensemble\_equal}: una distribución
 sensiblemente más estrecha y mejor centrada en torno a cero que la de cualquiera de sus
-dos componentes individuales por separado. Este estrechamiento no es un artefacto
-cosmético, sino la manifestación directa, en la distribución del error, del mecanismo de
-reducción de varianza por descorrelación de errores que se cuantifica formalmente en la
+dos componentes individuales por separado. Este estrechamiento es coherente con el
+mecanismo de reducción de varianza por descorrelación de errores que se cuantifica en la
 sección \ref{sec:mecanismo_ensemble}: promediar dos modelos cuyos errores no están
 perfectamente correlacionados produce un error agregado con menor dispersión que
 cualquiera de los dos errores originales, incluso sin que ninguno de los dos componentes
@@ -152,7 +151,7 @@ cambie en absoluto.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{residual_distribution_ensemble_equal.png}
-  \caption{\headlinecolor{Distribución del error de predicción del modelo ensemble\_equal (ganador) en la partición test.}}
+  \caption{\headlinecolor{Distribución del error de predicción del modelo \texttt{ensemble\_equal} (ganador) en la partición test.}}
   \label{fig:residual_distribution_ensemble_equal}
 \end{figure}
 
@@ -204,7 +203,7 @@ El híbrido y su variante reponderada no participan de esta complementariedad: s
 favorable a la arquitectura híbrida en todo ese desglose, aparece en festivos: la etapa 2
 reduce el error de su propia etapa 1 de 1.585.388 (fila festivo, columna
 \texttt{lstm\_alone} de la tabla \ref{tab:desglose_dia_test}) a 666.572, una mejora del
-58\,\%, que confirma de nuevo que
+58\,\%, que muestra de nuevo que
 el mecanismo de corrección funciona como está diseñado. Aun así, ese 666.572 sigue siendo
 2,5 veces peor que el MAE de SARIMAX en el mismo grupo (271.410) y notablemente peor que
 \texttt{xgboost\_alone} (251.553): la corrección funciona, pero parte de una etapa 1
@@ -243,7 +242,7 @@ de todo el capítulo sobre qué tipo de información resuelve cada problema de p
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{feature_importance_group_xgboost_alone.png}
-  \caption{\headlinecolor{Importancia agregada por grupo de variables del modelo xgboost\_alone, medida como ganancia.}}
+  \caption{\headlinecolor{Importancia agregada por grupo de variables del modelo \texttt{xgboost\_alone}, medida como ganancia.}}
   \label{fig:feature_importance_group_xgboost_alone}
 \end{figure}
 
@@ -261,7 +260,7 @@ sobre ese nivel base.
   \centering
   \small
   \input{tables/tabla_importancia_grupo_alone}
-  \caption{\headlinecolor{Importancia por grupo de variables, xgboost\_alone.}}
+  \caption{\headlinecolor{Importancia por grupo de variables, \texttt{xgboost\_alone}.}}
   \label{tab:importancia_grupo_alone}
 \end{table}
 
@@ -269,7 +268,7 @@ sobre ese nivel base.
   \centering
   \small
   \input{tables/tabla_top15_alone}
-  \caption{\headlinecolor{Top-15 variables individuales por ganancia, xgboost\_alone.}}
+  \caption{\headlinecolor{Top-15 variables individuales por ganancia, \texttt{xgboost\_alone}.}}
   \label{tab:top15_alone}
 \end{table}
 
@@ -288,7 +287,7 @@ un matiz más fino, y ese matiz estaría más ligado a las condiciones meteorol�
 retardadas que al calendario grueso.
 
 Conviene subrayar que esto es una \emph{hipótesis}
-sugerida por un ranking de importancia, no un resultado medido, y que las fases
+sugerida por una clasificación de importancia, no un resultado medido, y que las fases
 diagnósticas la someten a prueba con dos análisis independientes y la \textbf{rechazan}:
 la sección \ref{sec:residuo_meteo_anatomia} no encuentra ninguna correlación parcial
 significativa entre el residuo y las 105 variables meteorológicas retardadas, y la
@@ -300,7 +299,7 @@ con la ausencia de señal aprovechable.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{feature_importance_group_xgboost_residual.png}
-  \caption{\headlinecolor{Importancia agregada por grupo de variables del modelo xgboost\_\allowbreak{}residual (etapa 2 del híbrido).}}
+  \caption{\headlinecolor{Importancia agregada por grupo de variables del modelo \texttt{xgboost\_\allowbreak{}residual} (etapa 2 del híbrido).}}
   \label{fig:feature_importance_group_xgboost_residual}
 \end{figure}
 
@@ -308,7 +307,7 @@ con la ausencia de señal aprovechable.
   \centering
   \small
   \input{tables/tabla_importancia_grupo_residual}
-  \caption{\headlinecolor{Importancia por grupo de variables, xgboost\_residual.}}
+  \caption{\headlinecolor{Importancia por grupo de variables, \texttt{xgboost\_residual}.}}
   \label{tab:importancia_grupo_residual}
 \end{table}
 
@@ -317,35 +316,35 @@ importante de la etapa 2, visible únicamente al bajar al nivel de variable indi
 (tabla \ref{tab:top15_residual}): pese a que el calendario pesa menos como grupo agregado,
 la variable individual con mayor ganancia en todo el modelo residual sigue siendo
 \texttt{feat\_day\_type\_festivo}, con una ganancia de 0,125, muy por delante de la
-segunda variable de la lista. Esto confirma, al nivel más granular posible, que la etapa 2
-sí aprende exactamente la señal de calendario (en concreto, la irregularidad de los
-festivos) que la etapa 1 univariante no puede ver por construcción: el mecanismo que
-justifica teóricamente la arquitectura híbrida es real, medible y localizado en la
-variable exacta que cabría esperar, con independencia de que el veredicto agregado de la
+segunda variable de la lista. Esto es coherente, al nivel de variable individual, con que la
+etapa 2 aprenda la señal de calendario (en concreto, la irregularidad de los festivos) que
+la etapa 1 univariante no puede ver por construcción: el mecanismo que justifica
+teóricamente la arquitectura híbrida se manifiesta en la variable que cabría esperar, con
+independencia de que el veredicto agregado de la
 sección \ref{sec:contraste_central} termine siendo negativo para la arquitectura completa.
 
 \begin{table}[htbp]
   \centering
   \small
   \input{tables/tabla_top15_residual}
-  \caption{\headlinecolor{Top-15 variables individuales por ganancia, xgboost\_residual. \texttt{feat\_\allowbreak{}day\_\allowbreak{}type\_\allowbreak{}festivo} encabeza con ganancia 0,125 -- confirma que la etapa 2 aprende la señal de calendario que la etapa 1 no puede ver.}}
+  \caption{\headlinecolor{Top-15 variables individuales por ganancia, \texttt{xgboost\_residual}. \texttt{feat\_\allowbreak{}day\_\allowbreak{}type\_\allowbreak{}festivo} encabeza con ganancia 0,125 -- coherente con que la etapa 2 aprenda la señal de calendario que la etapa 1 no puede ver.}}
   \label{tab:top15_residual}
 \end{table}
 
 \section{Contraste central del TFM}\label{sec:contraste_central}
 
 Con la evidencia de las secciones anteriores ya establecida, esta sección responde de
-forma explícita e inequívoca a la pregunta que estructura todo el proyecto: ¿mejora la
+forma explícita a la pregunta que estructura todo el proyecto: ¿mejora la
 arquitectura híbrida residual LSTM-XGBoost, tal como se ha diseñado e implementado en
 este TFM, la predicción de demanda frente a SARIMAX y frente a un XGBoost entrenado
-directamente sobre las mismas variables exógenas? La respuesta, sostenida por la tabla
+directamente sobre las mismas variables predictoras? La respuesta, sostenida por la tabla
 \ref{tab:delta_hibrido}, es \textbf{no, en ninguna de las dos comparaciones y en ninguna
 de las dos particiones de evaluación}.
 
 \begin{table}[htbp]
   \centering
   \input{tables/tabla_delta_hibrido}
-  \caption{\headlinecolor{Diferencia de MAE del híbrido frente a SARIMAX y XGBoost-alone (Delta MAE = hybrid - competidor; positivo = híbrido peor). Generada, no tecleada a mano.}}
+  \caption{\headlinecolor{Diferencia de MAE del híbrido frente a SARIMAX y XGBoost independiente (Delta MAE = \texttt{hybrid} $-$ competidor; positivo = híbrido peor). Generada, no introducida manualmente.}}
   \label{tab:delta_hibrido}
 \end{table}
 
@@ -355,8 +354,8 @@ magnitud absoluta, pero mantienen el mismo signo, 7.270 y 35.895 respectivamente
 diferencia frente a \texttt{xgboost\_alone} es, en ambas particiones, mayor que la
 diferencia frente a SARIMAX: el híbrido no solo pierde frente al baseline estadístico
 clásico, sino que pierde por un margen todavía más amplio frente a un modelo de
-aprendizaje automático que utiliza exactamente la misma información exógena sin pasar por
-ninguna etapa LSTM. Este segundo resultado es, si cabe, el más informativo de los dos: si
+aprendizaje automático que utiliza exactamente la misma matriz de variables predictoras
+sin pasar por ninguna etapa LSTM. Este segundo resultado es el más informativo de los dos: si
 el problema fuera únicamente que SARIMAX es un modelo particularmente bien ajustado a esta
 serie, cabría esperar que el híbrido, con acceso a variables no lineales y a una capa de
 aprendizaje profundo, cerrara al menos parte de esa distancia frente a otro modelo de
@@ -365,46 +364,55 @@ aprendizaje automático; en su lugar, la distancia se amplía.
 \subsection{Por qué pierde el híbrido: lectura a la luz de Granger (1989)}\label{sec:resultado_negativo_teoria}
 
 La teoría clásica de combinación de pronósticos ofrece un marco preciso para interpretar
-este resultado, en lugar de limitarse a documentarlo. Granger \cite{granger1989combining},
+este resultado, en lugar de limitarse a documentarlo. \textcite{granger1989combining},
 revisando dos décadas de literatura sobre combinación de modelos, formula la condición que
 determina cuándo un pronóstico híbrido o combinado puede superar a sus componentes: la
 mejora solo es posible cuando los modelos que se combinan son individualmente subóptimos
-\emph{y}, de manera crucial, se basan en conjuntos de información distintos entre sí. Si
-dos modelos observan exactamente la misma información y solo difieren en la forma
-funcional con la que la procesan, combinarlos secuencialmente no introduce nada que uno de
-los dos no pudiera ya haber aprendido por sí mismo con una arquitectura suficientemente
+\emph{y}, de manera crucial, se basan en conjuntos de información distintos entre sí. La
+consecuencia de esa condición es que la ganancia de combinar procede de información que
+cada componente tiene y el otro no; si el conjunto de información de uno está contenido en
+el del otro, la combinación no puede aportar, en teoría, nada que un único modelo sobre el
+conjunto mayor no pudiera aprender por sí mismo con una forma funcional suficientemente
 flexible.
 
-La arquitectura híbrida de este TFM \textbf{incumple precisamente esa segunda condición}. Ambas
-etapas observan, en última instancia, el mismo objeto: el pasado de la serie
-\texttt{total}. La etapa 1 lo observa directamente, en su forma univariante y sin
-calendario; la etapa 2 lo observa de forma indirecta, a través de un residuo que es
-función de ese mismo pasado más un conjunto de variables exógenas que, como muestra la
-sección \ref{sec:importancia_variables}, sí aportan información adicional genuina —de
-ahí que la etapa 2 mejore de forma sustancial a su propia etapa 1—, pero que no
-constituyen un conjunto de información \emph{independiente} de la demanda pasada, sino un
-complemento sobre la misma serie. El resultado es exactamente el que la teoría de Granger
-predeciría: una mejora real y medible de la etapa 2 sobre la etapa 1 (documentada en la
-sección \ref{sec:error_dia} y de nuevo en la \ref{sec:importancia_variables}), pero
-insuficiente para que la combinación secuencial supere a un modelo de una sola etapa que
-parte directamente de una base más sólida: SARIMAX, con su propio mecanismo
-autorregresivo y estacional, o \texttt{xgboost\_alone}, que accede a las mismas 161
-variables exógenas sin arrastrar el ruido de una etapa 1 estructuralmente débil.
+La arquitectura híbrida de este TFM \textbf{incumple precisamente esa segunda condición}, y
+conviene precisar en qué sentido. Los conjuntos de información de las dos etapas no son
+idénticos: la etapa 1 observa únicamente la ventana cruda de 28 valores de \texttt{total},
+y la etapa 2 dispone además del calendario, la meteorología retardada, los armónicos de
+Fourier y los retardos de operador —información que la etapa 1 no ve y que, como muestra
+la sección \ref{sec:importancia_variables}, aporta señal genuina; de ahí que la etapa 2
+mejore de forma sustancial a su propia etapa 1 (sección \ref{sec:error_dia})—. Pero
+tampoco son \emph{distintos} en el sentido que la condición exige: el pasado reciente de la
+serie que la etapa 1 observa está representado en la matriz de la etapa 2 por sus siete
+retardos y cuatro estadísticos móviles sobre la misma ventana de 28 días, de modo que los
+dos conjuntos están, en la práctica, anidados y no son complementarios. En esa situación la
+combinación secuencial no puede superar, en teoría, al mejor modelo de una sola etapa sobre
+el conjunto mayor, y ese modelo existe en la comparación: \texttt{xgboost\_alone}, que
+accede a las mismas 161 variables predictoras sin arrastrar el ruido de una etapa 1
+estructuralmente débil. Aunque la segunda etapa incorpora información adicional de
+calendario, meteorología retardada y otras variables predictoras, los resultados indican
+que esta separación secuencial no genera una complementariedad predictiva suficiente para
+compensar el error introducido por la primera etapa LSTM. Los dos controles de la sección
+\ref{sec:paridad_informativa} miden ambas mitades de esta lectura: la ablación muestra que
+\texttt{xgboost\_alone} extrae por sí mismo la información temporal que la etapa 1 aporta,
+y el control de paridad muestra que la vía recurrente no ofrece una representación de ese
+pasado que el modelo de una sola etapa no tenga ya.
 
 Esta lectura se refuerza, además, por un factor puramente cuantitativo: la etapa 1
 univariante deja un residuo con una desviación típica de 726.669 viajes diarios
 (\ref{sec:etapa2_xgboost}), del mismo orden de magnitud que la propia señal que se intenta
 predecir. Cuanto mayor es la varianza residual que la segunda etapa debe corregir, más
 difícil resulta que esa corrección alcance, y menos aún supere, a un modelo que ataca el
-problema completo desde el principio con la información exógena disponible. Este patrón
+problema completo desde el principio con toda la matriz predictora disponible. Este patrón
 —hibridar puede mejorar sustancialmente a un componente débil sin llegar a igualar a un
-componente fuerte de una sola etapa cuando ambos comparten información— no es exclusivo de
+componente fuerte de una sola etapa cuando sus conjuntos de información están anidados— no
+es exclusivo de
 este proyecto: es consistente con lo observado de forma sistemática en las competiciones
-de pronóstico a gran escala M4 y M5 \cite{makridakis2018m4,makridakis2022m5}, donde los métodos híbridos y
+de pronóstico a gran escala M4 y M5 \parencite{makridakis2018m4,makridakis2022m5}, donde los métodos híbridos y
 de combinación que finalmente destacan lo hacen precisamente al combinar familias de
 modelos con mecanismos e información de entrada genuinamente distintos, como la propia
-sección \ref{sec:mecanismo_ensemble} demuestra para el ensamble de este TFM, y no al
-encadenar dos etapas sucesivas sobre el mismo conjunto de información. El resultado
+sección \ref{sec:mecanismo_ensemble} muestra para el ensamble de este TFM, y no al
+encadenar dos etapas sucesivas sobre conjuntos de información anidados. El resultado
 negativo del híbrido residual de este TFM debe leerse, por tanto, como consistente con la
 teoría publicada y con la evidencia empírica a gran escala, no como una anomalía
 específica de esta implementación.
@@ -435,7 +443,7 @@ sección \ref{sec:contraste_central}.
   \centering
   \setlength{\tabcolsep}{4pt}
   \resizebox{\textwidth}{!}{\input{tables/tabla_criterio_experimento_a}}
-  \caption{\headlinecolor{Veredicto del criterio pre-registrado del experimento A (repesado 3x de días irregulares). CRITERIO NO CUMPLIDO: el presupuesto global se cumplió pero el error en días irregulares NO mejoró.}}
+  \caption{\headlinecolor{Veredicto del criterio prerregistrado del experimento A (repesado 3x de días irregulares). CRITERIO NO CUMPLIDO: el presupuesto global se cumplió pero el error en días irregulares NO mejoró.}}
   \label{tab:criterio_experimento_a}
 \end{table}
 
@@ -447,17 +455,17 @@ ponderado por tamaño de muestra en festivos y puentes conjuntamente \emph{empeo
 repesado fallara, sino \emph{dónde} recayó la mejora que sí se produjo: no en los días que
 se pretendía corregir, sino en sábados (mejora del 25\,\%) y en laborables ordinarios
 (mejora del 5\,\%). Con solamente 45 filas repesadas frente a 161 variables de entrada, el
-peso adicional no parece comprar un mejor ajuste específicamente en esas filas; en su
+peso adicional no parece producir un mejor ajuste específicamente en esas filas; en su
 lugar, perturba el ajuste global del modelo, y esa perturbación resulta beneficiar, por
 las características propias del conjunto de datos, a los grupos más numerosos en lugar de
 a los grupos objetivo. Se reporta como lo que es: un dato sobre la fragilidad del
 repesado en muestras pequeñas, no como evidencia a favor ni en contra del esquema de
 pesos como estrategia general.
 
-\subsection{Experimento B: ensamble SARIMAX + XGBoost-alone}\label{sec:por_que_ensemble}
+\subsection{Experimento B: ensamble SARIMAX + XGBoost independiente}\label{sec:por_que_ensemble}
 
 El segundo experimento no está sujeto a un criterio de éxito binario, sino que constituye
-un punto de comparación que cualquier evaluación honesta de este proyecto debe incluir:
+un punto de comparación que cualquier evaluación rigurosa de este proyecto debe incluir:
 ¿existe una combinación más sencilla que los propios componentes de una sola etapa? La
 respuesta se construye sin ningún reentrenamiento adicional, combinando de forma puramente
 aritmética las predicciones de SARIMAX y de \texttt{xgboost\_alone} ya calculadas en las
@@ -473,10 +481,8 @@ del MAE de validación de cada componente (\texttt{ensemble\_inverse\_mae}).
 \end{table}
 
 Como ya adelantó la tabla \ref{tab:comparacion_test}, ambas variantes no solo son
-competitivas, sino que \textbf{superan a los dos componentes individuales}, y lo hacen por
-un margen que una simple media de errores independientes no explicaría por sí sola (el
-mecanismo exacto de esa ganancia se desarrolla en la sección
-\ref{sec:mecanismo_ensemble}). Los dos esquemas de ponderación producen resultados casi
+competitivas, sino que \textbf{superan a los dos componentes individuales}; el mecanismo
+de esa ganancia se desarrolla en la sección \ref{sec:mecanismo_ensemble}. Los dos esquemas de ponderación producen resultados casi
 idénticos entre sí (una diferencia de MAE de test de apenas el 0,03\,\%), lo que no es
 sorprendente dado que los pesos óptimos por inverso del MAE, 0,4724 y 0,5276, se sitúan
 muy próximos a un reparto igualitario. Por ello, y pese a que \texttt{ensemble\_inverse\_mae}
@@ -498,29 +504,29 @@ partición test (figura \ref{fig:dispersion_errores}).
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{fig_dispersion_errores_sarimax_xgb.png}
-  \caption{\headlinecolor{Dispersión de residuos SARIMAX vs. XGBoost-alone en la partición test -- evidencia mecánica de la reducción de varianza del ensamble (correlación débil entre ambos errores).}}
+  \caption{\headlinecolor{Dispersión de residuos SARIMAX frente a XGBoost independiente en la partición test -- evidencia mecánica de la reducción de varianza del ensamble (correlación débil entre ambos errores).}}
   \label{fig:dispersion_errores}
 \end{figure}
 
 La correlación entre ambos residuos es de 0,576: positiva, como cabría esperar de dos
 modelos que atacan el mismo fenómeno subyacente y comparten, por tanto, una parte de su
 señal de error, pero claramente inferior a la unidad. Esa distancia respecto a la
-correlación perfecta es, precisamente, la que hace mecánicamente rentable promediar los
+correlación perfecta es, precisamente, la que hace mecánicamente ventajoso promediar los
 dos modelos. Para dos pronósticos con varianza de error igual $\sigma^2$ y correlación
 $\rho$ entre sus errores, la varianza del error de su media aritmética es
 \[
   \operatorname{Var}\!\left(\frac{\hat e_1 + \hat e_2}{2}\right)
     = \frac{\sigma^2 (1 + \rho)}{2},
 \]
-la expresión clásica de la combinación de pronósticos de Bates y Granger
-\cite{bates1969combination}: con $\rho = 1$, errores perfectamente correlacionados,
+la expresión clásica de la combinación de pronósticos de
+\textcite{bates1969combination}: con $\rho = 1$, errores perfectamente correlacionados,
 promediar no reduce la varianza en absoluto, mientras que con $\rho = 0{,}576$ la
 varianza del error combinado se reduce a aproximadamente el \textbf{79\,\%} de la varianza
 individual, incluso bajo el supuesto simplificador de que ambos componentes tuvieran
 exactamente el mismo error cuadrático medio. Esta reducción de varianza por promediado de
 predictores parcialmente descorrelacionados es, además, el mismo principio que sustenta el
 uso de comités o \emph{ensembles} de modelos en el aprendizaje automático en general
-\cite{perrone1993networks}, aplicado aquí no a una colección de redes con la misma
+\parencite{perrone1993networks}, aplicado aquí no a una colección de redes con la misma
 arquitectura sino a dos familias de modelos deliberadamente distintas.
 
 La tabla \ref{tab:desglose_dia_test} explica además por qué esa correlación es
@@ -531,9 +537,11 @@ ordinarios comparativamente, el segundo en fin de semana y festivos), de modo qu
 correlación de error refleja una complementariedad estructural de calendario y no solo
 ruido estadístico independiente. La ganancia observada, un MAE de test de 139.681 para
 \texttt{ensemble\_inverse\_mae}, un 10,5\,\% por debajo del mejor componente individual
-(\texttt{xgboost\_alone}, 156.121), es mayor de lo que un simple promedio de errores
-sin ninguna estructura común explicaría, lo que confirma que la ganancia procede de esta
-descorrelación genuina y no de un artefacto de redondeo en la comparación.
+(\texttt{xgboost\_alone}, 156.121), es coherente con el mecanismo de reducción de varianza
+descrito por Bates y Granger y con la correlación imperfecta observada entre los errores de
+SARIMAX y XGBoost; la identidad, formulada en varianza y bajo el supuesto de varianzas
+iguales, no la demuestra, pero la ganancia tiene el signo y el orden de magnitud que ese
+mecanismo anticipa.
 
 \section{Anatomía del residuo de la etapa 1}\label{sec:anatomia_residuo_etapa1}
 
@@ -579,19 +587,19 @@ efecto.
 \end{figure}
 
 El periodograma (figura \ref{fig:periodograma_residuo}) matiza esta lectura para la
-estacionalidad semanal. La cuota de potencia espectral concentrada exactamente en el bin
+estacionalidad semanal. La cuota de potencia espectral concentrada exactamente en el intervalo espectral (\emph{bin})
 de periodo 7 días es solo 1,4 veces la cuota media, por debajo del factor 3 fijado como
 umbral, pero esto se debe en buena medida a la fuga espectral: con 393 observaciones no
-existe un bin de Fourier exactamente en 7,0 días, y la potencia semanal se reparte entre
-los bins adyacentes (6,4 y 6,7 días) y, sobre todo, hacia el armónico de 7/3 días, que es
+existe un \emph{bin} de Fourier exactamente en 7,0 días, y la potencia semanal se reparte entre
+los \emph{bins} adyacentes (6,4 y 6,7 días) y, sobre todo, hacia el armónico de 7/3 días, que es
 el pico individual más alto de todo el periodograma. La ACF en el retardo 7 (0,162) y, muy
 especialmente, el perfil por día de la semana apuntan, por tanto, a una estructura semanal
-real que la prueba de bin único infravalora.
+real que la prueba de \emph{bin} único infravalora.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{fig_periodograma_residuo_lstm.png}
-  \caption{\headlinecolor{Periodograma del residuo de la etapa 1: cuota de potencia espectral frente al periodo en días (escala logarítmica). El periodo de 7 días está anotado; la potencia semanal se dispersa entre bins adyacentes y el armónico de 7/3 días.}}
+  \caption{\headlinecolor{Periodograma del residuo de la etapa 1: cuota de potencia espectral frente al periodo en días (escala logarítmica). El periodo de 7 días está anotado; la potencia semanal se dispersa entre \emph{bins} adyacentes y el armónico de 7/3 días.}}
   \label{fig:periodograma_residuo}
 \end{figure}
 
@@ -612,7 +620,7 @@ conclusión de que persiste un sesgo semanal sistemático que la etapa 1 no elim
   \label{fig:residuo_dia_semana}
 \end{figure}
 
-Donde el residuo sí retiene estructura de forma inequívoca es en el calendario irregular
+Donde el residuo sí retiene estructura con claridad es en el calendario irregular
 (tabla \ref{tab:residuo_calendario}). El error absoluto medio de la etapa 1 en los días
 festivos, 1.818.580 viajes, es \textbf{6,52 veces} el de los días laborables ordinarios
 (279.107), y en los días laborables con puente es 2,96 veces, muy por encima del factor 2
@@ -620,7 +628,7 @@ fijado como umbral de concentración. Esta es exactamente la señal que la secci
 \ref{sec:importancia_variables} identificó del lado de la etapa 2, donde
 \texttt{feat\_day\_type\_festivo} es la variable de mayor ganancia del modelo residual, y
 coincide con el diagnóstico exploratorio de la fase 4 sobre el periodo completo. Es también
-el único de los cuatro criterios de aceptación pre-registrados que cae con claridad en el
+el único de los cuatro criterios de aceptación prerregistrados que cae con claridad en el
 lado de ``la estructura persiste'': la etapa 1 univariante deja sin explicar,
 precisamente, la irregularidad de calendario que por construcción no puede ver.
 
@@ -643,8 +651,8 @@ La lectura correcta de este resultado nulo, a la luz de la objeción metodológi
 para esta fase, no es que la arquitectura híbrida debiera haber funcionado: la etapa 2
 \emph{recibió} esas 105 variables —de hecho, la sección \ref{sec:importancia_variables}
 mostró que la meteorología retardada concentra el 51,6\,\% de su ganancia— y aun así el
-híbrido pierde. Lo que este análisis descarta es que quedara sobre la mesa una palanca
-exógena meteorológica sin explotar; lo que el residuo retiene es estructura de calendario,
+híbrido pierde. Lo que este análisis indica es que no se observa señal meteorológica
+retardada sin explotar en el residuo; lo que el residuo retiene es estructura de calendario,
 no de clima. Que un bloque de variables acapare la mitad de la ganancia por impureza y a
 la vez no mantenga ninguna correlación parcial detectable con el residuo es solo
 aparentemente contradictorio; la sección \ref{sec:lectura_conjunta} reconcilia ambos
@@ -660,7 +668,7 @@ hechos con el tercero que aporta la fase siguiente, la ablación del bloque comp
 \subsection{La cadena de error, cuantificada}\label{sec:cadena_error}
 
 La tabla \ref{tab:cadena_error} y la figura \ref{fig:cadena_error} cuantifican cuánto de la
-distancia entre una LSTM univariante y un XGBoost directo cierra realmente la etapa
+distancia entre una LSTM univariante y un XGBoost independiente cierra realmente la etapa
 residual. No es una descomposición (\texttt{lstm\_alone}, \texttt{hybrid} y
 \texttt{xgboost\_alone} son tres modelos distintos, no sumandos de un mismo error), sino
 una cadena de tres puntos evaluados con el mismo \texttt{metrics.all\_metrics} que la tabla
@@ -668,7 +676,7 @@ maestra, de modo que no puede contradecirla. Sobre la partición test, la distan
 completa entre \texttt{lstm\_alone} (MAE 280.952) y \texttt{xgboost\_alone} (156.121) es de
 124.831 viajes diarios. La etapa 2 recorta 46.729 de esa distancia, el \textbf{37,4\,\%}
 del hueco, dejando todavía 78.103 (el 62,6\,\%) de separación entre el híbrido corregido y
-un XGBoost directo sobre las mismas 161 variables. Sobre validación la corrección es
+un XGBoost independiente sobre las mismas 161 variables. Sobre validación la corrección es
 proporcionalmente mucho mayor (130.405, el 78,4\,\% de un hueco más ancho porque
 \texttt{lstm\_alone} rinde bastante peor en esa partición), pero los 35.895 viajes
 restantes siguen favoreciendo a \texttt{xgboost\_alone}. La conclusión es la misma en ambas
@@ -698,7 +706,7 @@ estacional (ratios de 0,95 y 0,98), el fold 1 permanece degenerado (2,67) y los 
 4 quedan por encima de 1. Con cinco puntos, no monótonos y confundidos con la dificultad
 del periodo evaluado, esto es contexto indicativo y no una curva de aprendizaje.
 
-La evidencia decisiva sobre el papel del tamaño de muestra procede de una curva de
+La evidencia principal sobre el papel del tamaño de muestra procede de una curva de
 aprendizaje propiamente dicha (tabla \ref{tab:curva_aprendizaje} y figura
 \ref{fig:curva_aprendizaje}), el único experimento de esta fase que reentrena. Se ajusta
 una LSTM de etapa 1, con la arquitectura de la fase 4, sobre ventanas de entrenamiento de
@@ -714,8 +722,8 @@ una ventaja de recencia; el diseño está sesgado \emph{en contra} de encontrar 
 tamaño de muestra, de modo que un efecto que sobreviva a ese sesgo es más creíble y un
 resultado plano es correspondientemente más débil de lo que parecería a primera vista.
 
-El resultado es una historia de tamaño de muestra \textbf{parcial}, y se reporta como tal
-con la misma prominencia que tendría un resultado positivo. Por un lado, el tamaño de
+El resultado es una historia de tamaño de muestra \textbf{parcial}, y se reporta como tal.
+Por un lado, el tamaño de
 muestra importa, y mucho, en el extremo bajo: con 222 filas de entrenamiento el modelo
 \textbf{colapsa} (las tres semillas producen ajustes degenerados, con un cociente de
 desviaciones típicas entre 0,30 y 0,43 y una correlación con la serie real en torno a
@@ -725,7 +733,7 @@ reduce el MAE de validación mediano de 1.167.187 a 515.603, y a partir de ahí 
 continúa, pero se aplana: 502.449 con 489 filas, 490.773 con 622, y ya prácticamente estable
 en torno a 411.000-416.000 con 756 y 889 filas, dentro del ruido entre semillas.
 
-Por otro lado, y esto es lo que la curva zanja, esa meseta se sitúa muy por encima de ambas
+Por otro lado, y esto es lo que la curva sí muestra, esa meseta se sitúa muy por encima de ambas
 referencias de una sola etapa: el mejor punto LSTM de toda la curva, unos 411.000 de MAE de
 validación, sigue estando aproximadamente 166.000 viajes por encima de
 \texttt{xgboost\_alone} (244.843) y 138.000 por encima de SARIMAX (273.467), y las tres
@@ -752,7 +760,7 @@ está \emph{informativamente} justificada. El análisis anterior deja dos cuesti
 abiertas. La primera (Q1): la etapa 1 es univariante mientras que
 XGBoost ve 161 variables desde el principio, así que ambas etapas no son equivalentes en
 información; ¿pierde la etapa 1 por ser una \emph{LSTM} o por ser \emph{univariante}? La
-segunda (Q2): ¿integra ya el XGBoost directo los efectos temporales y exógenos de forma
+segunda (Q2): ¿integra ya el XGBoost independiente los efectos temporales y exógenos de forma
 simultánea a través de las variables construidas, de modo que separar el problema en dos
 etapas añade complejidad sin añadir información predictiva? Esta sección deja de conjeturar
 y lo mide con dos controles. Como la sección \ref{sec:anatomia_residuo_etapa1}, es un
@@ -770,7 +778,7 @@ y de operadores más medias móviles), \texttt{solo\_exogeno} (122: calendario, 
 meteorología), \texttt{sin\_meteo} (56) y \texttt{solo\_calendario} (17)— se fijaron
 \emph{antes} de ver ningún resultado, y el criterio de materialidad (un bloque aporta si
 retirarlo eleva el MAE de validación en al menos un 5\,\% respecto a \texttt{completo}) es
-una constante de módulo evaluada en código, no a ojo. El umbral del 5\,\% absorbe el ruido
+una constante de módulo evaluada en código, no mediante inspección manual. El umbral del 5\,\% absorbe el ruido
 de rejilla y semilla, ya que cada subconjunto rehace su propia búsqueda de
 hiperparámetros.
 
@@ -788,7 +796,7 @@ El resultado responde a Q2 de la forma prevista: \textbf{\texttt{solo\_temporal}
 MAE de validación respectivamente, de modo que el modelo de una sola etapa
 \textbf{integra internamente los dos tipos de información}. Esto es la corroboración
 mecánica del resultado ya establecido en la sección \ref{sec:contraste_central} (no una
-prueba nueva; el capítulo ya demostró la mitad predictiva, que el híbrido pierde): la
+prueba nueva; el capítulo ya mostró la mitad predictiva, que el híbrido pierde): la
 división en dos etapas hace, a través de etapas, lo que un único modelo tabular ya hace en
 una. Dos lecturas secundarias, reportadas sin veredicto de aprobado/suspenso:
 \texttt{solo\_calendario} (17 variables) queda un 22,8\,\% por encima de \texttt{completo}
@@ -799,7 +807,7 @@ actúa como ruido neto leve, en línea con el hallazgo de la sección
 \ref{sec:residuo_meteo_anatomia} de que la meteorología retardada es cuasi-ruido-blanco en
 el residuo. La figura \ref{fig:ablacion_bloques} ordena los cinco subconjuntos por MAE de
 validación y superpone el MAE de test de cada uno, de modo que el orden de la ablación
-pueda leerse de un vistazo junto con su estabilidad entre particiones.
+pueda leerse directamente junto con su estabilidad entre particiones.
 
 \begin{figure}[htbp]
   \centering
@@ -811,32 +819,32 @@ pueda leerse de un vistazo junto con su estabilidad entre particiones.
 \subsection{LSTM en paridad informativa}\label{sec:paridad_lstm}
 
 Para responder a Q1 se dota a la rama recurrente de \textbf{paridad informativa}: la ventana
-de 28 pasos del objetivo alimenta la LSTM y el vector de variables exógenas \texttt{feat\_}
+de 28 pasos del objetivo alimenta la LSTM y el vector de variables predictoras \texttt{feat\_}
 del \emph{propio día $t$} se concatena después
 (\texttt{Input}$(W,1)\to$\texttt{LSTM}$\to$\texttt{concat}(\texttt{Input}$(k)$)$\to$
 \texttt{Dropout}$\to$\texttt{Dense}$(1)$). Es el cambio mínimo que logra paridad real: una
 ventana multivariante $(W,k)$ daría el calendario de los 28 días previos, pero no el del día
 que se predice, porque la ventana abarca $[t-W, t)$ y excluye la fila $t$ por construcción.
-Cada columna exógena es la misma fila limpia de fuga que ve XGBoost (guardas de las fases 2
-y 3: sin operadores del mismo día, sin meteorología del mismo día), y una aserción
+Cada columna es la misma fila, sujeta a las mismas guardias anti-fuga, que ve XGBoost
+(guardas de las fases 2 y 3: sin operadores del mismo día, sin meteorología del mismo
+día), y una aserción
 reverifica el prefijo \texttt{feat\_} en el punto de entrada.
 
 La interpretación es asimétrica y se declara antes de los resultados (objeción O4):
 la LSTM en paridad ve una ventana cruda de 28 pasos \emph{más} el vector del día $t$, es
 decir, estrictamente \emph{más} información que el vector plano de XGBoost (que solo dispone
 de 7 retardos seleccionados y 4 estadísticos móviles). En consecuencia, \textbf{una derrota
-es una conclusión fuerte} (queda descartada la asimetría informativa como causa) y
-\textbf{una victoria es débil} (procede en parte de información extra, no solo de la
-arquitectura). Y un buen resultado aquí sería un argumento \emph{contra} el híbrido, no a
-favor de uno mejor: una etapa 1 que ya ve las variables exógenas no deja a la etapa 2 nada
+clara sería una conclusión fuerte} (la asimetría informativa quedaría descartada como causa
+dominante) y \textbf{una victoria es débil} (procede en parte de información extra, no solo
+de la arquitectura). Y un buen resultado aquí sería un argumento \emph{contra} el híbrido,
+no a favor de uno mejor: una etapa 1 que ya ve la matriz de la etapa 2 no deja a esta nada
 que corregir que la etapa 1 no pudiera ver.
 
 \textbf{Base de comparación y número de semillas.} El punto de referencia es la LSTM
 univariante de la fase 4. Se compara contra su mediana de cinco semillas
 (42, 1, 2, 3, 4) en la fracción 1,00 de la curva de aprendizaje de la sección
 \ref{sec:tamano_muestral}, \textbf{416.324} de MAE de validación, y no contra su mejor
-semilla individual (411.142, la cifra citada en la sección \ref{sec:respuesta_preguntas} y
-en el capítulo \ref{cap:metodologia}). El veredicto de paridad se lee sobre una mediana de
+semilla individual (411.142; cuadro \ref{tab:paridad_lstm}). El veredicto de paridad se lee sobre una mediana de
 cinco semillas, así que la base tiene que ser también una mediana de cinco semillas (mismo
 arnés, mismas semillas, misma partición de validación, genuinamente comparable); enfrentar
 una mediana contra un mejor caso sesgaría el cierre del hueco a la baja, hacia la
@@ -846,7 +854,7 @@ central en ambos casos), de modo que el hueco a cerrar sigue siendo $416.324 - 2
 171.481$ y los umbrales no cambian.
 
 El paso de tres a cinco semillas se decidió por la
-regla preregistrada (secciones de método y objeción O6: subir a cinco solo si la sonda de
+regla prerregistrada (secciones de método y objeción O6: subir a cinco solo si la sonda de
 tiempos muestra holgura, decidido \emph{antes} de la ejecución); la sonda mostró amplia
 holgura (el ajuste más lento fue de 9,7\,s frente a un techo de unos 6\,min). La sonda
 también dejó visibles unos MAE de validación provisionales con semilla 42 (395.274 en
@@ -855,7 +863,7 @@ también dejó visibles unos MAE de validación provisionales con semilla 42 (39
 elegir el número de semillas y que la regla, basada en holgura de cómputo, gobierna con
 independencia de dónde cayeran.
 
-\textbf{Lecturas preregistradas.} Con un hueco de 171.481, cerrar el $\geq$ 60\,\%
+\textbf{Lecturas prerregistradas.} Con un hueco de 171.481, cerrar el $\geq$ 60\,\%
 (MAE de validación mediano $\leq 313.435$) se lee como \emph{asimetría informativa}: la
 debilidad de la etapa 1 está dominada por lo que no se le dejó ver. Cerrar el $\leq$ 25\,\%
 (mediano $\geq 373.454$) se lee como \emph{limitación arquitectónica}: un modelo
@@ -879,7 +887,9 @@ XGBoost. El ámbito \texttt{completo} ($k=161$) lo hace mejor, cierra un \textbf
 el veredicto se degrada a \emph{mixto/ambiguo}; y por la asimetría O4 un cierre parcial es
 de todos modos evidencia débil. En conjunto, la respuesta a Q1 es que la etapa 1 pierde
 principalmente por ser \emph{recurrente sobre esta serie y a este tamaño de muestra}, no por
-ser univariante: la paridad informativa no la rescata.
+ser univariante: la paridad informativa no la rescata, aunque el veredicto
+\emph{mixto/ambiguo} del ámbito \texttt{completo} impide cerrar del todo la explicación
+informativa.
 
 \begin{figure}[htbp]
   \centering
@@ -891,21 +901,25 @@ ser univariante: la paridad informativa no la rescata.
 \subsection{Lectura conjunta}\label{sec:lectura_conjunta}
 
 Los dos controles apuntan en la misma dirección. La ablación muestra que
-\texttt{xgboost\_alone} ya usa de forma demostrable tanto la información temporal como la
+\texttt{xgboost\_alone} ya usa de forma medible tanto la información temporal como la
 exógena: no hay un componente redundante que la etapa recurrente del híbrido pudiera
 aportar por separado. El control de paridad muestra que, aun entregándole a una LSTM
-exactamente las variables exógenas que ve XGBoost, e incluso más información en forma de
+exactamente las variables predictoras que ve XGBoost, e incluso más información en forma de
 ventana cruda, la vía recurrente no alcanza a los modelos de una sola etapa. La debilidad
-de la etapa 1, por tanto, no es un problema de acceso a la información que la etapa 2
-compense: es la combinación de una arquitectura recurrente y unas 860 observaciones diarias.
+de la etapa 1, por tanto, no parece explicarse en lo esencial por el acceso a la
+información: la lectura más plausible es la combinación de una arquitectura recurrente y
+unas 860 observaciones diarias, con la salvedad, que el ámbito \texttt{completo} deja
+abierta, de que una fracción del hueco pueda deberse también al acceso o a la
+representación de la información (sección \ref{sec:limitaciones}).
 Esto refuerza, por una vía independiente, la conclusión del contraste central
 (\ref{sec:contraste_central}): para la demanda agregada diaria a este tamaño de muestra, un
-único modelo de \emph{gradient boosting} sobre variables exógenas bien construidas supera a
-un híbrido residual secuencial, y el beneficio del híbrido se limita a rescatar una etapa
+único modelo de \emph{gradient boosting} sobre una matriz de variables predictoras bien
+construida supera a
+un híbrido residual secuencial, y el beneficio del híbrido se limita a compensar una etapa
 temporal débil en lugar de a batir a modelos de una sola etapa fuertes.
 
-La ablación permite además cerrar una tensión que arrastran las secciones anteriores y que
-un lector atento habrá advertido. Tres hechos sobre la meteorología retardada parecen
+La ablación permite además cerrar una tensión que arrastran las secciones anteriores.
+Tres hechos sobre la meteorología retardada parecen
 incompatibles: la sección \ref{sec:importancia_variables} reporta que ese bloque concentra
 el 51,6\,\% de la ganancia del modelo residual; la sección
 \ref{sec:residuo_meteo_anatomia} no encuentra ninguna de sus 105 variables con correlación
@@ -937,19 +951,19 @@ contraste de retirada que la respalde.
 
 El contraste central deja abierta una pregunta concreta: aunque el híbrido no gane globalmente, podría
 comportarse de forma distinta en festivos, puentes, fines de semana o periodos de demanda
-anómala. Esta sección la responde de forma sistemática y honesta. Bajo el mismo régimen de
+anómala. Esta sección la responde de forma sistemática. Bajo el mismo régimen de
 control diagnóstico declarado en la sección \ref{sec:anatomia_residuo_etapa1}, es un
 reanálisis puro de \texttt{data/\allowbreak{}processed/\allowbreak{}*\_predictions.parquet}:
 no se entrena, reajusta ni vuelve a predecir nada, y todas las cifras proceden de
 \texttt{metrics.all\_metrics}, la misma ruta que el resto del capítulo.
 
-El riesgo dominante aquí no es la incompletitud, es el \emph{p-hacking}: buscar subgrupos
+El riesgo dominante aquí no es la incompletitud, es la búsqueda selectiva de significación (\emph{p-hacking}): buscar subgrupos
 hasta encontrar uno que favorezca al híbrido es \emph{p-hacking} con independencia de por
-qué se emprenda la búsqueda. Por eso el diseño se fijó \textbf{antes} de calcular ningún MAE, ranking
+qué se emprenda la búsqueda. Por eso el diseño se fijó \textbf{antes} de calcular ningún MAE, clasificación
 o diferencia —solo se contaron los tamaños muestrales—, de modo que ``el híbrido no gana en
-ningún subgrupo'' sea tan publicable como cualquier hallazgo positivo.
+ningún subgrupo'' tenga el mismo estatuto que cualquier hallazgo positivo.
 
-\subsection{Diseño preregistrado}\label{sec:desglose_diseno}
+\subsection{Diseño prerregistrado}\label{sec:desglose_diseno}
 
 Se fijaron \textbf{quince subgrupos} como constantes de módulo en
 \texttt{src/\allowbreak{}evaluation/\allowbreak{}subgroup\_breakdown.py}, construidos a partir de columnas ya
@@ -976,14 +990,14 @@ subgrupo cuenta como victoria del híbrido solo si este queda primero en \textbf
 particiones. Este es el dispositivo anti-\emph{p-hacking} más fuerte del diseño: convierte
 una búsqueda de nueve subgrupos en una que exige réplica independiente, y no cuesta nada
 porque las dos particiones ya están publicadas. La partición combinada \texttt{val\_test}
-(393 días contiguos) es un ámbito \textbf{secundario} preregistrado, usado solo de forma
+(393 días contiguos) es un ámbito \textbf{secundario} prerregistrado, usado solo de forma
 descriptiva para los subgrupos que no alcanzan $n=20$ en test; su coste es que el orden
 SARIMAX, los hiperparámetros de XGBoost y los pesos del ensamble se eligieron sobre
 validación, así que sus resultados se etiquetan como secundarios y nunca encabezan una
 conclusión.
 
 \textbf{Resolución del ámbito de veredicto para \texttt{demanda\_anomala}.} Este subgrupo
-, el único fijado por nombre en el diseño preregistrado, tiene $n=16$ en test y $n=34$ en
+, el único fijado por nombre en el diseño prerregistrado, tiene $n=16$ en test y $n=34$ en
 validación, y su vista combinada \texttt{val\_test} alcanza $n=50$. Recibe el veredicto
 \emph{no inferencial} en el ámbito de veredicto (test), exactamente igual que cualquier
 otro subgrupo por debajo del umbral, \textbf{sin excepción}. Su resultado combinado se
@@ -994,7 +1008,7 @@ por subgrupo qué partición decide es un grado de libertad del investigador, y 
 precisamente para el subgrupo fijado de antemano es donde menos defendible
 sería. La función de veredicto lee la constante \texttt{VERDICT\_SCOPE} de forma uniforme
 para los quince subgrupos y ningún camino de código asigna un ámbito de veredicto por
-subgrupo; un test lo fija.
+subgrupo; una prueba automatizada lo fija.
 
 \textbf{Navidad y Semana Santa no admiten conclusión.} La ventana de evaluación de 393
 días contiene exactamente una Navidad (solo en validación, $n=16$; test $n=0$) y una
@@ -1009,7 +1023,7 @@ múltiples: es la restricción que prevalece sobre la exhaustividad.
 
 Las tablas \ref{tab:subgrupos_test} y \ref{tab:subgrupos_val} recogen, por subgrupo y para
 un conjunto reducido de modelos, el mejor competidor y su MAE, el mejor híbrido y su MAE,
-la diferencia entre ambos y el veredicto preregistrado. La figura
+la diferencia entre ambos y el veredicto prerregistrado. La figura
 \ref{fig:subgrupos_mae} lo representa con barras huecas para los subgrupos no
 inferenciales.
 
@@ -1020,15 +1034,15 @@ inferenciales.
   \label{fig:subgrupos_mae}
 \end{figure}
 
-El resultado es inequívoco. De los quince subgrupos preregistrados, nueve alcanzan $n \geq
+El resultado es negativo en todos los subgrupos inferenciales. De los quince subgrupos prerregistrados, nueve alcanzan $n \geq
 20$ en test; cuatro quedan por debajo (laborable en puente $n=3$, festivo $n=5$, calendario
 irregular $n=8$, demanda anómala $n=16$) y dos están excluidos por falta de solape
 val/test. \textbf{En 0 de los 9 subgrupos con $n$ suficiente gana el híbrido con
 evidencia}, y en 0 queda siquiera primero sin evidencia: en los nueve, el mejor híbrido es
 peor que el mejor competidor por entre 53.019 (verano) y 133.578 (domingo) viajes diarios
 de MAE. En validación el único subgrupo donde un híbrido queda primero es festivo ($n=9$),
-que es no inferencial y además no replica el hecho en test. La búsqueda está hecha y su
-resultado es negativo.
+que es no inferencial y además no replica el hecho en test. La búsqueda se ha completado con
+resultado negativo.
 
 El único hallazgo positivo ya conocido se mantiene y se reitera: en festivos, la etapa 2
 recorta el error de la etapa 1 de 1.585.388 a 666.572 (un $-58$\,\%). El mecanismo de
@@ -1037,18 +1051,18 @@ recorte no convierte a festivo en una victoria de subgrupo —sigue siendo peor 
 \texttt{xgboost\_alone} y que el ensamble, y su $n=5$ lo hace indicativo, no concluyente—.
 
 La etiqueta \texttt{demanda\_anomala} usa el $\text{total}_t$ observado: es legítima para un
-reporte a posteriori, pero \textbf{ilegítima como regla de enrutamiento}. Ningún lector
-debe concluir ``despliéguese el híbrido en los días anómalos'': la anomalía no se conoce
+reporte a posteriori, pero \textbf{ilegítima como regla de enrutamiento}. No cabe concluir
+de ello que el híbrido deba desplegarse en los días anómalos: la anomalía no se conoce
 antes de observar la demanda del propio día. Su vista combinada \texttt{val\_test}
 ($n=50$, secundaria y descriptiva) tampoco cambia el signo: el mejor híbrido es peor que
 \texttt{xgboost\_alone} por unos 123.000 de MAE.
 
 \subsection{Incertidumbre y comparaciones múltiples}\label{sec:desglose_incertidumbre}
 
-La incertidumbre de cada diferencia se obtiene con un \emph{bootstrap} pareado de bloques
+La incertidumbre de cada diferencia se obtiene con un remuestreo \emph{bootstrap} pareado de bloques
 móviles. Como un subgrupo categórico está disperso por la partición, el remuestreo se hace
 sobre la serie de evaluación completa y contigua, en bloques de 7 días (preservan la
-dependencia semanal, que es la autocorrelación dominante y la razón por la que un test
+dependencia semanal, que es la autocorrelación dominante y la razón por la que un contraste
 pareado ingenuo sobreestima la significación), con 2000 réplicas y semilla global. La
 pertenencia al subgrupo viaja con el día, y \texttt{best\_model} y \texttt{best\_hybrid} se
 \textbf{vuelven a seleccionar dentro de cada réplica} (\emph{argmin} sobre competidores y
@@ -1072,20 +1086,18 @@ que el análisis meteorológico de la sección \ref{sec:anatomia_residuo_etapa1}
 familia de los nueve subgrupos inferenciales (una hipótesis por subgrupo, no una por
 subgrupo$\times$modelo, porque el estadístico focal es una única diferencia). Los subgrupos
 se solapan fuertemente (\texttt{entre\_semana} contiene a \texttt{laborable\_ordinario}),
-así que los tests son positivamente dependientes —el régimen (PRDS) bajo el que
+así que los contrastes son positivamente dependientes —el régimen (PRDS) bajo el que
 \texttt{fdr\_bh} sigue siendo válido—; las diferencias entre subgrupos \textbf{no
 descomponen}: es una familia de vistas solapadas, no una partición.
 
 En los nueve subgrupos inferenciales la diferencia es positiva y significativa tras
 Benjamini-Hochberg: la evidencia es que el híbrido es significativamente \textbf{peor}, no
-que empate. Este es el desenlace más expuesto a sobrelectura, así que su tratamiento está
-preregistrado. Bajo la hipótesis nula los once modelos son intercambiables dentro de un
-subgrupo, de modo que la probabilidad de que el MAE más bajo corresponda a la familia
-híbrida de dos miembros es $2/11$; sobre los nueve subgrupos inferenciales eso da
-$9 \times 2/11 \approx 1{,}6$ subgrupos que quedarían primeros por puro azar. El recuento
-observado es 0, por debajo incluso de esa expectativa nula. Donde la inferencia es
-imposible —festivo ($n=5$), laborable en puente ($n=3$)— no se fabrica ningún valor p:
-se da un MAE puntual con su $n$ y nada más, que es la respuesta honesta.
+que empate. Este es el desenlace más expuesto a sobrelectura, así que su tratamiento —la
+corrección sobre la familia inferencial y el requisito de réplica en validación— está
+prerregistrado. Donde la inferencia es
+imposible —festivo ($n=5$), laborable en puente ($n=3$)— no se realiza inferencia
+estadística debido al reducido tamaño muestral: se reporta únicamente el MAE puntual con
+su $n$.
 
 \subsection{Vista temporal}\label{sec:desglose_temporal}
 
@@ -1095,13 +1107,13 @@ mejor híbrido y el mejor competidor (panel inferior), con la frontera val/test 
 ventana de 28 días se hereda de $W=28$ de la LSTM y de la ventana de las variables móviles;
 no se ha ajustado. La diferencia móvil se mantiene por encima de cero en toda la serie: la
 posición relativa del híbrido no se invierte en ningún tramo. Es una figura descriptiva:
-ventanas consecutivas se solapan en 27 días, así que no se le aplica ningún test y las
+ventanas consecutivas se solapan en 27 días, así que no se le aplica ningún contraste y las
 ventanas que cruzan la frontera mezclan las dos particiones.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{fig_mae_movil_periodo.png}
-  \caption{\headlinecolor{MAE móvil a 28 días por modelo (panel superior) y diferencia móvil mejor híbrido $-$ mejor competidor (panel inferior) sobre la ventana contigua de validación y test. Regla vertical en la frontera val/test. Figura descriptiva: sin test, por el fuerte solapamiento de ventanas consecutivas.}}
+  \caption{\headlinecolor{MAE móvil a 28 días por modelo (panel superior) y diferencia móvil mejor híbrido $-$ mejor competidor (panel inferior) sobre la ventana contigua de validación y test. Regla vertical en la frontera val/test. Figura descriptiva: sin contraste, por el fuerte solapamiento de ventanas consecutivas.}}
   \label{fig:mae_movil_periodo}
 \end{figure}
 
@@ -1132,7 +1144,7 @@ este capítulo.
     \ref{sec:contraste_central}).
 
   \item[PI2. ¿Bate el híbrido a \texttt{xgboost\_alone}, entrenado sobre las mismas
-    variables exógenas?]
+    variables predictoras?]
     No, y por un margen todavía mayor que frente a SARIMAX: 35.895 en validación y 78.103
     en test (tabla \ref{tab:delta_hibrido}).
 
@@ -1148,7 +1160,7 @@ este capítulo.
     Sí: reduce el MAE de la etapa 1 en un 16,6\,\% en test y, de forma más marcada todavía,
     en un 58\,\% en festivos, de 1.585.388 a 666.572 (sección \ref{sec:error_dia}), y la
     variable de mayor ganancia del modelo residual, \texttt{feat\_day\_type\_festivo}
-    (0,125), confirma a nivel de variable individual que esa corrección procede exactamente
+    (0,125), apunta, a nivel de variable individual, a que esa corrección procede
     de la señal de calendario que la etapa 1 no puede ver (sección
     \ref{sec:importancia_variables}). El mecanismo de la arquitectura híbrida es real; lo
     que resulta insuficiente es la etapa 1 de la que parte.
@@ -1159,8 +1171,8 @@ este capítulo.
     (\texttt{ensemble\_equal}), sin ninguna red LSTM ni reentrenamiento adicional, alcanza
     un MAE de test de 139.725; su variante ponderada por el inverso del MAE de validación
     (\texttt{ensemble\_inverse\_mae}, pesos 0,4724/0,5276) lo reduce ligeramente a 139.681,
-    un 10,5\,\% por debajo del mejor de sus dos componentes por descorrelación de errores
-    (sección \ref{sec:mecanismo_ensemble}).
+    un 10,5\,\% por debajo del mejor de sus dos componentes, en consonancia con la
+    descorrelación de errores entre ambos (sección \ref{sec:mecanismo_ensemble}).
 \end{description}
 
 Los dos controles diagnósticos de la sección \ref{sec:paridad_informativa} no abren
@@ -1168,7 +1180,10 @@ preguntas de investigación nuevas, pero refuerzan las respuestas a PI1, PI2 y P
 vía independiente: la ablación de bloques (\ref{sec:ablacion_bloques}) confirma
 mecánicamente que \texttt{xgboost\_alone} ya integra la información temporal y la exógena
 —lo que explica por qué separar el problema en dos etapas no añade poder predictivo—, y el
-control de paridad informativa (\ref{sec:paridad_lstm}) descarta que la etapa 1 pierda por
-ser univariante: sigue por detrás de los modelos de una sola etapa incluso viendo las
-mismas variables exógenas que XGBoost, con veredictos de \emph{limitación arquitectónica}
-(\texttt{calendario}) y \emph{mixto/ambiguo} (\texttt{completo}).
+control de paridad informativa (\ref{sec:paridad_lstm}) reduce la plausibilidad de que la
+desventaja de la etapa 1 se explique únicamente por su carácter univariante: sigue por
+detrás de los modelos de una sola etapa incluso viendo las mismas variables predictoras que
+XGBoost (veredicto \emph{limitación arquitectónica} en \texttt{calendario}). No obstante,
+el ámbito \texttt{completo} presenta un resultado \emph{mixto/ambiguo}, por lo que no puede
+descartarse que parte de la diferencia esté relacionada también con el acceso o la
+representación de la información (sección \ref{sec:limitaciones}).

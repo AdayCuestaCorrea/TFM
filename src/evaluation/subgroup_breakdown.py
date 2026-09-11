@@ -606,13 +606,16 @@ def evaluate_subgroup_criteria(
 
 
 def expected_first_by_chance(scope: str = VERDICT_SCOPE) -> dict[str, float]:
-    """Expected count of subgroups where a hybrid ranks first under the null (§5.11.3).
+    """Reference arithmetic for a "hybrid ranks first by chance" count. NOT reported.
 
-    Under the null the 11 models are exchangeable within a subgroup, so the probability
-    that the single lowest MAE belongs to the two-member hybrid family is
-    `len(HYBRID_MODELS) / len(MODEL_NAMES) = 2/11`. Across the inferential family that
-    gives `family_size * 2/11` subgroups ranking first purely by chance — a concrete
-    number for the anti-over-reading paragraph, not a qualitative "k of N".
+    Computes `family_size * len(HYBRID_MODELS) / len(MODEL_NAMES)` (9 * 2/11 on the test
+    verdict scope). It was once quoted in §5.11.3 as the null expectation, and was removed
+    from the memoria at the supervisor's review (item 21): the figure presupposes that the
+    eleven models are exchangeable and equiprobable under the null, which does not hold
+    for a family that mixes naive baselines with tuned models. The bootstrap deltas and the
+    BH-corrected comparisons carry the inference on their own. The helper is kept only
+    because its arithmetic is pinned by a test; nothing in the report or the figures
+    reads it.
     """
     family = [
         s for s in SUBGROUPS
@@ -719,15 +722,9 @@ def main() -> None:
     n_infer = int(criteria["verdict"].isin(inferential_verdicts).sum())
     n_win = int((criteria["verdict"] == VERDICT_WIN).sum())
     n_rank_only = int((criteria["verdict"] == VERDICT_RANK_ONLY).sum())
-    chance = expected_first_by_chance()
     print(
         f"\nOf the {n_infer} subgroups with adequate n, the hybrid wins with evidence in "
         f"{n_win}; {n_rank_only} rank first without evidence."
-    )
-    print(
-        f"Under the null, {chance['expected_first']:.2f} of the "
-        f"{int(chance['family_size'])} inferential subgroups are expected to rank first by "
-        f"chance (p = {chance['n_hybrid_models']:.0f}/{chance['n_models']:.0f})."
     )
 
 

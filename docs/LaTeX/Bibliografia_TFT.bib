@@ -1,17 +1,28 @@
 %% ============================================================================
-%% Bibliografia_TFT.bib -- Fase 10: bibliografia tecnica del TFM.
+%% Bibliografia_TFT.bib -- bibliografia tecnica del TFM (biblatex-apa, biber).
 %%
-%% monje2022deep, toque2017short y cardozo2012spatial fueron verificadas contra
-%% docs/references/Summary.md (ficha de fuentes original del brief del proyecto)
-%% durante la redaccion del Capitulo 1 y llevan ya sus metadatos completos
-%% (autoria, revista/congreso, volumen, paginas, DOI).
+%% Sistema de citas: APA 7 mediante biblatex (style=apa) + biber, exigido por la
+%% revision formal de direccion (items 1-4). Cada entrada lleva los campos que APA 7
+%% requiere para su tipo; los DOI/URL fueron verificados uno a uno contra el registro
+%% del editor por el autor, no inferidos. Un DOI ausente significa que el editor no lo
+%% ha asignado (capitulo de libro de 1993), no que falte por comprobar.
 %%
-%% surribas_sayago_diffuse se conserva como entrada de tipo misc con ficha
-%% minima (autor + titulo + nota): se cita EXCLUSIVAMENTE como inspiracion de
-%% ingenieria de caracteristicas (retardos, terminos de Fourier), nunca como
-%% arquitectura replicada, segun queda fijado en el contexto tecnico del proyecto.
-%% No se le atribuye revista, volumen ni ano por no disponer de la fuente
-%% primaria; su papel en la memoria no depende de esos campos.
+%% monje2022deep: autoria corregida contra la fuente primaria
+%% (docs/references/mathematics-10-01428-v3.pdf): Leticia Monje y Ramon A. Carrasco.
+%% El numero de articulo (1428) va en eid, no en pages, como pide APA 7.
+%%
+%% surribas_sayago_diffuse: ficha completa suministrada por direccion (SOCO 2025,
+%% CCIS 2806, Springer). Sin campo editor por ahora: biblatex-apa la compone en forma de
+%% articulo de actas, valida en APA 7; con editores pasaria a forma de capitulo.
+%% Se cita exclusivamente como inspiracion de ingenieria de caracteristicas (retardos,
+%% terminos de Fourier), nunca como arquitectura replicada (ver Capitulo 2).
+%%
+%% Fase 2 de la revision de direccion (item 5): yazicioglu2025passenger, arana2014weather,
+%% singhal2014weather y chen2019emd, fichas verificadas contra el registro del editor / Crossref; las celdas del
+%% cuadro 2.1 se leyeron del propio articulo. arana2014weather: el DOI que circula en fuentes
+%% secundarias (prefijo j.trb) es erroneo; el correcto, con prefijo j.tra, es el del registro
+%% de Crossref. chen2019emd tiene una correccion (PLoS ONE 15(3), e0231199, 2020) que retira
+%% un fichero de apoyo incluido por error y no altera resultados; se cita el articulo original.
 %% ============================================================================
 
 @book{box1970time,
@@ -30,7 +41,8 @@
   number  = {8},
   pages   = {1735--1780},
   year    = {1997},
-  publisher = {MIT Press}
+  publisher = {MIT Press},
+  doi = {10.1162/neco.1997.9.8.1735}
 }
 
 @inproceedings{chen2016xgboost,
@@ -40,7 +52,8 @@
                Knowledge Discovery and Data Mining},
   pages     = {785--794},
   year      = {2016},
-  publisher = {ACM}
+  publisher = {ACM},
+  doi = {10.1145/2939672.2939785}
 }
 
 @article{bergmeir2012cv,
@@ -50,7 +63,8 @@
   volume  = {191},
   pages   = {192--213},
   year    = {2012},
-  publisher = {Elsevier}
+  publisher = {Elsevier},
+  doi = {10.1016/j.ins.2011.12.028}
 }
 
 @article{cerqueira2020evaluating,
@@ -61,7 +75,9 @@
   volume  = {109},
   pages   = {1997--2028},
   year    = {2020},
-  publisher = {Springer}
+  publisher = {Springer},
+  number = {11},
+  doi = {10.1007/s10994-020-05910-7}
 }
 
 @book{hyndman2021fpp,
@@ -70,7 +86,8 @@
   edition   = {3},
   year      = {2021},
   publisher = {OTexts},
-  address   = {Melbourne, Australia}
+  address   = {Melbourne, Australia},
+  url = {https://otexts.com/fpp3/}
 }
 
 @article{zhang2003hybrid,
@@ -80,7 +97,8 @@
   volume  = {50},
   pages   = {159--175},
   year    = {2003},
-  publisher = {Elsevier}
+  publisher = {Elsevier},
+  doi = {10.1016/S0925-2312(01)00702-0}
 }
 
 @article{wolpert1992stacking,
@@ -91,7 +109,8 @@
   number  = {2},
   pages   = {241--259},
   year    = {1992},
-  publisher = {Elsevier}
+  publisher = {Elsevier},
+  doi = {10.1016/S0893-6080(05)80023-1}
 }
 
 @article{granger1989combining,
@@ -102,7 +121,8 @@
   number  = {3},
   pages   = {167--173},
   year    = {1989},
-  publisher = {Wiley}
+  publisher = {Wiley},
+  doi = {10.1002/for.3980080303}
 }
 
 @article{bates1969combination,
@@ -113,7 +133,8 @@
   number  = {4},
   pages   = {451--468},
   year    = {1969},
-  publisher = {Operational Research Society}
+  publisher = {Operational Research Society},
+  doi = {10.1057/jors.1969.103}
 }
 
 @incollection{perrone1993networks,
@@ -123,7 +144,7 @@
   editor    = {Richard J. Mammone},
   pages     = {126--142},
   year      = {1993},
-  publisher = {Chapman-Hall}
+  publisher = {Chapman \& Hall}
 }
 
 @article{makridakis2018m4,
@@ -134,7 +155,8 @@
   number  = {4},
   pages   = {802--808},
   year    = {2018},
-  publisher = {Elsevier}
+  publisher = {Elsevier},
+  doi     = {10.1016/j.ijforecast.2018.06.001}
 }
 
 @article{makridakis2022m5,
@@ -143,20 +165,21 @@
   journal = {International Journal of Forecasting},
   volume  = {38},
   number  = {4},
-  pages   = {1325--1336},
+  pages   = {1346--1364},
   year    = {2022},
-  publisher = {Elsevier}
+  publisher = {Elsevier},
+  doi = {10.1016/j.ijforecast.2021.11.013}
 }
 
 @article{monje2022deep,
-  author    = {Laura Monje and Ricardo A. Carrasco and Carlos Rosado and
+  author    = {Leticia Monje and Ram{\'o}n A. Carrasco and Carlos Rosado and
                Manuel S{\'a}nchez-Monta{\~n}{\'e}s},
   title     = {Deep Learning {XAI} for Bus Passenger Forecasting: A Use Case
                in Spain},
   journal   = {Mathematics},
   volume    = {10},
   number    = {9},
-  pages     = {1428},
+  eid       = {1428},
   year      = {2022},
   publisher = {MDPI},
   doi       = {10.3390/math10091428}
@@ -187,28 +210,83 @@
   doi       = {10.1016/j.apgeog.2012.01.005}
 }
 
-@misc{surribas_sayago_diffuse,
-  author  = {Surribas-Sayago, C. and others},
-  title   = {Hybrid {CNN-LSTM-MLP} Architecture for Diffuse Solar Radiation
-             Forecasting},
-  note    = {Trabajo del dominio de la prediccion de radiacion solar difusa,
-             citado unicamente como inspiracion de la ingenieria de
-             caracteristicas de este TFM (retardos y terminos de Fourier),
-             no como arquitectura replicada (ver Capitulo 2).}
+@inproceedings{surribas_sayago_diffuse,
+  author    = {Gonzalo Surribas-Sayago and Jos{\'e} David Fern{\'a}ndez-Rodr{\'i}guez
+               and Enrique Dom{\'i}nguez},
+  year      = {2026},
+  title     = {Diffuse Radiation Forecasting Using a Hybrid Neural Network Architecture
+               Integrating {CNN}, {LSTM}, and {MLP} Models},
+  booktitle = {Soft Computing Models in Industrial and Environmental Applications: 20th
+               International Conference, {SOCO} 2025, Proceedings},
+  series    = {Communications in Computer and Information Science},
+  volume    = {2806},
+  pages     = {466--475},
+  publisher = {Springer},
+  doi       = {10.1007/978-3-032-19763-4_43}
 }
 
-@misc{anthropic2026claude,
-  author       = {{Anthropic}},
-  title        = {Claude},
-  year         = {2026},
-  howpublished = {Modelo de lenguaje de gran tama{\~n}o.
-                  \url{https://claude.ai}}
+@software{anthropic2026claude,
+  author     = {{Anthropic}},
+  year       = {2026},
+  title      = {Claude},
+  titleaddon = {Modelo de lenguaje de gran tama{\~n}o},
+  url        = {https://claude.ai}
 }
 
-@misc{anthropic2026claudecode,
-  author       = {{Anthropic}},
-  title        = {{Claude Code}},
-  year         = {2026},
-  howpublished = {Herramienta de desarrollo de software asistido por IA.
-                  \url{https://claude.com/claude-code}}
+@software{anthropic2026claudecode,
+  author     = {{Anthropic}},
+  year       = {2026},
+  title      = {Claude Code},
+  titleaddon = {Herramienta de desarrollo de software asistido por {IA}},
+  url        = {https://claude.com/claude-code}
+}
+
+@article{yazicioglu2025passenger,
+  author  = {Cafer Yaz{\i}c{\i}o{\u{g}}lu and Ali Pay{\i}dar Akg{\"u}ng{\"o}r},
+  year    = {2025},
+  title   = {Modeling Short-Term Passenger Flows in Metro and Bus Systems Using
+             Meteorological Data: Deep Learning Model Comparisons},
+  journal = {Applied Sciences},
+  volume  = {15},
+  number  = {11},
+  eid     = {6260},
+  publisher = {MDPI},
+  doi     = {10.3390/app15116260}
+}
+
+@article{arana2014weather,
+  author  = {P. Arana and S. Cabezudo and M. Pe{\~n}alba},
+  year    = {2014},
+  title   = {Influence of Weather Conditions on Transit Ridership: A Statistical Study Using
+             Data from Smartcards},
+  journal = {Transportation Research Part A: Policy and Practice},
+  volume  = {59},
+  pages   = {1--12},
+  publisher = {Elsevier},
+  doi     = {10.1016/j.tra.2013.10.019}
+}
+
+@article{chen2019emd,
+  author  = {Quanchao Chen and Di Wen and Xuqiang Li and Dingjun Chen and Hongxia Lv
+             and Jie Zhang and Peng Gao},
+  year    = {2019},
+  title   = {Empirical Mode Decomposition Based Long Short-Term Memory Neural Network
+             Forecasting Model for the Short-Term Metro Passenger Flow},
+  journal = {PLoS ONE},
+  volume  = {14},
+  number  = {9},
+  eid     = {e0222365},
+  publisher = {Public Library of Science},
+  doi     = {10.1371/journal.pone.0222365}
+}
+
+@article{singhal2014weather,
+  author  = {Abhishek Singhal and Camille Kamga and Anil Yazici},
+  year    = {2014},
+  title   = {Impact of Weather on Urban Transit Ridership},
+  journal = {Transportation Research Part A: Policy and Practice},
+  volume  = {69},
+  pages   = {379--391},
+  publisher = {Elsevier},
+  doi     = {10.1016/j.tra.2014.09.008}
 }

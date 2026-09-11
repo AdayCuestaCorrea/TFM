@@ -22,6 +22,8 @@ docs/LaTeX/*.out
 docs/LaTeX/*.toc
 docs/LaTeX/*.synctex.gz
 docs/LaTeX/*.bak
+docs/LaTeX/*.bcf
+docs/LaTeX/*.run.xml
 
 # Python cache & build files
 __pycache__/

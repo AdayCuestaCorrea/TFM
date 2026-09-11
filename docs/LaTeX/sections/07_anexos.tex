@@ -70,7 +70,7 @@ cada modelo XGBoost del capítulo \ref{cap:resultados}, y la lista nominal compl
 repositorio del proyecto.
 \end{sloppypar}
 
-\chapter{Suite de tests y garantías anti-fuga}\label{cap:anexo2}
+\chapter{Suite de pruebas automatizadas y guardias anti-fuga}\label{cap:anexo2}
 
 \begin{sloppypar}
 La afirmación central de esta memoria —que un resultado negativo bien instrumentado es
@@ -78,7 +78,7 @@ una contribución metodológica válida— solo se sostiene si el pipeline que l
 está libre de los errores de fuga de información que sistemáticamente producen
 resultados optimistas y no reproducibles en la literatura de predicción de series
 temporales. Este anexo documenta la arquitectura de verificación que respalda esa
-afirmación: \textbf{470 tests}, recolectados y ejecutados con
+afirmación: \textbf{470 pruebas automatizadas}, recolectadas y ejecutadas con
 \texttt{python -m pytest} desde la raíz del repositorio con el entorno
 \texttt{.\textbackslash venv\textbackslash Scripts\textbackslash python.exe} activado,
 de los cuales 257 se acumulan a lo largo de las fases de modelado (0 a 6b, cuadro
@@ -144,13 +144,13 @@ anti-fuga, listadas de la más general a la más específica del dominio de este
     degenerado se verifican en \texttt{tests/\allowbreak{}test\_lstm.py} y
     \texttt{tests/\allowbreak{}test\_hybrid\_residual.py}. Es la decisión de diseño fijada
     por escrito como no negociable con anterioridad a cualquier resultado.
-  \item \textbf{Guardia de fuga \emph{same-day} sobre la suma de operadores.} Puesto
+  \item \textbf{Guardia de fuga del mismo día sobre la suma de operadores.} Puesto
     que \texttt{metro + emt + carretera + cercanias == total} de forma exacta, un
     operador del mismo día no es variable predictiva sino el objetivo expresado de otra
     forma; \texttt{lag\_features.\_assert\_no\_same\_day\_leakage} hace fallar la
     construcción si alguno apareciera sin retardo, comprobado sobre la matriz ensamblada
     y no solo módulo a módulo.
-  \item \textbf{Guardia de fuga \emph{same-day} sobre meteorología.} Ninguna de las 21
+  \item \textbf{Guardia de fuga del mismo día sobre meteorología.} Ninguna de las 21
     variables meteorológicas del día predicho entra en la matriz; solo sus versiones
     retardadas (1, 2, 3, 7 días y media móvil de 7), verificado por
     \texttt{weather\_features.\_assert\_no\_same\_day\_weather} con el mismo criterio de
@@ -162,7 +162,7 @@ anti-fuga, listadas de la más general a la más específica del dominio de este
     fijado por
     \texttt{test\_xgboost\_\allowbreak{}alone\_\allowbreak{}trains\_\allowbreak{}on\_\allowbreak{}the\_\allowbreak{}full\_\allowbreak{}889\_\allowbreak{}row\_\allowbreak{}split}.
   \item \textbf{El veredicto del experimento A de sensibilidad se evalúa en código, no
-    a ojo.} El criterio pre-registrado de la sección \ref{sec:experimento_a} (mejora en
+    mediante inspección manual.} El criterio prerregistrado de la sección \ref{sec:experimento_a} (mejora en
     días irregulares \emph{y} coste global acotado al 5\,\%) se calcula mediante
     \texttt{evaluate\_criterion\_a}, de forma que el veredicto ``NO CUMPLIDO'' no pueda
     derivar a posteriori hacia una lectura más favorable; verificado en
@@ -173,15 +173,14 @@ anti-fuga, listadas de la más general a la más específica del dominio de este
     pudieran divergir en silencio; verificado por
     \texttt{test\_interactive\_\allowbreak{}and\_\allowbreak{}static\_\allowbreak{}paths\_\allowbreak{}share\_\allowbreak{}one\_\allowbreak{}template\_\allowbreak{}object}
     en \texttt{tests/\allowbreak{}test\_theme.py}. No es anti-fuga en sentido estricto,
-    pero cumple para la capa de presentación el mismo papel de garantía estructural.
+    pero cumple para la capa de presentación el mismo papel de guardia estructural.
 \end{enumerate}
 
 Cada una de estas diez comprobaciones incluye, además de su verificación sobre datos
 reales, al menos una prueba negativa que inyecta deliberadamente la condición de fuga
 correspondiente sobre un caso de prueba mínimo y comprueba que el código
 \emph{sí} falla; una guardia que nunca se ha visto obligada a disparar en la práctica es
-indistinguible de una guardia que no existe, y este proyecto no se conforma con esa
-ambigüedad.
+indistinguible de una guardia que no existe.
 \end{sloppypar}
 
 \chapter{Reproducibilidad y entorno}\label{cap:anexo3}
@@ -214,7 +213,7 @@ rango, en \texttt{requirements.txt}, entre ellas:
 \end{itemize}
 }
 
-Dos pines documentan una incompatibilidad real y no una preferencia: \texttt{pyarrow},
+Dos de esas versiones fijadas documentan una incompatibilidad real y no una preferencia: \texttt{pyarrow},
 porque \texttt{pandas} necesita un motor Parquet explícito, y \texttt{kaleido} en su rama
 1.x y nunca en la 0.2.1, porque esta cuelga de forma indefinida y sin excepción al
 exportar figuras bajo \texttt{plotly} 6.x ---un fallo silencioso, más costoso de
@@ -271,28 +270,28 @@ repredecir ningún modelo más allá de lo que cada paso indica explícitamente:
     experimento A (sección \ref{sec:experimento_a}): peso triple en días de calendario
     irregular.
   \item \texttt{python -m src.evaluation.ensemble\_baseline} — experimento B (sección
-    \ref{sec:mecanismo_ensemble}): ensamble SARIMAX + XGBoost-alone, sin reentrenamiento.
+    \ref{sec:por_que_ensemble}): ensamble SARIMAX + XGBoost independiente, sin reentrenamiento.
   \item \texttt{python -m src.evaluation.sensitivity\_report} — consolida ambos y evalúa
-    en código el criterio pre-registrado del experimento A;
+    en código el criterio prerregistrado del experimento A;
     \texttt{sensitivity\_comparison.parquet}.
   \item \texttt{python -m src.evaluation.lstm\_learning\_curve} — sección
     \ref{sec:anatomia_residuo_etapa1}: 20 ajustes de la etapa 1 (6 fracciones x 3
     semillas, más las semillas 3 y 4 en la fracción 1,00, base del control de la sección
     \ref{sec:paridad_lstm}), solo validación; \texttt{lstm\_learning\_curve.parquet}.
   \item \texttt{python -m src.evaluation.stage1\_residual\_anatomy} — tablas de la
-    anatomía del residuo y veredictos de los cuatro criterios pre-registrados.
+    anatomía del residuo y veredictos de los cuatro criterios prerregistrados.
   \item \texttt{python -m src.evaluation.feature\_block\_ablation} — sección
     \ref{sec:paridad_informativa}: \texttt{xgboost\_alone} sobre cuatro subconjuntos de
     variables; \texttt{feature\_block\_ablation.parquet}.
   \item \texttt{python -m src.evaluation.subgroup\_breakdown} — sección
-    \ref{sec:desglose_subgrupos}: reanálisis por quince subgrupos pre-registrados, con
+    \ref{sec:desglose_subgrupos}: reanálisis por quince subgrupos prerregistrados, con
     \emph{bootstrap} de bloques móviles y corrección Benjamini-Hochberg;
     \texttt{subgroup\_breakdown.parquet} y \texttt{subgroup\_rolling\_mae.parquet}.
   \item \texttt{python -m src.evaluation.lstm\_parity\_control} — sección
     \ref{sec:paridad_lstm}: LSTM en paridad informativa, 10 ajustes (2 ámbitos x 5
     semillas), solo validación; \texttt{lstm\_parity\_control.parquet}.
   \item \texttt{python -m src.evaluation.export\_figures} — exporta las 34 figuras
-    estáticas de \texttt{reports/\allowbreak{}figures/}, fuera de todo kernel de Jupyter.
+    estáticas de \texttt{reports/\allowbreak{}figures/}, fuera de todo núcleo de Jupyter.
   \item \texttt{python -m src.evaluation.export\_latex\_tables} — vuelca las 32 tablas
     LaTeX de \texttt{docs/\allowbreak{}LaTeX/\allowbreak{}tables/}.
   \item \texttt{jupyter nbconvert -{}-to notebook -{}-execute -{}-inplace
@@ -300,7 +299,7 @@ repredecir ningún modelo más allá de lo que cada paso indica explícitamente:
     flujo (~40 s) y \textbf{contrasta cada métrica recomputada contra el valor publicado}
     en \texttt{full\_comparison.parquet}: si alguna se desvía más de $10^{-6}$ en términos
     relativos, levanta una excepción.
-  \item \texttt{python -m pytest} — ejecuta la suite completa de 470 tests (descrita
+  \item \texttt{python -m pytest} — ejecuta la suite completa de 470 pruebas automatizadas (descrita
     en el Anexo \ref{cap:anexo2}).
   \item \texttt{latexmk -pdf -interaction=nonstopmode -halt-on-error TFT.tex}, ejecutado
     desde \texttt{docs/\allowbreak{}LaTeX/}, compila esta memoria hasta obtener \texttt{TFT.pdf}.
@@ -317,7 +316,7 @@ importancia de variables del modelo XGBoost. El cuaderno lee de
 \texttt{data/\allowbreak{}processed/} y de los modelos ya entrenados de
 \texttt{models/}, y no entrena ni predice nada; la exportación de las figuras
 estáticas de esta memoria se realiza aparte, mediante
-\texttt{export\_figures}, fuera de todo kernel de Jupyter.
+\texttt{export\_figures}, fuera de todo núcleo de Jupyter.
 
 \textbf{Cuaderno principal de flujo.} El cuaderno
 \texttt{notebooks/\allowbreak{}07\_flujo\_completo.ipynb} recorre el trabajo completo en las
@@ -360,13 +359,13 @@ autor.
 En la realización de este Trabajo Fin de Máster se han utilizado herramientas de
 inteligencia artificial generativa, en concreto Claude (Anthropic), en su interfaz
 conversacional y en su versión para desarrollo de software (Claude Code), durante el
-periodo abril--septiembre de 2026 \cite{anthropic2026claude,anthropic2026claudecode}.
+periodo abril--septiembre de 2026 \parencite{anthropic2026claude,anthropic2026claudecode}.
 
 Su uso se ha concentrado en cuatro tareas.
 
 \textbf{Implementación del código.} La escritura de los módulos de Python del
 repositorio (ingesta, ingeniería de características, modelado, evaluación y generación
-de figuras y tablas), así como de la suite de 470 pruebas automáticas que verifica su
+de figuras y tablas), así como de la suite de 470 pruebas automatizadas que verifica su
 comportamiento (Anexo \ref{cap:anexo2}), se ha realizado con asistencia de IA a partir
 de especificaciones técnicas definidas por el autor. Las decisiones de arquitectura del
 pipeline, el protocolo \emph{out-of-fold}, las reglas anti-fuga, la partición
@@ -409,9 +408,9 @@ Las fichas de las herramientas empleadas, recogidas también en la bibliografía
 son las siguientes:
 
 \begin{itemize}[nosep]
-  \item Anthropic. (2026). \emph{Claude} [modelo de lenguaje de gran tamaño].
+  \item Anthropic. (2026a). \emph{Claude} [modelo de lenguaje de gran tamaño].
     \url{https://claude.ai}.
-  \item Anthropic. (2026). \emph{Claude Code} [herramienta de desarrollo de software
+  \item Anthropic. (2026b). \emph{Claude Code} [herramienta de desarrollo de software
     asistido por IA]. \url{https://claude.com/claude-code}.
 \end{itemize}
 
@@ -422,7 +421,7 @@ son las siguientes:
 
 Este anexo recoge los cuadros de detalle de las secciones \ref{sec:anatomia_residuo_etapa1},
 \ref{sec:paridad_informativa} y \ref{sec:desglose_subgrupos}. El argumento, las cifras
-titulares y los veredictos preregistrados permanecen íntegros en el cuerpo del capítulo
+titulares y los veredictos prerregistrados permanecen íntegros en el cuerpo del capítulo
 \ref{cap:resultados}; aquí solo se traslada el detalle tabular, al que el texto sigue
 remitiendo por número de cuadro.
 
@@ -493,7 +492,7 @@ remitiendo por número de cuadro.
   \small
   \setlength{\tabcolsep}{4pt}
   \resizebox{\textwidth}{!}{\input{tables/tabla_paridad_lstm}}
-  \caption{\headlinecolor{LSTM en paridad informativa por ámbito de variables exógenas (control diagnóstico, 5 semillas, solo validación). MAE de validación mediano con banda mín-máx, porcentaje del hueco univariante$\to$\texttt{xgboost\_alone} cerrado, número de ajustes degenerados y \texttt{best\_epoch} mediano. Base univariante: mediana de 5 semillas 416.324; mejor semilla 411.142.}}
+  \caption{\headlinecolor{LSTM en paridad informativa por ámbito de variables predictoras (control diagnóstico, 5 semillas, solo validación). MAE de validación mediano con banda mín-máx, porcentaje del hueco univariante$\to$\texttt{xgboost\_alone} cerrado, número de ajustes degenerados y \texttt{best\_epoch} mediano. Base univariante: mediana de 5 semillas 416.324; mejor semilla 411.142.}}
   \label{tab:paridad_lstm}
 \end{table}
 
@@ -511,7 +510,7 @@ remitiendo por número de cuadro.
   \small
   \setlength{\tabcolsep}{4pt}
   \resizebox{\textwidth}{!}{\input{tables/tabla_subgrupos_val}}
-  \caption{\headlinecolor{Desglose por subgrupo, partición validación (requisito de réplica). La columna ``Veredicto'' repite el veredicto preregistrado único por subgrupo; esta tabla solo difiere de la \ref{tab:subgrupos_test} en las columnas de MAE y diferencia.}}
+  \caption{\headlinecolor{Desglose por subgrupo, partición validación (requisito de réplica). La columna ``Veredicto'' repite el veredicto prerregistrado único por subgrupo; esta tabla solo difiere de la \ref{tab:subgrupos_test} en las columnas de MAE y diferencia.}}
   \label{tab:subgrupos_val}
 \end{table}
 

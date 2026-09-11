@@ -13,12 +13,13 @@ baselines estadísticos y a modelos de una sola etapa— se ha cumplido en su to
 OE2, OE4 y OE5 quedan satisfechos por las respuestas a las cinco preguntas de
 investigación de la sección \ref{sec:respuesta_preguntas}, aunque no todos en el sentido
 que la motivación inicial podría sugerir; OE1 y OE3, objetivos de diseño e integridad
-estructural del pipeline, se verifican mediante la suite de tests del Anexo
-\ref{cap:anexo2}: la matriz de 161 variables queda construida y verificada, y ninguna de
-las guardias anti-fuga ha fallado en ningún momento del proyecto. OE2 aporta además un
-resultado que gobierna todo lo que sigue: el SARIMAX seleccionado por rejilla AIC no es un
-baseline decorativo, sino uno de los dos modelos de una sola etapa más precisos del
-estudio.
+estructural del pipeline, se verifican mediante la suite de pruebas automatizadas del Anexo
+\ref{cap:anexo2}: la matriz de 161 variables queda construida y verificada, y sus guardias
+anti-fuga —cada una con una prueba negativa que la obliga a disparar— no han detectado
+ninguna fuga en la matriz publicada. OE2 aporta además un
+resultado que gobierna todo lo que sigue: el SARIMAX seleccionado por rejilla AIC se incorpora
+como un modelo de referencia competitivo y metodológicamente relevante, pues es uno de
+los dos modelos de una sola etapa más precisos del estudio.
 
 El hallazgo empírico central aparece en la evaluación de la corrección residual:
 \textbf{el híbrido, tal como queda diseñado, no supera a SARIMAX ni a
@@ -26,37 +27,40 @@ El hallazgo empírico central aparece en la evaluación de la corrección residu
 \ref{tab:delta_hibrido}), y tampoco reduce de forma diferencial el error en los días de
 calendario irregular que motivaron su diseño (PI3, tabla \ref{tab:desglose_dia_test}).
 No es un fallo de ejecución sino un resultado consistente con la teoría de combinación de
-pronósticos: Granger \cite{granger1989combining} exige que los componentes sean
+pronósticos: \textcite{granger1989combining} exige que los componentes sean
 individualmente subóptimos \emph{y} se apoyen en conjuntos de información distintos, y
-esta arquitectura incumple la segunda condición —ambas etapas observan, en última
-instancia, el mismo pasado de \texttt{total}— como se argumenta en la sección
+esta arquitectura incumple la segunda condición —los conjuntos de información de sus dos
+etapas están anidados, no son complementarios: la etapa 2 añade calendario y meteorología,
+pero el pasado reciente que ve la etapa 1 ya está representado en su matriz— como se
+argumenta en la sección
 \ref{sec:resultado_negativo_teoria}. Las competiciones M4 y M5
-\cite{makridakis2018m4,makridakis2022m5} documentan que el patrón —métodos simples y
+\parencite{makridakis2018m4,makridakis2022m5} documentan que el patrón —métodos simples y
 combinaciones bien fundamentadas superando a arquitecturas más sofisticadas, sobre todo en
 muestras moderadas como las 1.310 observaciones de este proyecto— es esperable y no una
 anomalía de esta implementación.
 
-Tampoco debe leerse como una arquitectura sin mérito: PI4 confirma que la etapa 2 cumple
+Tampoco debe leerse como una arquitectura sin mérito: PI4 muestra que la etapa 2 cumple
 su función, reduciendo el MAE de su propia etapa 1 en un 16,6\,\% en test y un 58\,\% en
-festivos, y que su variable de mayor ganancia, \texttt{feat\_day\_type\_festivo}, es
-exactamente la señal de calendario que una LSTM univariante no puede ver por construcción
-(sección \ref{sec:importancia_variables}). El mecanismo que justifica la hibridación es
-real y medible; lo insuficiente es la etapa 1 de la que parte.
+festivos; su variable de mayor ganancia, \texttt{feat\_day\_type\_festivo}, es coherente
+con que esa corrección proceda de la señal de calendario que una LSTM univariante no puede
+ver por construcción (sección \ref{sec:importancia_variables}). El mecanismo que justifica
+la hibridación se observa de forma medible; lo insuficiente es la etapa 1 de la que parte.
 
-El modelo que mejor resuelve el problema no requiere ninguna red neuronal: PI5 confirma
+El modelo que mejor resuelve el problema no requiere ninguna red neuronal: PI5 muestra
 que un ensamble aritmético de SARIMAX y \texttt{xgboost\_alone} —sin reentrenamiento, sin
 etapa LSTM y sin ningún paso de ajuste— alcanza un MAE de test de 139.725 equiponderado
 (\texttt{ensemble\_equal}) y de 139.681 ponderado por el inverso del MAE
 (\texttt{ensemble\_inverse\_mae}), en torno a un 10,5\,\% por debajo del mejor de sus
-componentes. No es un artefacto estadístico sino la identidad de Bates y Granger
-\cite{bates1969combination} aplicada a la correlación de 0,576 entre los residuos de ambos
+componentes. Es coherente con la identidad de
+\textcite{bates1969combination} aplicada a la correlación de 0,576 entre los residuos de ambos
 sobre test (sección \ref{sec:mecanismo_ensemble}): inferior a la unidad porque fallan en
 subconjuntos de días sistemáticamente distintos —el primero en laborables ordinarios, el
-segundo en fin de semana y festivos—, que es lo que hace rentable promediarlos.
+segundo en fin de semana y festivos—, que es lo que hace ventajoso promediarlos.
 
-La lectura conjunta de ambos resultados —el híbrido secuencial que no mejora porque
-comparte información entre etapas, y el ensamble paralelo que sí mejora porque combina
-información parcialmente descorrelacionada— es la aportación empírica central de este TFM:
+La lectura conjunta de ambos resultados —el híbrido secuencial que no mejora porque sus
+etapas observan conjuntos de información anidados, y el ensamble paralelo que sí mejora, en
+consonancia con la combinación de información parcialmente descorrelacionada— es la
+aportación empírica central de este TFM:
 una auditoría con protocolo \emph{out-of-fold} estricto en toda su cadena de las
 condiciones exactas bajo las cuales cada estrategia de combinación funciona y bajo cuáles
 no, sobre una serie real de demanda de transporte público agregada y multimodal.
@@ -66,7 +70,7 @@ no, sobre una serie real de demanda de transporte público agregada y multimodal
 \textbf{Agregación a nivel de red, sin corte espacial.} Este proyecto modela la demanda
 \texttt{total} del sistema CRTM como una única serie diaria, con el desglose por operador
 solo como variable de apoyo (rezagos, EDA) y no como dimensión espacial del modelo. A
-diferencia de Cardozo et al. \cite{cardozo2012spatial}, que modelan las entradas estación
+diferencia de \textcite{cardozo2012spatial}, que modelan las entradas estación
 por estación, esta memoria no ofrece resolución espacial alguna: de sus resultados no cabe
 concluir nada sobre una línea, una estación o un corredor concreto. La elección fue
 deliberada (sección \ref{sec:movilidad_urbana}), pero es una limitación de alcance.
@@ -85,7 +89,7 @@ puentes; la detección de calendario identifica 55 días puente sobre los 1.310 
 totales, de los que 54 caen fuera de los 28 días de calentamiento excluidos del
 entrenamiento), no las particiones reducidas de evaluación final.
 
-\textbf{Recorte de 28 días por calentamiento de las variables de retardo.} El lag y la
+\textbf{Recorte de 28 días por calentamiento de las variables de retardo.} El retardo y la
 media móvil de mayor ventana (28 días) obligan a descartar los 28 primeros días de la
 serie de entrenamiento (2023-01-01 a 2023-01-28) antes de que la matriz de
 características quede libre de valores nulos (sección \ref{sec:particiones_fuga}). Esta
@@ -129,7 +133,7 @@ veredicto binario sugeriría.
 
 \textbf{Veredicto ambiguo en el control de paridad informativa con matriz completa.} El
 control de paridad informativa (sección \ref{sec:paridad_lstm}) evaluó dos ámbitos de
-variables exógenas con criterios de cierre de hueco fijados por adelantado. El ámbito
+variables predictoras con criterios de cierre de hueco fijados por adelantado. El ámbito
 \texttt{calendario} ($k=17$) cayó con claridad en \emph{limitación arquitectónica}: cierra
 solo un 16,2\,\% del hueco hasta \texttt{xgboost\_alone}, con la banda mín-máx de cinco
 semillas por completo dentro de la zona de ese veredicto. Pero el ámbito \texttt{completo}
@@ -165,8 +169,8 @@ no capturan.
 
 \textbf{Integración de pronósticos meteorológicos operativos.} Tal como se señala en la
 limitación correspondiente, este TFM emplea exclusivamente meteorología retardada para
-evitar asumir un pronóstico perfecto. Una extensión natural, y metodológicamente honesta
-si se ejecuta correctamente, sería sustituir esos rezagos por pronósticos meteorológicos
+evitar asumir un pronóstico perfecto. Una extensión natural, y metodológicamente sólida,
+sería sustituir esos rezagos por pronósticos meteorológicos
 reales de horizonte 1-7 días obtenidos de un proveedor operativo (por ejemplo, la propia
 API de pronóstico de Open-Meteo, complementaria a su API histórica ya empleada en este
 proyecto), evaluando el sistema bajo la incertidumbre de pronóstico real en lugar de bajo
@@ -177,12 +181,12 @@ desempeño alcanzable en un escenario de producción genuino.
 \textbf{Arquitecturas neuronales basadas en parches o transformers temporales.} La etapa
 1 de este TFM es deliberadamente una LSTM univariante simple, elegida para aislar con
 claridad qué puede aportar la dinámica temporal pura antes de introducir información
-exógena en la etapa 2. Arquitecturas más recientes de pronóstico de series
-temporales de largo alcance basadas en mecanismos de atención y en la segmentación de
-la serie en parches temporales han mostrado, en la literatura reciente de aprendizaje
-profundo para series temporales, capacidad de capturar dependencias estacionales
-de múltiples escalas, semanal y anual simultáneamente, de forma más directa que una
-red recurrente clásica. Sustituir la etapa 1 de este TFM por una arquitectura de este
+exógena en la etapa 2. Arquitecturas más recientes de pronóstico de series temporales,
+basadas en mecanismos de atención y en la segmentación de la serie en parches temporales,
+se han propuesto precisamente para representar dependencias de múltiples escalas —semanal
+y anual simultáneamente— sin la memoria secuencial de una red recurrente clásica; si sobre
+esta serie lo consiguen es una cuestión empírica abierta. Sustituir la etapa 1 de este TFM
+por una arquitectura de este
 tipo, entrenada bajo el mismo protocolo estrictamente \emph{out-of-fold} que gobierna
 todo este proyecto, permitiría comprobar si una etapa 1 más expresiva cierra la brecha
 frente a SARIMAX que este TFM documenta como su hallazgo central, sin renunciar en
@@ -196,7 +200,8 @@ Sin introducir ninguna evidencia nueva, los resultados del capítulo
 destino último que motivó este TFM. El ensamble seleccionado predice la demanda diaria
 agregada de la red con un MAPE de test del \textbf{3,13\,\%} (cuadro \ref{tab:comparacion_test}),
 un margen compatible con los usos de planificación en los que la unidad de decisión es la
-red completa y el horizonte es de días: dimensionamiento de la oferta de material y de
+red completa y el horizonte es el día siguiente, el único evaluado en este trabajo:
+dimensionamiento de la oferta de material y de
 turnos de personal, previsión de carga agregada para la programación de frecuencias, y
 detección temprana de desviaciones frente a lo esperado. Para esos usos, la recomendación
 que se desprende de este trabajo es doble y deliberadamente austera: emplear la
@@ -218,7 +223,7 @@ espacial alguna por debajo del agregado de red, ni predice la demanda de un oper
 concreto, por lo que no sustituye a ningún instrumento de planificación de línea,
 corredor o estación. Y, al excluir por diseño la meteorología del mismo día, su desempeño
 es el alcanzable sin pronóstico meteorológico: incorporarlo es la vía de mejora
-inmediata, y es la primera de las líneas enunciadas en la sección
+inmediata, y es la segunda de las líneas enunciadas en la sección
 \ref{sec:trabajos_futuros}.
 
 \section{Contribución a los Objetivos de Desarrollo Sostenible}\label{sec:ods}

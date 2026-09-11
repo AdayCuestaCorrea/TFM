@@ -21,7 +21,7 @@ agregadas por operador: Metro de Madrid, EMT (autobús urbano), las concesionari
 transporte interurbano por carretera y Renfe Cercanías, junto con el total sumado de los
 cuatro. El fichero se distribuye como un libro Excel con dos hojas (\texttt{mensual} y
 \texttt{diaria}, de la que solo la segunda se emplea) cuyo maquetado real difiere del
-descrito en el brief original del proyecto: la cabecera no ocupa la primera fila, sino la
+descrito en la documentación inicial del proyecto: la cabecera no ocupa la primera fila, sino la
 segunda, de modo que una lectura ingenua con \texttt{header=2} en lugar de
 \texttt{header=1} consume silenciosamente la primera observación (2023-01-01) como si
 fuera parte de la cabecera.
@@ -54,7 +54,7 @@ fila con los nombres de columna reales, y esos metadatos declaran una zona horar
 \texttt{Europe/\allowbreak{}Berlin} en lugar de \texttt{Europe/\allowbreak{}Madrid}; ambas comparten horario de
 verano centroeuropeo (CEST) en la práctica totalidad del año, por lo que el efecto sobre
 los agregados diarios se consideró y descartó como fuente de sesgo relevante durante la
-ingestión, sin darlo por supuesto a priori. Las unidades de medida viajan incrustadas en
+ingesta, sin darlo por supuesto a priori. Las unidades de medida viajan incrustadas en
 el propio nombre de cada columna (por ejemplo, \texttt{temperature\_2m\_mean (°C)} o
 \texttt{shortwave\_radiation\_sum (MJ/\allowbreak{}m²)}) y se normalizan mediante una expresión
 regular que las separa del nombre canónico de la variable.
@@ -71,7 +71,7 @@ deben compararse contra sus formas acentuadas), el tipo de día
 el tipo y el nombre de la festividad. El propio nombre de la columna de tipo de día
 declara una quinta categoría, \texttt{domingo festivo}, que en la práctica no se observó
 en ninguna de las 1.310 filas disponibles; esta ausencia se verificó de forma explícita
-durante la ingestión, en lugar de asumirse por la mera lectura del brief, y la categoría
+durante la ingesta, en lugar de asumirse por la mera lectura de esa documentación, y la categoría
 se mantiene declarada en la codificación para que, si apareciera en una actualización
 futura del calendario, se codifique correctamente en vez de degradarse silenciosamente a
 un valor nulo.
@@ -108,7 +108,7 @@ tuviera un hueco, contaminando artificialmente el indicador de calidad ``cero nu
 conjunto unificado. La contrapartida es que una unión interna oculta, por construcción,
 cualquier hueco de cobertura: si una fecha faltara simultáneamente en las tres fuentes,
 el problema no se manifestaría como una fila nula sino como una fila que sencillamente
-no llega a existir. Por ello la unificación no se limita a ejecutar el \emph{join} y
+no llega a existir. Por ello la unificación no se limita a ejecutar la unión y
 confiar en el resultado, sino que aplica cuatro comprobaciones de integridad temporal en
 cadena: en primer lugar, una detección de fechas duplicadas dentro de cada fuente
 individual, antes de fusionar nada; en segundo lugar, una comparación del número de filas
@@ -144,7 +144,7 @@ una ruptura real de esa identidad.
 Por último, los valores nulos que el calendario de
 origen deja en \texttt{holiday\_type} y \texttt{holiday\_name} para los días sin
 festividad se sustituyen deliberadamente por el valor centinela \texttt{'none'}: de este
-modo la invariante de ``cero nulos'' del conjunto unificado es honesta —cualquier nulo que
+modo la invariante de ``cero nulos'' del conjunto unificado conserva su significado —cualquier nulo que
 aparezca en adelante señala un defecto real, no la ausencia ordinaria de festividad— y la
 siguiente fase de ingeniería de características recibe un nivel categórico limpio en
 lugar de un hueco que codificar de forma ad hoc.
@@ -257,11 +257,11 @@ grupos resultantes, cuyo diseño matemático se detalla a continuación.
 El primer grupo son los retardos de la propia demanda total,
 $\text{lag}_k(\mathit{total})_t = \mathit{total}_{t-k}$ para
 $k \in \{1, 2, 3, 7, 14, 21, 28\}$: siete variables que cubren desde la inercia de un día
-para otro hasta la memoria calendario de cuatro semanas, seleccionada porque el lag 28
+para otro hasta la memoria calendario de cuatro semanas, seleccionada porque el retardo 28
 recoge el mismo día de la semana cuatro veces atrás, bajo el mismo régimen semanal que la
 sección \ref{sec:eda} identificó como dominante. El mismo esquema de siete retardos se
 aplica a cada una de las cuatro columnas de operador, aportando 28 variables adicionales:
-la reparto modal de ayer es información legítimamente disponible en el momento de la
+el reparto modal de ayer es información legítimamente disponible en el momento de la
 predicción y conserva señal real, a diferencia del reparto modal del propio día que se
 discute más abajo. A estas se suman cuatro estadísticos móviles de la demanda total (media
 y desviación típica sobre ventanas de 7 y 28 días), y seis términos de Fourier
@@ -278,7 +278,7 @@ llegada de datos futuros modifique retroactivamente la codificación de una fech
 existente.
 
 El último grupo interno, de once variables, cubre el calendario mediante
-\emph{one-hot encoding} exhaustivo del tipo de día y del tipo de festividad, incluyendo
+codificación binaria exhaustiva (\emph{one-hot encoding}) del tipo de día y del tipo de festividad, incluyendo
 explícitamente el nivel centinela \texttt{'none'} y la categoría de cero observaciones
 \texttt{domingo festivo}, de modo que una fila con todo ceros sería un error de
 codificación detectable y no una ambigüedad entre ``categoría base'' y ``fallo silencioso''.
@@ -304,7 +304,7 @@ estadístico móvil derivado de \texttt{total} o de cualquier columna de operado
 un desplazamiento de un día, \texttt{shift(1)}, \emph{antes} de cualquier operación de
 ventana móvil: es decir, $\text{roll}_w(s.\text{shift}(1))_t$ y nunca
 $\text{roll}_w(s)_t.\text{shift}(1)$ como corrección a posteriori. Para una ventana
-móvil trailing ambos órdenes de operación son matemáticamente equivalentes, de modo que
+móvil retrospectiva (\emph{trailing}) ambos órdenes de operación son matemáticamente equivalentes, de modo que
 la regla no corrige aquí ningún error numérico observado; se exige de todos modos porque
 su corrección no depende de esa equivalencia particular, que deja de cumplirse en cuanto
 la ventana se centra (\texttt{center=True}), y porque una ventana sin desplazar en
@@ -320,7 +320,7 @@ haría que un modelo alcanzara un ajuste casi perfecto en entrenamiento para col
 inferencia, momento en el que el reparto modal del día en curso no puede conocerse
 todavía. Este guardián se aplica dos veces: sobre la salida de cada módulo de retardos
 individualmente y de nuevo sobre el fichero final ensamblado, que es el punto donde una
-columna mal etiquetada terminaría aterrizando realmente en la matriz.
+columna mal etiquetada terminaría incorporándose a la matriz.
 
 Los términos de Fourier constituyen, dentro de este esquema, la única excepción
 autorizada a la prohibición general de calcular ingeniería de características sobre el

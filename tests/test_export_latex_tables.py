@@ -10,6 +10,7 @@ import pytest
 
 from src.evaluation import export_latex_tables as elt
 from src.evaluation.export_latex_tables import (
+    LITERATURE_COLUMNS,
     LITERATURE_COMPARISON,
     PHASES,
     TOTAL_TESTS_BEFORE_MEMORIA,
@@ -108,7 +109,7 @@ def test_cronograma_increments_sum_to_the_declared_total():
 
 def test_cronograma_table_is_monotonically_non_decreasing_in_cumulative_tests():
     table = build_cronograma_fases()
-    cumulative = table["Tests acumulados"]
+    cumulative = table["Pruebas acumuladas"]
     assert (cumulative.diff().dropna() >= 0).all()
     assert cumulative.iloc[-1] == 257
 
@@ -123,10 +124,18 @@ def test_cronograma_table_has_one_row_per_declared_phase():
 # --------------------------------------------------------------------------------------
 
 
-def test_literature_table_has_six_rows_and_five_axes():
+def test_literature_table_has_one_row_per_study_and_five_axes():
+    """One row per LITERATURE_COMPARISON entry, 'Este TFM' last, 'Estudio' + 5 axes.
+
+    The row count is derived from the constant rather than pinned to a literal: the
+    supervisor's review (phase 2) grew the table from 6 to 10 rows and a literal would have to
+    be re-typed every time literature is added, which is exactly the edit that gets forgotten.
+    What must not drift is the shape: this project's row closes the table, and no axis is lost.
+    """
     table = build_comparativa_estado_arte()
-    assert len(table) == 6
-    # 'Estudio' + 5 axes.
+    assert len(table) == len(LITERATURE_COMPARISON) == 10
+    assert table["Estudio"].iloc[-1] == "Este TFM"
+    assert list(table.columns) == list(LITERATURE_COLUMNS.values())
     assert len(table.columns) == 6
 
 
@@ -165,19 +174,20 @@ def test_literature_table_this_tft_row_cites_figures_in_the_test_comparison_tabl
     assert sarimax_delta in combined or xgb_delta in combined
 
 
-def test_literature_pending_verification_studies_are_flagged():
-    """Only Surribas-Sayago still carries the pending-verification marker (CLAUDE.md).
+def test_literature_carries_no_pending_verification_marker():
+    """No row of the 2.4 table may print a pending-verification marker (supervisor item 35).
 
-    Monje, Toque and Cardozo were verified against docs/references/Summary.md during
-    the Chapter 1/2 prose pass and their bibliography entries no longer carry the
-    PENDIENTE DE VERIFICAR note (see Bibliografia_TFT.bib).
+    Surribas-Sayago was the last placeholder: its (b)/(d) cells were filled from the paper
+    itself (section 3.1) and its bibliography entry completed, so the markers that
+    contradicted Anexo D's "todas verificadas contra su fuente" must never come back. The
+    guard lives on the generator because that is what regenerates the .tex.
     """
-    unverified = [
-        entry for entry in LITERATURE_COMPARISON if "sin verificar" in entry["estudio"]
-    ]
-    names = " ".join(e["estudio"] for e in unverified)
-    assert "Cardozo" not in names
-    assert "Surribas-Sayago" in names
+    for entry in LITERATURE_COMPARISON:
+        combined = " ".join(entry.values())
+        assert "sin verificar" not in combined, entry["estudio"]
+        assert "No verificado" not in combined, entry["estudio"]
+    surribas = next(e for e in LITERATURE_COMPARISON if "Surribas-Sayago" in e["estudio"])
+    assert surribas["estudio"] == "Surribas-Sayago et al. (2026)"
 
 
 # --------------------------------------------------------------------------------------
@@ -281,7 +291,7 @@ def test_ensemble_pesos_table_matches_documented_weights():
     table = build_ensemble_pesos().set_index("Variante")
     assert table.loc["ensemble_equal", "Peso SARIMAX"] == pytest.approx(0.5)
     assert table.loc["ensemble_inverse_mae", "Peso SARIMAX"] == pytest.approx(0.4724, abs=1e-3)
-    assert table.loc["ensemble_inverse_mae", "Peso XGBoost-alone"] == pytest.approx(
+    assert table.loc["ensemble_inverse_mae", "Peso XGBoost independiente"] == pytest.approx(
         0.5276, abs=1e-3
     )
 

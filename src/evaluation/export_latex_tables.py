@@ -203,7 +203,7 @@ PHASES: list[tuple[str, str, str, str, int | None]] = [
     ("Fase 0", "Andamiaje",
      "Estructura src/, venv, requirements.txt, contexto técnico del proyecto",
      "Documento de contexto técnico", None),
-    ("Fase 1", "Ingestión y unificación", "unified_daily.parquet (1.310 x 31)",
+    ("Fase 1", "Ingesta y unificación", "unified_daily.parquet (1.310 x 31)",
      "data/interim/unified_daily.parquet", 30),
     ("Fase 2", "Ingeniería de características anti-fuga",
      "features_daily.parquet (1.310 x 87)", "data/processed/features_daily.parquet", 36),
@@ -216,10 +216,10 @@ PHASES: list[tuple[str, str, str, str, int | None]] = [
     ("Fase 5", "Híbrido residual",
      "Conjunto residual 552 filas, xgboost_residual.joblib",
      "data/processed/hybrid_predictions.parquet", 22),
-    ("Fase 5b", "Análisis de sensibilidad pre-registrado",
+    ("Fase 5b", "Análisis de sensibilidad prerregistrado",
      "Experimento A (repesado 3x) y B (ensamble)",
      "data/processed/sensitivity_comparison.parquet", 17),
-    ("Fase 6", "Dashboard de resultados", "Plotly + ipywidgets, 13 PNG",
+    ("Fase 6", "Cuadro de mando de resultados", "Plotly + ipywidgets, 13 PNG",
      "reports/figures/*.png", 40),
     ("Fase 6b", "Refinamiento visual", "Tema VIU compartido, tablas copiables",
      "src/evaluation/theme.py", 40),
@@ -232,9 +232,9 @@ TOTAL_TESTS_BEFORE_MEMORIA = 257
 
 
 def build_cronograma_fases() -> pd.DataFrame:
-    """Fase / Denominación / Entregable principal / Artefacto persistido / Tests acumulados.
+    """Fase / Denominación / Entregable principal / Artefacto persistido / Pruebas acumuladas.
 
-    'Tests acumulados' is a running sum, not a per-phase count: it is the evidence that the
+    'Pruebas acumuladas' is a running sum, not a per-phase count: it is the evidence that the
     lifecycle was incremental and verified at every step, not a narration written after the
     fact. Rows with no test suite of their own (Fase 0, Fases 7-11) repeat the last
     cumulative total instead of leaving a gap.
@@ -250,7 +250,7 @@ def build_cronograma_fases() -> pd.DataFrame:
                 "Denominación": nombre,
                 "Entregable principal": entregable,
                 "Artefacto persistido": artefacto,
-                "Tests acumulados": cumulative,
+                "Pruebas acumuladas": cumulative,
             }
         )
     return pd.DataFrame(rows)
@@ -270,6 +270,19 @@ LITERATURE_COMPARISON: list[dict[str, str]] = [
         "aporte": "Reporta el ganador (LSTM R²=0,89) sin MAE/RMSE/MAPE absolutos",
     },
     {
+        # Fase 2 de la revision de direccion. Celdas leidas del propio articulo por el autor
+        # (seccion de datos y de resultados): 10.440 observaciones horarias de validaciones de
+        # tarjeta, 1 jul. 2021 - 31 ene. 2023; particion 80/20; seleccion de variables por
+        # ganancia de XGBoost; en ese ranking dominan hora, dia escolar, dia de la semana,
+        # festivo nacional y mes, y precipitacion y nieve quedan entre las menos importantes.
+        "estudio": "Yazıcıoğlu y Akgüngör (2025)",
+        "ambito": "Autobús y ferrocarril de la orilla asiática de Estambul, a escala regional y de ruta; validaciones horarias",
+        "horizonte": "10.440 observaciones horarias (jul. 2021 - ene. 2023)",
+        "exogenas": "Hora, día, mes y día de semana; festivos nacionales y días lectivos; temperatura, precipitación, humedad, viento, nubosidad y nieve",
+        "protocolo": "Partición 80/20; selección de variables por ganancia de XGBoost; LSTM, GRU, RNN y NARX con parada temprana",
+        "aporte": "NARX con menor error; la meteorología reduce el RMSE solo un 2,2 % regional (autobús) y un 2,4-3,7 % por ruta; el calendario domina el ranking de ganancia",
+    },
+    {
         "estudio": "Toqué et al. (2017)",
         "ambito": "Transporte multimodal por estación (París)",
         "horizonte": "Logs de billetaje, 2017",
@@ -286,6 +299,47 @@ LITERATURE_COMPARISON: list[dict[str, str]] = [
         "aporte": "Regresión espacial por estación; no aborda predicción temporal",
     },
     {
+        # Fase 2. Celdas segun la ficha verificada por el autor: tarjetas inteligentes de todos
+        # los operadores de autobus de Gipuzkoa, fines de semana de 2010 y 2011, regresion
+        # lineal multiple. DOI tomado del registro de Crossref (el que circula con prefijo
+        # j.trb es erroneo). Como Cardozo, no es un trabajo de prediccion temporal.
+        "estudio": "Arana et al. (2014)",
+        "ambito": "Todos los operadores de autobús de Gipuzkoa; viajes de tarjeta inteligente en fin de semana",
+        "horizonte": "Fines de semana de 2010 y 2011",
+        "exogenas": "Viento, lluvia y temperatura; viajeros habituales y ocasionales por separado",
+        "protocolo": "Regresión lineal múltiple explicativa; sin partición de pronóstico",
+        "aporte": "Viento y lluvia reducen los viajes y la temperatura los aumenta; cuantifica el efecto meteorológico, no aborda predicción",
+    },
+    {
+        # Fase 2. Celdas confirmadas por el autor sobre el resumen y los "highlights" del
+        # articulo: metro de Nueva York (MTA NYCT), modelos a escala de sistema y de estacion
+        # sobre demanda diaria y horaria de 2010-2011; meteorologia de NOAA y Weather
+        # Underground; regresion OLS explicativa, sin particion temporal de validacion. Es el
+        # unico trabajo revisado que modela la misma demanda a escala diaria y horaria y
+        # compara ambas, lo que respalda la agregacion diaria de este TFM como decision.
+        "estudio": "Singhal et al. (2014)",
+        "ambito": "Metro de Nueva York (MTA NYCT); modelos a escala de sistema y de estación",
+        "horizonte": "Demanda diaria y horaria, 2010-2011 (dos años)",
+        "exogenas": "Meteorología (NOAA, Weather Underground); segmentación por día de semana y franja horaria; características de estación (protección, accesibilidad, autobús de conexión)",
+        "protocolo": "Regresión OLS explicativa, no predictiva; sin partición temporal de validación",
+        "aporte": "Los modelos diario y horario difieren sustancialmente en la variabilidad que explican; el efecto meteorológico varía por franja y localización",
+    },
+    {
+        # Fase 2. Celdas leidas del propio articulo (seccion de datos y tabla 2 de resultados):
+        # estacion Xibu (inicio de la linea 2 del metro de Chengdu), flujo entrante cada 15 min
+        # de 06:00 a 22:00, 9-29 de abril de 2018 (1.344 observaciones); 14 dias laborables
+        # de entrenamiento y un unico viernes de prueba; sin factores externos por decision
+        # declarada. MAE de test 24,193 (EMD-LSTM) frente a 28,164 (LSTM), 34,248 (BPN) y
+        # 39,451 (ARIMA). Una correccion de 2020 (e0231199) retira un fichero de apoyo
+        # incluido por error y no altera resultados.
+        "estudio": "Chen et al. (2019)",
+        "ambito": "Flujo entrante de una estación del metro de Chengdu (Xibu, línea 2), intervalos de 15 min",
+        "horizonte": "Tres semanas de abril de 2018 (1.344 observaciones de 15 min)",
+        "exogenas": "Ninguna por decisión declarada: solo el propio historial de flujo (sin meteorología ni calendario)",
+        "protocolo": "Holdout cronológico: 14 días laborables de entrenamiento y un único viernes de prueba; sin CV",
+        "aporte": "El híbrido EMD+LSTM bate a LSTM, BPN y ARIMA en el día de prueba (MAE 24,2 frente a 28,2, 34,2 y 39,5)",
+    },
+    {
         "estudio": "Zhang (2003)",
         "ambito": "Series univariantes ajenas al transporte (manchas solares, linces, GBP/USD)",
         "horizonte": "288 / 114 / 731 observaciones",
@@ -294,20 +348,28 @@ LITERATURE_COMPARISON: list[dict[str, str]] = [
         "aporte": "El híbrido ARIMA+red neuronal bate a ambos componentes en las tres series",
     },
     {
-        "estudio": "Surribas-Sayago et al. [ficha sin verificar]",
+        # (b) y (d) tomados de la propia fuente, seccion 3.1 "Experimental Setup" (p. 5):
+        # observaciones minutales de radiacion difusa mas temperatura, humedad y presion
+        # (CESAR, Paises Bajos), diciembre de 2023; primer 80 % para entrenar y 20 % final
+        # para probar, una sola ejecucion, sin validacion cruzada. Redactado en paralelo a
+        # las filas de Monje y Zhang para que el lector compare los protocolos de un vistazo.
+        "estudio": "Surribas-Sayago et al. (2026)",
         "ambito": "Radiación solar difusa (dominio meteorológico, no transporte)",
-        "horizonte": "No verificado",
+        "horizonte": "Diciembre de 2023, resolución minutal (CESAR, Países Bajos)",
         "exogenas": "Retardos y términos de Fourier (fuente de inspiración de la ingeniería de variables de este TFM, no de su arquitectura)",
-        "protocolo": "No verificado",
+        "protocolo": "Holdout cronológico único 80/20, una sola ejecución, sin CV",
         "aporte": "Arquitectura paralela CNN+LSTM+MLP; citada solo por su ingeniería de características",
     },
     {
         "estudio": "Este TFM",
         "ambito": "Demanda diaria agregada de los cuatro operadores del CRTM (Madrid)",
         "horizonte": "1.310 días continuos 2023-2026, cero huecos, cero nulos, íntegramente post-pandemia",
-        "exogenas": "161 variables: 105 meteorológicas físicas retardadas (lags 1/2/3/7 + media móvil 7), 6 términos de Fourier, 55 días puente detectados; meteorología del mismo día explícitamente prohibida",
-        "protocolo": "Partición cronológica 70/15/15 de frontera única; walk-forward OOF en 5 bloques expansivos; SARIMAX walk-forward de un paso sin reestimación; escalado ajustado solo en train; 257 tests fijando las reglas anti-fuga",
-        "aporte": "Auditoría del fallo: el híbrido no bate a SARIMAX (+70.597 MAE test) ni a XGBoost solo (+78.103); el mejor modelo es un ensamble 50/50 (MAE 139.725, -10,5% vs. el mejor componente)",
+        # Fase 3 de la revision de direccion (item 14): la columna (c) es la matriz EXOGENA, y
+        # de las 161 predictoras solo 122 lo son (11 calendario + 6 Fourier + 105 meteo); las
+        # otras 39 son retardos y estadisticos moviles de la propia serie y de sus operadores.
+        "exogenas": "122 exógenas de las 161 predictoras: 105 meteorológicas físicas retardadas (lags 1/2/3/7 + media móvil 7), 6 términos de Fourier y 11 de calendario (55 días puente detectados); meteorología del mismo día explícitamente prohibida",
+        "protocolo": "Partición cronológica 70/15/15 de frontera única; walk-forward OOF en 5 bloques expansivos; SARIMAX walk-forward de un paso (un día hacia adelante) sin reestimación; escalado ajustado solo en train; 257 tests fijando las reglas anti-fuga",
+        "aporte": "Auditoría del fallo: el híbrido no bate a SARIMAX (+70.597 MAE test) ni a XGBoost independiente (+78.103); el mejor modelo es un ensamble 50/50 (MAE 139.725, -10,5% vs. el mejor componente)",
     },
 ]
 
@@ -322,7 +384,7 @@ LITERATURE_COLUMNS = {
 
 
 def build_comparativa_estado_arte() -> pd.DataFrame:
-    """6 x 6 literature comparison table for section 2.4 (5 studies + 'Este TFM')."""
+    """Literature comparison table for section 2.4: one row per study plus 'Este TFM' last, 5 axes."""
     df = pd.DataFrame(LITERATURE_COMPARISON)
     return df.rename(columns=LITERATURE_COLUMNS)[list(LITERATURE_COLUMNS.values())]
 
@@ -556,7 +618,7 @@ def build_criterio_experimento_a() -> pd.DataFrame:
          "hybrid": PHASE5_HYBRID_TEST_MAE,
          "hybrid_weighted": verdict["overall_test_mae"],
          "Resultado": "Dentro del margen" if verdict["within_budget"] else "Fuera del margen"},
-        {"Criterio": "Veredicto del criterio pre-registrado (ambas condiciones)",
+        {"Criterio": "Veredicto del criterio prerregistrado (ambas condiciones)",
          "hybrid": float("nan"), "hybrid_weighted": float("nan"),
          "Resultado": "CUMPLIDO" if verdict["criterion_met"] else "NO CUMPLIDO"},
     ]
@@ -720,7 +782,7 @@ def build_ensemble_pesos() -> pd.DataFrame:
             {
                 "Variante": variant,
                 "Peso SARIMAX": weights["sarimax"],
-                "Peso XGBoost-alone": weights["xgboost_alone"],
+                "Peso XGBoost independiente": weights["xgboost_alone"],
             }
         )
     return pd.DataFrame(rows)
@@ -1030,7 +1092,7 @@ def export_all() -> list[Path]:
         ),
     )
     emit(build_ensemble_pesos(), "tabla_ensemble_pesos.tex",
-         decimals={"Peso SARIMAX": 4, "Peso XGBoost-alone": 4})
+         decimals={"Peso SARIMAX": 4, "Peso XGBoost independiente": 4})
 
     # 5.9 — Stage 1 residual anatomy (Phase 7 diagnostic)
     emit(

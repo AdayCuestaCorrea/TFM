@@ -105,7 +105,8 @@ def comparison_figure(split: str, predictions: pd.DataFrame | None = None) -> go
     """Four-panel grouped bars of MAE/RMSE/MAPE/R2, coloured by model family."""
     table = model_comparison_table(split, predictions)
 
-    titles = [f"{m} ({'mayor mejor' if m == 'R2' else 'menor mejor'})" for m in METRICS]
+    # Display label only: the column key stays "R2" (metrics.py contract); the memoria writes R².
+    titles = [f"{'R²' if m == 'R2' else m} ({'mayor mejor' if m == 'R2' else 'menor mejor'})" for m in METRICS]
     fig = make_subplots(
         rows=2, cols=2, subplot_titles=titles, vertical_spacing=0.17, horizontal_spacing=0.10
     )

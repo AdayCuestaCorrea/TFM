@@ -160,8 +160,18 @@
 \renewcommand{\@tocrmarg}{3.2em}
 \makeatother
 
+% Sistema de citas APA 7 (revision formal de direccion, items 1-4): biblatex con el estilo
+% apa (biblatex-apa) y biber, en lugar de BibTeX + plain (numerico). Las citas del texto
+% pasan a autor-ano (\textcite -> "Granger (1989)", \parencite -> "(Granger, 1989)") y la
+% lista se ordena por apellido, sin numerar. spanish-apa.lbx se carga solo por babel:
+% "y" en las citas narrativas, "&" en las parenteticas y en la lista (APA 7 estricto,
+% sin sobrescribir el estilo). csquotes lo exige biblatex-apa.
+\usepackage{csquotes}
+\usepackage[style=apa,backend=biber]{biblatex}
+\addbibresource{Bibliografia_TFT.bib}
+
 % hyperref must be loaded last so it correctly patches the other packages'
-% cross-referencing hooks (titlesec, caption, etc.).
+% cross-referencing hooks (titlesec, caption, biblatex, etc.).
 \usepackage[hidelinks]{hyperref}
 
 % \url por defecto solo rompe tras '/', y ni siquiera eso basta para una direccion metida

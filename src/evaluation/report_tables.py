@@ -37,7 +37,7 @@ FAMILY_ES = {
     "naive baseline": "Baseline ingenuo",
     "single-stage": "Una etapa",
     "LSTM family": "Familia LSTM",
-    "ensemble": "Ensemble",
+    "ensemble": "Ensamble",
 }
 
 DAY_TYPE_ES = {

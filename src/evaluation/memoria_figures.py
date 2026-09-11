@@ -399,7 +399,7 @@ def error_dispersion_figure(ensemble: pd.DataFrame | None = None, split: str = "
     )
     fig.update_layout(
         xaxis_title="Residuo SARIMAX (real − predicho)",
-        yaxis_title="Residuo XGBoost-alone (real − predicho)",
+        yaxis_title="Residuo XGBoost independiente (real − predicho)",
     )
     return apply_theme(fig)
 

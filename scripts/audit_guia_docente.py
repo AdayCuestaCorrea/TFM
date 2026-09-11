@@ -120,7 +120,8 @@ def find_structure(doc: pymupdf.Document) -> dict[str, range]:
     if body is None:  # el titulo del capitulo 1 puede partirse; busca el encabezado
         body = first_page_matching(r"1\.\s*Introducci")
     annex = first_page_matching(r"A\.\s")
-    biblio = first_page_matching(r"Bibliograf[ií]a")
+    # "Referencias" desde la pasada APA 7; "Bibliografia" se conserva para PDFs anteriores.
+    biblio = first_page_matching(r"(Referencias|Bibliograf[ií]a)")
 
     if None in (resumen, body, annex, biblio):
         raise SystemExit(
@@ -205,7 +206,7 @@ DROP_ENVS = (
 )
 BS = "\\"
 DROP_WITH_ARG = re.compile(
-    BS + BS + r"(?:texttt|label|ref|autoref|pageref|cite|includegraphics|input|resizebox|"
+    BS + BS + r"(?:texttt|label|ref|autoref|pageref|cite|textcite|parencite|includegraphics|input|resizebox|"
     r"setlength|arraystretch|vspace|hspace|rowcolor|definecolor|caption|keywords|"
     r"url|href|ganttbar|colorbox)\s*(?:\[[^\]]*\])?\{(?:[^{}]|\{[^{}]*\})*\}"
 )

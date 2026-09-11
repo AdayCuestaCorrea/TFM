@@ -87,7 +87,8 @@
 \input{sections/06_conclusiones}
 \input{sections/07_anexos}
 
-\bibliographystyle{plain}
-\bibliography{Bibliografia_TFT.bib}
+% "Referencias" (no "Bibliografia") y con entrada en el indice general: titulo exigido por
+% direccion (item 3). La lista la compone biblatex-apa por apellido del primer autor.
+\printbibliography[heading=bibintoc,title={Referencias}]
 
 \end{document}

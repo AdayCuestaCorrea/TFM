@@ -1,16 +1,16 @@
 \begin{tabular}{p{1.7cm}>{\raggedright\arraybackslash}p{2.7cm}>{\raggedright\arraybackslash}p{4.3cm}>{\raggedright\arraybackslash}p{4.3cm}r}
 \toprule
 \rowcolor{naranja}
-\textbf{Fase} & \textbf{Denominación} & \textbf{Entregable principal} & \textbf{Artefacto persistido} & \textbf{Tests acumulados} \\
+\textbf{Fase} & \textbf{Denominación} & \textbf{Entregable principal} & \textbf{Artefacto persistido} & \textbf{Pruebas acumuladas} \\
 \midrule
 \rowcolor{filaclara} Fase 0 & Andamiaje & Estructura src/\allowbreak{}, venv, requirements.txt, contexto técnico del proyecto & Documento de contexto técnico & 0 \\
-Fase 1 & Ingestión y unificación & unified\_\allowbreak{}daily.parquet (1.310 x 31) & data/\allowbreak{}interim/\allowbreak{}unified\_\allowbreak{}daily.parquet & 30 \\
+Fase 1 & Ingesta y unificación & unified\_\allowbreak{}daily.parquet (1.310 x 31) & data/\allowbreak{}interim/\allowbreak{}unified\_\allowbreak{}daily.parquet & 30 \\
 \rowcolor{filaclara} Fase 2 & Ingeniería de características anti-fuga & features\_\allowbreak{}daily.parquet (1.310 x 87) & data/\allowbreak{}processed/\allowbreak{}features\_\allowbreak{}daily.parquet & 66 \\
 Fase 3 & Particiones, promoción meteorológica y baselines & 105 vars. meteorológicas retardadas, chronological\_\allowbreak{}split, SARIMAX & data/\allowbreak{}processed/\allowbreak{}baseline\_\allowbreak{}predictions.parquet & 111 \\
 \rowcolor{filaclara} Fase 4 & LSTM etapa 1 con validación OOF & Walk-forward expansivo 5 folds, lstm\_\allowbreak{}stage1\_\allowbreak{}final.keras & data/\allowbreak{}processed/\allowbreak{}lstm\_\allowbreak{}oof\_\allowbreak{}predictions.parquet & 138 \\
 Fase 5 & Híbrido residual & Conjunto residual 552 filas, xgboost\_\allowbreak{}residual.joblib & data/\allowbreak{}processed/\allowbreak{}hybrid\_\allowbreak{}predictions.parquet & 160 \\
-\rowcolor{filaclara} Fase 5b & Análisis de sensibilidad pre-registrado & Experimento A (repesado 3x) y B (ensamble) & data/\allowbreak{}processed/\allowbreak{}sensitivity\_\allowbreak{}comparison.parquet & 177 \\
-Fase 6 & Dashboard de resultados & Plotly + ipywidgets, 13 PNG & reports/\allowbreak{}figures/\allowbreak{}*.png & 217 \\
+\rowcolor{filaclara} Fase 5b & Análisis de sensibilidad prerregistrado & Experimento A (repesado 3x) y B (ensamble) & data/\allowbreak{}processed/\allowbreak{}sensitivity\_\allowbreak{}comparison.parquet & 177 \\
+Fase 6 & Cuadro de mando de resultados & Plotly + ipywidgets, 13 PNG & reports/\allowbreak{}figures/\allowbreak{}*.png & 217 \\
 \rowcolor{filaclara} Fase 6b & Refinamiento visual & Tema VIU compartido, tablas copiables & src/\allowbreak{}evaluation/\allowbreak{}theme.py & 257 \\
 Fases 7-11 & Redacción de la memoria & Modularización LaTeX, figuras y tablas de memoria, REPORT\_\allowbreak{}MAPPING.md & docs/\allowbreak{}LaTeX/\allowbreak{} & 257 \\
 \bottomrule
