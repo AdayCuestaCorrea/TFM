@@ -131,14 +131,16 @@ anti-fuga, listadas de la más general a la más específica del dominio de este
     entrenamiento de su propio fold y se aplica (\texttt{transform}) sin reajuste sobre
     validación y test, nunca mediante un \texttt{fit\_transform} sobre el conjunto
     completo; verificado en \texttt{tests/\allowbreak{}test\_lstm.py}.
-  \item \textbf{Prohibición de ingeniería de características global antes de la
-    partición}, salvo la única excepción sancionada: los términos de Fourier son una
-    función determinista de la fecha, no una estadística estimada a partir del objetivo,
-    de modo que calcularlos sobre la serie completa equivale a calcularlos por partición;
-    fijado por
+  \item \textbf{Ninguna transformación ajustada sobre la serie completa antes de la
+    partición.} Las 161 variables se calculan sobre las 1.310 filas antes de partir, y
+    ello es seguro porque todas son causales (la fila $t$ solo usa filas anteriores a
+    $t$) y ninguna estima un parámetro a partir de los datos; los términos de Fourier y el
+    calendario son además funciones deterministas de la fecha, de modo que calcularlos
+    sobre la serie completa equivale a calcularlos por partición, lo que fija
     \texttt{test\_fourier\_\allowbreak{}is\_\allowbreak{}deterministic\_\allowbreak{}and\_\allowbreak{}split\_\allowbreak{}invariant}.
-  \item \textbf{Predicciones de la etapa 1 siempre fuera de muestra (\emph{out-of-fold})
-    para alimentar la etapa 2.} Ningún residuo que entrena el XGBoost de la etapa 2
+    La única transformación que se ajusta sobre datos es el escalador del punto anterior.
+  \item \textbf{Predicciones de la etapa 1 siempre fuera del pliegue de entrenamiento
+    (\emph{out-of-fold}, OOF) para alimentar la etapa 2.} Ningún residuo que entrena el XGBoost de la etapa 2
     procede de una predicción \emph{in-sample} de la LSTM; el esquema
     \emph{walk-forward} expansivo de 5 folds y la exclusión documentada del fold 1
     degenerado se verifican en \texttt{tests/\allowbreak{}test\_lstm.py} y
@@ -474,7 +476,7 @@ remitiendo por número de cuadro.
   \small
   \setlength{\tabcolsep}{4pt}
   \resizebox{\textwidth}{!}{\input{tables/tabla_curva_aprendizaje}}
-  \caption{\headlinecolor{Curva de aprendizaje de la LSTM de etapa 1: MAE de validación mediano (mín-máx sobre 3 semillas; 5 en la fracción 1,00, que es la base de comparación del control de paridad de la sección \ref{sec:paridad_lstm}) por fracción del bloque de entrenamiento. ``Fits degenerados'' cuenta las semillas cuyo ajuste colapsó a una predicción cuasi-constante. La referencia \texttt{xgboost\_alone} (val) es 244.843.}}
+  \caption{\headlinecolor{Curva de aprendizaje de la LSTM de etapa 1: MAE de validación mediano, en viajes por día (mín-máx sobre 3 semillas; 5 en la fracción 1,00, que es la base de comparación del control de paridad de la sección \ref{sec:paridad_lstm}) por fracción del bloque de entrenamiento. ``Fits degenerados'' cuenta las semillas cuyo ajuste colapsó a una predicción cuasi-constante. La referencia \texttt{xgboost\_alone} (val) es 244.843.}}
   \label{tab:curva_aprendizaje}
 \end{table}
 
@@ -492,7 +494,7 @@ remitiendo por número de cuadro.
   \small
   \setlength{\tabcolsep}{4pt}
   \resizebox{\textwidth}{!}{\input{tables/tabla_paridad_lstm}}
-  \caption{\headlinecolor{LSTM en paridad informativa por ámbito de variables predictoras (control diagnóstico, 5 semillas, solo validación). MAE de validación mediano con banda mín-máx, porcentaje del hueco univariante$\to$\texttt{xgboost\_alone} cerrado, número de ajustes degenerados y \texttt{best\_epoch} mediano. Base univariante: mediana de 5 semillas 416.324; mejor semilla 411.142.}}
+  \caption{\headlinecolor{LSTM en paridad informativa por ámbito de variables predictoras (control diagnóstico, 5 semillas, solo validación). MAE de validación mediano, en viajes por día, con banda mín-máx, porcentaje del hueco univariante$\to$\texttt{xgboost\_alone} cerrado, número de ajustes degenerados y \texttt{best\_epoch} mediano. Base univariante: mediana de 5 semillas 416.324; mejor semilla 411.142.}}
   \label{tab:paridad_lstm}
 \end{table}
 
@@ -519,6 +521,6 @@ remitiendo por número de cuadro.
   \small
   \setlength{\tabcolsep}{4pt}
   \resizebox{\textwidth}{!}{\input{tables/tabla_subgrupos_inferencia}}
-  \caption{\headlinecolor{Diferencia de MAE (mejor híbrido $-$ mejor competidor) con intervalo de confianza \emph{bootstrap} del 95\,\%, p bruto y p ajustado por Benjamini-Hochberg ($q=0{,}10$), para la familia inferencial en la partición test. En verano el IC se suprime porque la fracción de réplicas utilizables cae a $0{,}81$; la p se conserva.}}
+  \caption{\headlinecolor{Diferencia de MAE (mejor híbrido $-$ mejor competidor), en viajes por día, con intervalo de confianza \emph{bootstrap} del 95\,\% en la misma unidad, p bruto y p ajustado por Benjamini-Hochberg ($q=0{,}10$), para la familia inferencial en la partición test. En verano el IC se suprime porque la fracción de réplicas utilizables cae a $0{,}81$; la p se conserva.}}
   \label{tab:subgrupos_inferencia}
 \end{table}

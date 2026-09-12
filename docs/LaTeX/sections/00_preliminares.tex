@@ -12,7 +12,7 @@
   mismo marco cuatro operadores de naturaleza dispar ---Metro, EMT, autobús
   interurbano por carretera y Cercanías---, cuya demanda diaria agregada
   condiciona decisiones operativas de flota, personal y frecuencias de
-  servicio. Este Trabajo de Fin de Máster evalúa si una arquitectura híbrida
+  servicio. Este trabajo evalúa si una arquitectura híbrida
   residual de dos etapas mejora la predicción de esa demanda frente a modelos
   consolidados de una sola etapa. Sobre una serie diaria continua de 1.310
   observaciones (2023-01-01 a 2026-08-02), sin huecos ni valores nulos, se unifican las fuentes de demanda del CRTM, la meteorología de
@@ -22,11 +22,11 @@
   deterministas, codificación exhaustiva de calendario y meteorología
   retardada--- sujeta a un conjunto de guardias anti-fuga verificadas por una
   suite de 470 pruebas automatizadas. La primera etapa es una red LSTM univariante
-  cuyas predicciones de entrenamiento se generan íntegramente fuera de muestra
-  (\emph{out-of-fold}) mediante una validación cruzada expansiva de cinco
+  cuyas predicciones de entrenamiento se generan fuera del pliegue de
+  entrenamiento (\emph{out-of-fold}) mediante una validación cruzada expansiva de cinco
   bloques; la segunda es un modelo XGBoost que corrige el residuo de la primera
   a partir de la matriz completa de variables predictoras. El resultado central es negativo para la
-  arquitectura propuesta: el híbrido no supera a un SARIMAX seleccionado por AIC
+  arquitectura: el híbrido no supera a un SARIMAX seleccionado por AIC
   ni a un XGBoost entrenado directamente sobre las mismas variables (MAE de test
   234.223 frente a 163.627 y 156.121, respectivamente). Este hallazgo se audita
   a la luz de la teoría de combinación de pronósticos de Granger (1989): el
@@ -37,7 +37,7 @@
   dos ensambles aritméticos de SARIMAX y XGBoost ---sin ninguna red neuronal ni
   reentrenamiento---, prácticamente indistinguibles entre sí: 139.725 de MAE de
   test en la variante equiponderada 50/50 y 139.681 en la ponderada por el inverso
-  del MAE, ambas con un $R^2$ de 0,9755. Se selecciona la equiponderada por no
+  del MAE, ambas con un $R^2$ de 0,9755. Se adopta la equiponderada por no
   depender de ningún dato de validación para fijar sus pesos; su ganancia es
   coherente con la identidad de reducción de varianza de Bates y Granger (1969)
   aplicada a la correlación medida entre los errores de sus componentes. Este

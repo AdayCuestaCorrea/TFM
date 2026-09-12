@@ -1837,6 +1837,137 @@ cosméticas y sin efecto en el contenido.
     `Bibliografia_TFT.bib`, cinco `sections/`, `tabla_comparativa_estado_arte.tex`,
     `export_latex_tables.py`, `TFT.pdf`; nada bajo `data/`, `models/` ni `reports/`.
 
+27. **Segunda revision de direccion (25 items): clasificacion, verificacion de codigo y
+    una sola fase de correccion.** La revision llego escrita sobre la version anterior a
+    las fases 1-5: 15 de los 25 items ya estaban resueltos en el documento (evidencia por
+    fichero:linea en el plan de sesion), 8 eran un aspecto nuevo de un item antiguo y 2
+    eran nuevos (15, ensamble; 16, unidades). El eje de la revision no era texto sino
+    **verificacion de codigo**: de las nueve comprobaciones que pide, ocho pasan con
+    fichero y linea, y una (item 15) es un hallazgo de protocolo. Ningun modelo se
+    reentrena; `data/`, `models/` y `reports/` sin tocar (`git status`); ninguna cifra
+    medida cambia.
+
+    a. **Verificacion de codigo (resultado, no resumen).** Item 4: 917/196/197 salen de
+       `n=1310` (`splits.py:107-113`) y el calentamiento quita 28 filas solo de train
+       (`:190-199`); todos los modelos consumen el mismo par. Item 5: `shift(1)` antes de
+       toda ventana (`rolling_features.py:95-101`, `weather_features.py:120-123`); 0
+       `center=True`, 0 `fit_transform`, 0 `KFold` en `src/`. Item 6: operadores solo via
+       `shift(lag)`, lag >= 1 (`lag_features.py:28,86`); 28 columnas `feat_{op}_lag_k`
+       verificadas en el parquet. **Item 7: el escalador se reajusta DENTRO de cada fold**
+       — `oof.py:181` `TargetScaler("minmax").fit(values[:train_end])` dentro de
+       `run_fold`, invocado por fold desde `:285-291`; `:182` es `transform`, y `values`
+       son solo las 889 filas de train (`:261-263`). Sin imputacion (grep), codificacion
+       sobre listas fijas (`calendar_features.py:35-49`), sin seleccion de variables
+       (161 en los tres `.joblib`), XGBoost sin escalado. Item 8: `_assert_fold_is_clean`
+       (`oof.py:141-156`), folds expansivos, `lstm_oof_predictions.parquet` termina en
+       2025-07-05 = `train_end`; residuos solo de `has_oof` y folds 2-5
+       (`assemble_residual_dataset.py:63-67`). Item 9: meteo solo retardada
+       (`weather_features.py:112-123`), crudas sin prefijo y excluidas por
+       `feature_columns()`. Item 12: `.filter(res_train.params)` + `dynamic=False`
+       (`sarimax.py:223-236`); LSTM con ventana `[t-W,t)` de observados. Item 17:
+       bootstrap de bloques moviles, `BLOCK_LENGTH = 7` (`subgroup_breakdown.py:100`).
+
+    b. **Item 15, HALLAZGO DE PROTOCOLO, reconocido como limitacion por decision del
+       autor.** No existia regla previa para elegir entre `ensemble_equal` y
+       `ensemble_inverse_mae` (el experimento B se prerregistro sin criterio); ambas se
+       calcularon en la misma ejecucion sobre val y test (`ensemble_baseline.py:70-74,
+       96-105`); la preferencia por la equiponderada aparece en el diario despues de la
+       tabla de test (`CLAUDE_PHASE_LOG.md`, fase 5b). Lo que la exonera: el test no
+       interviene en ningun peso (los del inverso salen solo de val, `:73`) y la eleccion
+       no optimiza test, porque la equiponderada es la PEOR variante en val (227.588 vs
+       226.418) y en test (139.725 vs 139.681); repetir la seleccion solo con validacion
+       escogeria la del inverso con la misma particion de la que salen sus pesos, que es
+       circular. Se documenta con esa exactitud en §5.7.2 (`05:495-509`, parrafo nuevo) y
+       como primera limitacion nueva de §6.2. Ademas, inconsistencia interna independiente
+       del item: la variante recomendada se llamaba «ganador» (`05:84,142,154`) mientras la
+       tabla maestra pone primero a la otra; pasa a «modelo de referencia» (0 «ganador» en
+       `05`; el «ensamble ganador» de `02:206` designa la familia frente al hibrido y se
+       conserva). Resumen: «Se selecciona» → «Se adopta».
+
+    c. **Item 5, NOVENO HALLAZGO DE EXACTITUD de la serie (misma clase que los ocho
+       anteriores: texto y codigo describian cosas distintas, invisible hasta leer
+       ambos).** `03:325-332` y el punto 4 del Anexo B decian que Fourier era «la unica
+       excepcion» a calcular ingenieria «sobre el conjunto completo antes de la
+       particion» y que una media movil «estima un parametro». En el codigo, las 161
+       variables se calculan sobre las 1.310 filas antes de partir
+       (`build_features.py:88-96`); es seguro porque todas son causales (la fila t solo
+       usa filas < t) y ninguna estima nada; la unica transformacion ajustada es el
+       `MinMaxScaler`, por fold y por train. Ambos pasajes reescritos para decir
+       exactamente eso. Lo destapo la comprobacion literal del item 5 de direccion
+       («ninguna transformacion se ha calculado sobre la serie completa»), no el aspecto
+       del texto.
+
+    d. **Adicion (pregunta de tribunal anticipada).** §4.3: dentro de cada bloque OOF la
+       ventana `[t-W,t)` usa valores observados, incluidos los del propio bloque para
+       objetivos posteriores; nunca contiene t y los pesos solo vieron fechas < s_k:
+       prediccion a un dia vista con historia observada, el mismo protocolo que SARIMAX
+       (`oof.py:27-33`, `sequence_builder.py:87-92`). Una frase.
+
+    e. **Item 7, inventario de preprocesamiento** (§4.3, parrafo nuevo): sin imputacion,
+       codificacion fija, sin seleccion de variables, XGBoost sin escalado; el escalador de
+       la etapa 1 como unica transformacion ajustada.
+
+    f. **Item 8, terminologia.** 17 sitios de «fuera de muestra» aplicados a OOF pasan a
+       «fuera del pliegue de entrenamiento (out-of-fold, OOF)» en la primera aparicion de
+       cada capitulo y «OOF» despues; titulo de §4.3 incluido. Quedan **dos a proposito**,
+       en sentido genuino de conjunto retenido: `04:53` («particion fuera de muestra» del
+       diagnostico previo) y `04:249` («distribucion de error que no existe fuera de
+       muestra»). Abstract ingles: «out-of-fold» ya era correcto.
+
+    g. **Item 16, unidades, en el generador y no a mano.** `export_latex_tables.py`:
+       `UNIT_HEADERS` + `_header_label()` anaden «(viajes/dia)» en el render a los
+       encabezados MAE / RMSE / Delta MAE / MAE (val) / RMSE (val) / MAE val / MAE test /
+       MAE competidor / MAE hibrido; el DataFrame conserva la clave desnuda (`decimals`,
+       `report_tables` y las pruebas no cambian). Regenerado: exactamente las 10 tablas
+       esperadas cambian (`git status`), las otras 22 byte a byte identicas. Los
+       encabezados compuestos (curva de aprendizaje, paridad, IC del bootstrap) y las
+       tablas por tipo de dia llevan la unidad en el pie. §5.1 fija una vez la convencion
+       (viajes por dia; punto de millares, coma decimal; «139.681 son ciento treinta y
+       nueve mil…»). Asercion anadida dentro de una prueba existente
+       (`test_dataframe_to_tabular_contains_booktabs_and_orange_header`): la suite sigue
+       en 470.
+
+    h. **Item 20, objetivos uno a uno.** §6.1: el parrafo agregado («OE2, OE4 y OE5 quedan
+       satisfechos por las PI») pasa a una lista OE1-OE5 con «que se hizo / resultado /
+       cumplido / limitacion» por objetivo; OE4 «cumplido en su formulacion, con resultado
+       negativo». La formula de direccion sobre SARIMAX («modelo de referencia competitivo
+       y metodologicamente relevante», item 29 de la primera revision) se conserva dentro
+       de OE2.
+
+    i. **Item 22, cuatro limitaciones nuevas** en §6.2 (8.ª a 11.ª): eleccion del ensamble
+       tras conocer test (b), alcance del bootstrap por bloques (bloque fijado, no estimado;
+       un solo periodo de test; subgrupos dependientes; por eso la tabla maestra no lleva
+       contraste), imposibilidad de asegurar la ausencia total de fuga sin auditoria
+       exhaustiva (con la incidencia 16 como prueba de que la bateria puede tener defectos
+       silenciosos), y dependencia de una unica serie y ambito.
+
+    j. **Item 2, editores de Surribas-Sayago.** Los siete editores que facilita direccion
+       se transcriben con iniciales, sin completar nombres; con `editor`, la
+       `@incollection` compone la forma APA 7 de capitulo, verificada en el PDF: «En E.
+       Corchado, H. Quintián, A. Troncoso Lora, E. Jove, P. García Bringas, P. Fosci & F.
+       Martínez Álvarez (Eds.), Communications in Computer and Information Science: Vol.
+       2806. Soft computing models … (pp. 466-475). Springer. https://doi.org/…».
+       Cabecera del `.bib` actualizada; cierra la observacion 26d.
+
+    k. **Extension: cuerpo 74 → 77, aceptado por decision expresa del autor** (limite
+       40-80; ~1.200 palabras, todas respuesta a un item concreto; el item 23 prohibe
+       recortar §5.9-5.11 por extension y no se recorta contenido aprobado). El resumen
+       cayo a dos paginas con las 5 palabras anadidas (mismo sintoma que 23i): recuperado
+       retirando 8 palabras de tejido («Este Trabajo de Fin de Máster evalúa» → «Este
+       trabajo evalúa», «íntegramente», «propuesta», «como referencia»), 463 palabras, una
+       pagina, 6 palabras clave.
+
+    **Estado, medido:** `python -m pytest` → **470/470**; `latexmk` desde limpio → **100
+    paginas, cuerpo 77**, 0 errores, 0 referencias/citas indefinidas, biber 0 avisos;
+    `audit_guia_docente.py --strict` → todos los bloqueantes OK, 0 infracciones de margen;
+    resumen 463 / abstract 482 palabras, una pagina cada uno; C1 37.468 → **38.830**
+    (+1.362), C5 28.889 → 29.732. PI1-PI5 identicas (script). `grep "fuera de muestra"`
+    en `sections/`: 2, ambos los conservados en (f); `grep ganador` en `05`: 0. **Puerta 0
+    al inicio (HEAD recompilado en copia desechable = `TFT.pdf` comprometido, 97/97) y
+    repetida sobre el arbol final (100/100 paginas identicas en texto).** Huella:
+    `Bibliografia_TFT.bib`, ocho `sections/`, 10 `tables/`, `export_latex_tables.py`,
+    `test_export_latex_tables.py`, `TFT.pdf`; nada bajo `data/`, `models/` ni `reports/`.
+
 ---
 
 ## 6. Cómo regenerar todo desde cero

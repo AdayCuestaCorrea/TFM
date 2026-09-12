@@ -21,7 +21,11 @@ reporta a cuatro decimales y no a dos, una asimetría deliberada frente al resto
 métricas: a dos decimales, \texttt{ensemble\_equal} (0,9755), \texttt{xgboost\_alone}
 (0,9690) y \texttt{sarimax} (0,9672) colapsarían en 0,98/0,97/0,97, borrando exactamente
 la distinción que esta comparación existe para establecer. El MAPE, en cambio, no sufre
-ese problema a esta escala y se mantiene a dos decimales.
+ese problema a esta escala y se mantiene a dos decimales. En todo el capítulo, el MAE, el
+RMSE y sus diferencias se expresan en \textbf{viajes por día} (validaciones diarias
+agregadas del CRTM, la unidad de \texttt{total}), y las cifras siguen la convención
+española: el punto separa millares y la coma los decimales, de modo que 139.681 son
+ciento treinta y nueve mil seiscientos ochenta y un viajes diarios.
 
 \begin{table}[htbp]
   \centering
@@ -81,7 +85,7 @@ diagnóstico de sobreajuste y no como un resultado más de la tabla maestra.
 \section{Ajuste temporal}\label{sec:ajuste_temporal}
 
 La figura \ref{fig:demand_actual_vs_predicted_test} muestra la serie real de demanda
-total superpuesta a la predicción del modelo ganador, \texttt{ensemble\_equal}, sobre la
+total superpuesta a la predicción del modelo de referencia, \texttt{ensemble\_equal}, sobre la
 partición de test; la de validación reproduce el mismo patrón. La predicción sigue de
 cerca tanto la oscilación semanal (el diente de sierra laborable/fin de semana de la
 sección \ref{sec:eda}) como las transiciones asociadas a festivos aislados, sin el retraso
@@ -139,7 +143,7 @@ cuantificó en la sección \ref{sec:tabla_maestra}.
 \end{figure}
 
 Por contraste, la figura \ref{fig:residual_distribution_ensemble_equal} muestra la
-distribución de error del modelo ganador, \texttt{ensemble\_equal}: una distribución
+distribución de error del modelo de referencia, \texttt{ensemble\_equal}: una distribución
 sensiblemente más estrecha y mejor centrada en torno a cero que la de cualquiera de sus
 dos componentes individuales por separado. Este estrechamiento es coherente con el
 mecanismo de reducción de varianza por descorrelación de errores que se cuantifica en la
@@ -151,7 +155,7 @@ cambie en absoluto.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{residual_distribution_ensemble_equal.png}
-  \caption{\headlinecolor{Distribución del error de predicción del modelo \texttt{ensemble\_equal} (ganador) en la partición test.}}
+  \caption{\headlinecolor{Distribución del error de predicción del modelo \texttt{ensemble\_equal} (modelo de referencia) en la partición test.}}
   \label{fig:residual_distribution_ensemble_equal}
 \end{figure}
 
@@ -171,7 +175,7 @@ régimen concreto.
   \centering
   \small
   \input{tables/tabla_desglose_dia_test}
-  \caption{\headlinecolor{MAE por tipo de día, partición test. n=5 (festivo) y n=3 (laborable, puente): indicativos, no concluyentes. La fila ``Laborable'' ($n=136$) es la suma de ``Laborable ordinario'' (133) y ``Laborable, puente'' (3); no es un grupo adicional independiente.}}
+  \caption{\headlinecolor{MAE por tipo de día (viajes por día), partición test. n=5 (festivo) y n=3 (laborable, puente): indicativos, no concluyentes. La fila ``Laborable'' ($n=136$) es la suma de ``Laborable ordinario'' (133) y ``Laborable, puente'' (3); no es un grupo adicional independiente.}}
   \label{tab:desglose_dia_test}
 \end{table}
 
@@ -179,7 +183,7 @@ régimen concreto.
   \centering
   \small
   \input{tables/tabla_desglose_dia_val}
-  \caption{\headlinecolor{MAE por tipo de día, partición val. La fila ``Laborable'' ($n=133$) es la suma de ``Laborable ordinario'' (121) y ``Laborable, puente'' (12); no es un grupo adicional independiente.}}
+  \caption{\headlinecolor{MAE por tipo de día (viajes por día), partición val. La fila ``Laborable'' ($n=133$) es la suma de ``Laborable ordinario'' (121) y ``Laborable, puente'' (12); no es un grupo adicional independiente.}}
   \label{tab:desglose_dia_val}
 \end{table}
 
@@ -484,13 +488,28 @@ de esa ganancia se desarrolla en la sección \ref{sec:mecanismo_ensemble}. Los d
 idénticos entre sí (una diferencia de MAE de test de apenas el 0,03\,\%), lo que no es
 sorprendente dado que los pesos óptimos por inverso del MAE, 0,4724 y 0,5276, se sitúan
 muy próximos a un reparto igualitario. Por ello, y pese a que \texttt{ensemble\_inverse\_mae}
-obtiene el MAE de test nominalmente más bajo de todo el proyecto, se recomienda
+obtiene el MAE de test nominalmente más bajo de todo el proyecto, se adopta
 \texttt{ensemble\_equal} como modelo de referencia para la memoria: ofrece un
 rendimiento prácticamente indistinguible sin necesitar ningún paso de ajuste que
 justificar y, a diferencia de la variante ponderada por inverso del MAE —cuyos pesos se
 derivan del propio MAE de validación y hacen, por tanto, que su cifra de validación sea
 levemente optimista—, no depende en ningún grado de la partición de validación para
 fijar sus coeficientes.
+
+Debe constar con exactitud cómo se tomó esta decisión. No existía una regla previa para
+elegir entre las dos variantes: el experimento B se prerregistró como punto de
+comparación sin criterio de éxito, ambas variantes se calcularon en la misma ejecución
+sobre validación y test, y la preferencia por la equiponderada se formuló cuando las dos
+cifras de test ya eran conocidas. El conjunto de test no interviene en ningún peso (los
+del inverso del MAE proceden solo de validación) y la elección no lo optimiza:
+\texttt{ensemble\_equal} es la variante con \emph{peor} MAE tanto en validación (227.588
+frente a 226.418) como en test (139.725 frente a 139.681). Repetir la selección solo con
+validación no la sanearía, porque escogería \texttt{ensemble\_inverse\_mae} con la misma
+partición de la que proceden sus pesos, lo que es circular. El criterio que sostiene la
+elección es, por tanto, el a priori de simplicidad y ausencia de pesos estimados, aplicado
+con posterioridad a los resultados; se reconoce como limitación en la sección
+\ref{sec:limitaciones}, y la diferencia entre ambas variantes, 44 viajes diarios de MAE
+(un 0,03\,\% del mejor resultado), carece de relevancia práctica.
 
 \section{Por qué gana el ensamble: descorrelación de errores}\label{sec:mecanismo_ensemble}
 

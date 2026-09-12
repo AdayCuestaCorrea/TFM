@@ -100,6 +100,34 @@ def format_number(value: float, decimals: int = 0) -> str:
     return text.translate(str.maketrans({",": "\x00", ".": ","})).replace("\x00", ".")
 
 
+# Headers whose column is an error in passenger units. The DataFrame keeps the bare key
+# (it is what `decimals`, the report tables and the tests address); the unit is attached
+# only at render time, so every generated table states it (supervisor review 2, item 16)
+# without any builder or test having to change its column names. "viajes/día" is the
+# CRTM unit as the memoria's prose already names it. Long composite headers (the learning
+# curve, the parity control, the bootstrap CI bounds) are left alone here: the unit goes
+# in their captions instead, because appending it would overflow their narrow columns.
+ERROR_UNIT = "viajes/día"
+UNIT_HEADERS: frozenset[str] = frozenset(
+    {
+        "MAE",
+        "RMSE",
+        "Delta MAE",
+        "MAE (val)",
+        "RMSE (val)",
+        "MAE val",
+        "MAE test",
+        "MAE competidor",
+        "MAE híbrido",
+    }
+)
+
+
+def _header_label(col: str) -> str:
+    """Display label for a column header: the bare key plus the unit where it applies."""
+    return f"{col} ({ERROR_UNIT})" if col in UNIT_HEADERS else col
+
+
 def dataframe_to_tabular(
     df: pd.DataFrame,
     decimals: dict[str, int] | None = None,
@@ -134,7 +162,12 @@ def dataframe_to_tabular(
             "r" if pd.api.types.is_numeric_dtype(df[col]) else "l" for col in df.columns
         )
 
-    header = " & ".join(rf"\textbf{{{escape_latex(col)}}}" for col in df.columns) + r" \\"
+    header = (
+        " & ".join(
+            rf"\textbf{{{escape_latex(_header_label(col))}}}" for col in df.columns
+        )
+        + r" \\"
+    )
 
     # Zebra tint on alternate data rows: with six numeric columns and up to 15 rows, plain
     # booktabs rules give the eye nothing to track a row by, and readers slip a line. A tint

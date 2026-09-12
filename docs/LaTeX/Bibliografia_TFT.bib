@@ -12,11 +12,12 @@
 %% El numero de articulo (1428) va en eid, no en pages, como pide APA 7.
 %%
 %% surribas_sayago_diffuse: ficha completa suministrada por direccion (SOCO 2025,
-%% CCIS 2806, Springer). Sin campo editor (no se inventa). Como @inproceedings sin editor,
-%% biblatex-apa omitia la serie y la editorial; como @incollection con la serie en
-%% maintitle + volume imprime los ocho campos en la forma APA 7 de obra en varios
-%% volumenes: "In Serie: Vol. N. Titulo del volumen (pp.). Springer." Las llaves
-%% protegen los nombres propios, porque en esa forma el estilo aplica sentence case.
+%% CCIS 2806, Springer). Los siete editores del volumen los facilito direccion en su
+%% segunda revision (item 2) y se transcriben tal cual, con iniciales, sin completar
+%% nombres de memoria; con `editor` la entrada @incollection compone la forma APA 7 de
+%% capitulo: "En E. Corchado, ... (Eds.), Serie: Vol. N. Titulo (pp.). Springer." Las
+%% llaves protegen los nombres propios, porque el estilo aplica sentence case a maintitle
+%% y booktitle, y los apellidos compuestos de los editores.
 %% Se cita exclusivamente como inspiracion de ingenieria de caracteristicas (retardos,
 %% terminos de Fourier), nunca como arquitectura replicada (ver Capitulo 2).
 %%
@@ -214,6 +215,8 @@
                and Enrique Dom{\'i}nguez},
   year      = {2026},
   title     = {Diffuse radiation forecasting using a hybrid neural network architecture integrating {CNN}, {LSTM}, and {MLP} models},
+  editor    = {E. Corchado and H. Quinti{\'a}n and A. {Troncoso Lora} and E. Jove
+               and P. {Garc{\'i}a Bringas} and P. Fosci and F. {Mart{\'i}nez {\'A}lvarez}},
   maintitle = {{Communications in Computer and Information Science}},
   volume    = {2806},
   booktitle = {Soft computing models in industrial and environmental applications: 20th {International Conference}, {SOCO} 2025, proceedings},

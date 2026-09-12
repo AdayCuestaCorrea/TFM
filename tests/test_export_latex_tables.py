@@ -88,6 +88,11 @@ def test_dataframe_to_tabular_contains_booktabs_and_orange_header():
     # count stays at the figure the memoria states in two places.
     body = tex.split(r"\midrule")[1].split(r"\bottomrule")[0].strip().splitlines()
     assert [line.startswith(r"\rowcolor{filaclara}") for line in body] == [True, False, True]
+    # Error columns state their unit in the rendered header (supervisor review 2, item 16)
+    # while the DataFrame keeps the bare key; the model column is left untouched.
+    header = tex.split(r"\rowcolor{naranja}")[1].split(r"\midrule")[0]
+    assert r"\textbf{MAE (viajes/\allowbreak{}día)}" in header
+    assert r"\textbf{Modelo}" in header
 
 
 def test_dataframe_to_tabular_escapes_model_names_in_body():

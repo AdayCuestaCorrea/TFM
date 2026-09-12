@@ -322,14 +322,22 @@ todavía. Este guardián se aplica dos veces: sobre la salida de cada módulo de
 individualmente y de nuevo sobre el fichero final ensamblado, que es el punto donde una
 columna mal etiquetada terminaría incorporándose a la matriz.
 
-Los términos de Fourier constituyen, dentro de este esquema, la única excepción
-autorizada a la prohibición general de calcular ingeniería de características sobre el
-conjunto completo antes de la partición: a diferencia de una media móvil o de un
-escalador, cuyo valor depende de observaciones de $y$ y, por tanto, estima un parámetro que
-solo debería aprenderse en entrenamiento, el valor de un término de Fourier en la fecha
-$t$ es una función cerrada de $t$ que no observa el objetivo en ningún momento, de modo
-que calcularlo sobre el rango completo es idéntico, variable a variable, a calcularlo por
-separado sobre cada partición.
+Conviene decir con precisión qué se calcula antes de la partición y por qué es seguro.
+Las 161 variables se construyen sobre las 1.310 filas completas, antes de que ninguna
+función de partición actúe (\texttt{build\_features} precede a
+\texttt{chronological\_split} en todos los flujos). Esto no introduce fuga porque todas
+ellas son \emph{causales}: el valor de cualquier retardo, estadístico móvil desplazado o
+variable meteorológica retardada en la fila $t$ depende únicamente de filas estrictamente
+anteriores a $t$, y ninguna estima parámetro alguno a partir de los datos (una media móvil
+desplazada es una función fija de sus $w$ valores previos, no un estadístico ajustado
+sobre la serie). Los términos de Fourier y las variables de calendario son, además,
+funciones cerradas de la fecha que no observan el objetivo en ningún momento. En
+consecuencia, calcular cualquiera de estas variables sobre el rango completo es idéntico,
+fila a fila, a calcularla por separado dentro de cada partición. La única transformación
+que sí se \emph{ajusta} sobre datos es el escalador \texttt{MinMaxScaler} de la etapa 1, y
+ese se ajusta exclusivamente sobre el bloque de entrenamiento, y dentro de cada fold del
+esquema OOF sobre la porción de entrenamiento de ese fold (sección
+\ref{sec:esquema_oof}).
 
 \subsection{Promoción meteorológica: solo variables retardadas}\label{sec:promocion_meteo}
 

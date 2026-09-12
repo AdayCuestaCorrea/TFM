@@ -920,6 +920,52 @@ warnings, 0 margin violations, resumen 468 / abstract 482 on one page each, C1 3
 **Gate 0 repeated on the final tree: scratch rebuild = `docs/LaTeX/TFT.pdf`, 97/97 pages
 identical**. Details: REPORT_MAPPING incidencia 26.
 
+**Second supervisor review (25 items) — classification, code verification, one correction
+phase: complete.** 470/470 tests (one assertion added inside an existing test; none added or
+removed). The review was written against the pre-Phase-1 version: **15 of 25 items already
+addressed** in the current document (evidence by file:line), 8 a new aspect of an old item,
+2 genuinely new (15 ensemble, 16 units). Its substance was **code verification**, done
+against the code rather than the diaries: 8 of 9 checks pass with file and line —
+917/196/197 from n=1310 with the 28-row warm-up inside train; shift-first rolling with 0
+`center=True`/`fit_transform`/`KFold` in `src/`; operators and weather lag ≥ 1 only (verified
+on the parquet and the three `.joblib`s); **the MinMax scaler is refit inside each fold**
+(`oof.py:181` inside `run_fold`, `transform` only at `:182`, on the 889 train rows alone);
+OOF strictly expanding with `_assert_fold_is_clean`, residuals only from `has_oof` folds 2-5,
+OOF file ending at `train_end`; SARIMAX `.filter` + `dynamic=False`; moving-block bootstrap
+with `BLOCK_LENGTH = 7`. No imputation, fixed-list encoding, no feature selection.
+
+**Item 15 — protocol finding, acknowledged as a limitation (author's decision).** No prior
+rule existed for choosing between `ensemble_equal` and `ensemble_inverse_mae`; both were
+computed in one run on val and test, and the preference was stated after the test figures
+were visible (Phase 5b entry above). Exonerating facts, all stated in §5.7.2 and §6.2: test
+enters no weight; the choice does not optimise test — `ensemble_equal` is the *worse* variant
+on both val (227,588 vs 226,418) and test (139,725 vs 139,681); re-selecting on validation
+alone would be circular (the inverse weights come from that same validation set). Separately,
+«ganador» → «modelo de referencia» at the three ch. 5 sites, since the master table ranks the
+other variant first.
+
+**Item 5 — NINTH accuracy finding of the review series** (same class as the previous eight:
+text and code describing different things, invisible until both were read). `03:325-332` and
+Anexo B point 4 claimed Fourier was «la única excepción» to computing features before the
+split and that a rolling mean «estima un parámetro»; in the code all 161 features are computed
+over the full 1,310 rows before the split (`build_features.py:88-96`), safely, because each is
+causal (row t uses only rows < t) and estimates nothing; the only fitted transformation is the
+scaler, per fold and per train. Both passages rewritten to say exactly that.
+
+Also: §4.3 gains the one-sentence answer to the OOF-window question (windows `[t-W,t)` from
+observed values inside the block, never containing t, weights blind to dates ≥ s_k — the
+SARIMAX protocol, not leakage) and a preprocessing inventory; «fuera de muestra» → «fuera del
+pliegue de entrenamiento (out-of-fold, OOF)» at 17 sites (two deliberate keeps, `04:53` and
+`04:249`, the genuine hold-out sense); units «(viajes/día)» attached at render time in
+`export_latex_tables.py` (`UNIT_HEADERS`, exactly the 10 expected tables regenerated) plus a
+one-off convention sentence in §5.1; §6.1 rewritten OE-by-OE (what was done / result /
+fulfilled / remaining limitation); four new limitations in §6.2; Surribas-Sayago `editor`
+field from the supervisor's data, now rendering in APA 7 chapter form. Measured: **100 pages,
+body 74 → 77 (accepted by the author; limit 80)**, 0 errors/undefined, biber 0 warnings, 0
+margin violations, resumen 463 / abstract 482 on one page each, C1 37,468 → 38,830; PI1-PI5
+identical; Gate 0 at start (HEAD scratch rebuild = committed PDF, 97/97) and repeated on the
+final tree (100/100). Details: REPORT_MAPPING incidencia 27.
+
 **Next (not started):** push of the prepared public re-export (author); Colab migration.
 
 ### Phase 1 — Ingestion

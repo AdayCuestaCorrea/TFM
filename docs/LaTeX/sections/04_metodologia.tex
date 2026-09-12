@@ -30,7 +30,8 @@ de la demanda, calendario, meteorología retardada, términos de Fourier) constr
 forma independiente de la
 dinámica del residuo mismo. Y en tercer lugar, y de manera no negociable para la validez
 del diseño, las predicciones de la etapa 1 que se emplean para calcular ese residuo de
-entrenamiento se generan siempre fuera de muestra (\emph{out-of-fold}, OOF), mediante un
+entrenamiento se generan siempre fuera del pliegue de entrenamiento (\emph{out-of-fold},
+OOF), mediante un
 esquema de validación cruzada expansivo hacia adelante (\ref{sec:esquema_oof}) y nunca a
 partir de un único ajuste \emph{in-sample}: un residuo calculado sobre predicciones que el
 propio modelo ya ha visto en entrenamiento está optimistamente sesgado hacia cero y es
@@ -209,8 +210,8 @@ reporte más adelante en la tabla maestra de comparación (\ref{sec:tabla_maestr
 Entrenada de este modo sobre las 889 filas de entrenamiento posteriores al calentamiento,
 la etapa 1 en solitario queda claramente por debajo de SARIMAX en ambas particiones de
 evaluación. Y, más revelador todavía, no llega a superar ni siquiera a la persistencia
-estacional cuando ambas se comparan sobre las mismas filas fuera de muestra generadas por
-el esquema de la sección \ref{sec:esquema_oof} (MAE OOF de 690.460 frente a 461.087).
+estacional cuando ambas se comparan sobre las mismas filas fuera del pliegue de
+entrenamiento (OOF) generadas por el esquema de la sección \ref{sec:esquema_oof} (MAE OOF de 690.460 frente a 461.087).
 Esto no constituye un defecto de la implementación: los resultados obtenidos indican
 que la dinámica temporal univariante, por sí sola, no basta
 para igualar a un modelo que sí observa el calendario de forma explícita. El detalle
@@ -232,20 +233,22 @@ de cualquier barajado—, medido sobre el fold 3 el barajado empeoró el resulta
 288.000 a 309.000 aproximadamente), por lo que se mantiene \texttt{shuffle=False} por
 evidencia, no por precaución teórica.
 
-\section{Esquema de validación fuera de muestra (OOF)}\label{sec:esquema_oof}
+\section{Esquema de predicción fuera del pliegue de entrenamiento (OOF)}\label{sec:esquema_oof}
 
 El esquema descrito en esta sección es, con diferencia, el componente metodológico más
 crítico del proyecto: la decisión de diseño de la que depende la validez de toda la etapa
 2. Como se anticipó en la introducción del capítulo, las predicciones de la etapa 1 que
 alimentan el cálculo del residuo de entrenamiento de la etapa 2 deben generarse siempre
-fuera de muestra. La alternativa sería ajustar un único modelo LSTM sobre todo el
+fuera del pliegue de entrenamiento (\emph{out-of-fold}, OOF): cada predicción procede de
+un modelo cuyo entrenamiento no incluyó esa observación. La alternativa sería ajustar un
+único modelo LSTM sobre todo el
 entrenamiento y calcular el residuo directamente sobre esas mismas predicciones
 \emph{in-sample}, y produciría un residuo artificialmente pequeño y con una distribución
 distinta de la que la etapa 2 encontrará en producción, precisamente porque el modelo ya
 ha memorizado, en algún grado, las observaciones sobre las que se evalúa; la etapa 2
 aprendería entonces a corregir una distribución de error que no existe fuera de muestra,
 lo que se traduciría en un desempeño peor del esperado en inferencia real. Este esquema de
-validación fuera de muestra para series temporales sigue la práctica establecida en la
+predicción OOF para series temporales sigue la práctica establecida en la
 literatura de evaluación de modelos de pronóstico
 \parencite{bergmeir2012cv,cerqueira2020evaluating}, adaptada aquí a la generación de
 predicciones de \emph{stacking} \parencite{wolpert1992stacking} en dos etapas.
@@ -257,9 +260,23 @@ completo sobre el bloque $[0, s_k)$ y genera predicciones únicamente sobre el b
 inmediatamente siguiente, $[s_k, s_{k+1})$, que nunca ha visto durante su entrenamiento;
 cada fold reajusta además su propio escalador de normalización exclusivamente sobre su
 propia porción de entrenamiento, sin reutilizar en ningún caso un escalador ajustado con
-información de un bloque posterior. La tabla \ref{tab:folds_oof} recoge las métricas de
-cada uno de los cinco folds, y la figura \ref{fig:oof_folds} muestra sus predicciones
-fuera de muestra frente al valor real.
+información de un bloque posterior. Dentro de cada bloque, la ventana de entrada para el
+día $t$ es $[t-W, t)$ construida con valores \emph{observados}, incluidos los del propio
+bloque para los objetivos posteriores dentro de él: nunca contiene $t$, y los pesos del
+modelo solo han visto fechas anteriores a $s_k$, de modo que se trata de predicción a un
+día vista con historia observada, el mismo protocolo bajo el que se evalúa SARIMAX
+(sección \ref{sec:baselines}), y no de una fuga. La tabla \ref{tab:folds_oof} recoge las
+métricas de cada uno de los cinco folds, y la figura \ref{fig:oof_folds} muestra sus
+predicciones OOF frente al valor real.
+
+El resto del preprocesamiento no plantea ajuste alguno sobre datos, y conviene
+inventariarlo: no existe imputación (las 28 filas de calentamiento se descartan y el
+ensamblado del conjunto residual falla si queda algún valor nulo); la codificación del
+calendario es binaria exhaustiva sobre listas de categorías declaradas de antemano, no
+derivadas de los datos, y falla ante un valor no previsto; no se realiza selección de
+variables (los dos modelos XGBoost reciben las 161 columnas); y XGBoost no escala sus
+entradas. El escalador \texttt{MinMaxScaler} de la etapa 1 es, por tanto, la única
+transformación ajustada del proyecto.
 
 \begin{table}[htbp]
   \centering
@@ -275,7 +292,7 @@ fuera de muestra frente al valor real.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{fig_oof_folds.png}
-  \caption{\headlinecolor{Predicción LSTM fuera de muestra (OOF) por fold del \emph{walk-forward} expansivo.}}
+  \caption{\headlinecolor{Predicción LSTM fuera del pliegue de entrenamiento (OOF) por fold del \emph{walk-forward} expansivo.}}
   \label{fig:oof_folds}
 \end{figure}
 
@@ -290,7 +307,7 @@ de 690.460 y un RMSE de 997.520.
 El fold 1 merece un análisis detallado porque su comportamiento es \textbf{degenerado} y
 la decisión que se toma sobre él condiciona directamente el conjunto de entrenamiento de
 la etapa 2. Entrenado sobre apenas 200 observaciones (172 secuencias, reducidas a 147 tras
-separar la cola de parada anticipada), sus predicciones fuera de muestra presentan una
+separar la cola de parada anticipada), sus predicciones OOF presentan una
 desviación típica de solo el 0,199 de la de los valores reales y una correlación de
 apenas 0,300 con ellos: el modelo, con tan poco historial disponible, nunca llega a
 escapar de predecir un valor próximo a una constante, y la parada anticipada se activa ya
@@ -329,7 +346,7 @@ conjunto de entrenamiento de la etapa 2 queda formado por 552 filas, desde el
 \ref{sec:ingenieria_features} y sin ningún valor nulo. La variable objetivo de esta etapa
 no es la demanda sino el residuo definido en la introducción del capítulo,
 $e_t = y_t - \hat y^{\text{LSTM}}_t$, calculado exclusivamente a partir de las
-predicciones fuera de muestra de la sección anterior; su signo se fija de modo que la
+predicciones OOF de la sección anterior; su signo se fija de modo que la
 corrección de la etapa 2 se \emph{suma} a la predicción de la etapa 1. El residuo
 presenta una media de 109.601 y una desviación típica de 726.669 sobre un rango de
 $[-3.128.729,\ +1.899.895]$: una dispersión del mismo orden de magnitud que la propia
@@ -376,7 +393,7 @@ las 889 filas completas y es, previsiblemente, algo mejor que cualquiera de los 
 parciales que generaron los residuos de entrenamiento. En consecuencia, la etapa 2 aprende
 a corregir una distribución de residuo ligeramente más ancha que la que el sistema
 realmente enfrenta en inferencia. Este desajuste es inherente a cualquier esquema de
-\emph{stacking} fuera de muestra —la alternativa, usar residuos \emph{in-sample} del
+\emph{stacking} con predicciones OOF —la alternativa, usar residuos \emph{in-sample} del
 modelo final, es estrictamente peor por las razones expuestas en la sección
 \ref{sec:esquema_oof}— y se acepta aquí como el coste asumido de evitar una fuga de
 información mucho más grave.

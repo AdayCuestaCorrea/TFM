@@ -9,17 +9,50 @@ fuente de evidencia.
 
 El objetivo general —evaluar si una arquitectura híbrida residual LSTM-XGBoost mejora la
 predicción de la demanda diaria agregada de transporte público en Madrid frente a
-baselines estadísticos y a modelos de una sola etapa— se ha cumplido en su totalidad.
-OE2, OE4 y OE5 quedan satisfechos por las respuestas a las cinco preguntas de
-investigación de la sección \ref{sec:respuesta_preguntas}, aunque no todos en el sentido
-que la motivación inicial podría sugerir; OE1 y OE3, objetivos de diseño e integridad
-estructural del pipeline, se verifican mediante la suite de pruebas automatizadas del Anexo
-\ref{cap:anexo2}: la matriz de 161 variables queda construida y verificada, y sus guardias
-anti-fuga —cada una con una prueba negativa que la obliga a disparar— no han detectado
-ninguna fuga en la matriz publicada. OE2 aporta además un
-resultado que gobierna todo lo que sigue: el SARIMAX seleccionado por rejilla AIC se incorpora
-como un modelo de referencia competitivo y metodológicamente relevante, pues es uno de
-los dos modelos de una sola etapa más precisos del estudio.
+baselines estadísticos y a modelos de una sola etapa— se ha cumplido: la evaluación se
+realizó y su respuesta es negativa para la arquitectura. El cumplimiento de cada objetivo
+específico de la sección \ref{sec:objetivos} se acredita por separado:
+
+\begin{itemize}
+  \item \textbf{OE1, ingesta y matriz anti-fuga.} \emph{Qué se hizo:} tres fuentes crudas
+    unificadas en 1.310 días continuos y una matriz de 161 variables predictoras con
+    guardias que fallan de forma explícita (capítulo \ref{cap:datos_features}).
+    \emph{Resultado:} ninguna guardia ha detectado una fuga en la matriz publicada; las
+    dos que durante varias fases eran inalcanzables se corrigieron y disparan hoy bajo
+    prueba (Anexo \ref{cap:anexo2}). \emph{Cumplido.} \emph{Limitación:} la ausencia
+    total de fuga no puede afirmarse sin una auditoría exhaustiva externa (sección
+    \ref{sec:limitaciones}).
+  \item \textbf{OE2, baselines y SARIMAX.} \emph{Qué se hizo:} cuatro baselines ingenuos y
+    un SARIMAX(2,1,2)$\times$(0,1,2,7) seleccionado por AIC de entrenamiento, todos a un
+    día vista (sección \ref{sec:baselines}). \emph{Resultado:} SARIMAX alcanza un MAE de
+    test de 163.627 y es uno de los dos modelos de una sola etapa más precisos: se
+    incorpora como un modelo de referencia competitivo y metodológicamente relevante
+    (PI1, PI2). \emph{Cumplido.} \emph{Limitación:}
+    el orden elegido no está fuertemente identificado (cinco órdenes en 0,8 unidades de
+    AIC).
+  \item \textbf{OE3, etapa 1 con predicciones OOF.} \emph{Qué se hizo:} LSTM univariante
+    con esquema \emph{walk-forward} expansivo de cinco folds y escalador reajustado por fold
+    (sección \ref{sec:esquema_oof}). \emph{Resultado:} 689 predicciones OOF sobre 889 filas;
+    el fold 1 resultó degenerado y se excluyó tras comprobar su cobertura.
+    \emph{Cumplido.} \emph{Limitación:} el residuo de entrenamiento procede de modelos con
+    337-748 filas mientras que el de inferencia procede del modelo con 889, un
+    desplazamiento inherente al \emph{stacking} OOF.
+  \item \textbf{OE4, etapa 2 y controles.} \emph{Qué se hizo:} XGBoost sobre 552 residuos
+    OOF con las 161 variables, comparado con la etapa 1 sola y con un XGBoost directo sobre
+    la misma matriz (secciones \ref{sec:etapa2_xgboost} y \ref{sec:modelos_control}).
+    \emph{Resultado:} la etapa 2 reduce el MAE de su etapa 1 en un 16,6\,\% en test, pero
+    el híbrido queda por detrás de SARIMAX y de \texttt{xgboost\_alone} en ambas
+    particiones (PI3, PI4). \emph{Cumplido en su formulación} —el contraste se realizó y
+    los controles aislaron la causa—, \emph{con resultado negativo}. \emph{Limitación:}
+    5 festivos y 3 puentes en test impiden concluir sobre los días irregulares.
+  \item \textbf{OE5, ensamble, sensibilidad e interpretación.} \emph{Qué se hizo:} dos
+    experimentos acotados y una lectura a la luz de \textcite{granger1989combining}
+    (sección \ref{sec:analisis_sensibilidad}). \emph{Resultado:} el repesado no mejora los
+    días que perseguía; el ensamble aritmético de SARIMAX y \texttt{xgboost\_alone} es el
+    modelo más preciso del estudio (PI5). \emph{Cumplido.} \emph{Limitación:} la
+    preferencia entre las dos variantes del ensamble se formuló tras conocer sus cifras de
+    test (sección \ref{sec:limitaciones}).
+\end{itemize}
 
 El hallazgo empírico central aparece en la evaluación de la corrección residual:
 \textbf{el híbrido, tal como queda diseñado, no supera a SARIMAX ni a
@@ -147,6 +180,45 @@ XGBoost, así que un cierre parcial es evidencia débil). Aun así, no puede des
 la matriz completa que una fracción del hueco se explique por acceso a la información y no
 solo por la arquitectura; discriminar ambas causas con más semillas o un diseño que iguale
 también la representación de entrada queda fuera del alcance de este TFM.
+
+\textbf{Elección entre las dos variantes del ensamble tras conocer sus cifras de test.}
+No existía una regla previa para preferir \texttt{ensemble\_equal} a
+\texttt{ensemble\_inverse\_mae}: ambas se calcularon en la misma ejecución y la
+preferencia se formuló con las dos cifras de test a la vista (sección
+\ref{sec:por_que_ensemble}). El test no interviene en ningún peso y la elección no lo
+optimiza —la equiponderada es la peor de las dos tanto en validación como en test—, y
+repetir la selección solo con validación sería circular, porque los pesos del inverso del
+MAE proceden de esa misma partición. Aun así, la decisión de presentación se tomó a
+posteriori y se registra como tal; la diferencia entre ambas, 44 viajes diarios de MAE,
+carece de relevancia práctica.
+
+\textbf{Alcance del \emph{bootstrap} por bloques.} La única inferencia estadística de la
+memoria (sección \ref{sec:desglose_incertidumbre}) usa un \emph{bootstrap} pareado de
+bloques móviles de 7 días sobre 197 días de test. La longitud de bloque se fijó por la
+autocorrelación semanal dominante, no se estimó, y no captura una dependencia de escala
+mayor (mensual o estacional); con un solo periodo de test, los intervalos describen la
+variabilidad de remuestreo dentro de ese periodo, no la de otros periodos, y los subgrupos
+solapados son contrastes dependientes. Por eso las diferencias entre los modelos punteros
+de la tabla maestra se presentan sin contraste de significación.
+
+\textbf{Imposibilidad de asegurar la ausencia total de fuga sin una auditoría
+exhaustiva.} Los controles anti-fuga cubren las formas de fuga identificadas en el diseño
+(retardos y ventanas desplazadas, particiones cronológicas, escalado por fold,
+predicciones OOF, exclusión de operadores y meteorología del mismo día) y cada uno tiene
+una prueba negativa que lo obliga a disparar. Que ninguno haya detectado una fuga en la
+matriz publicada no equivale a demostrar que no exista ninguna: un tipo de fuga no
+previsto en el diseño no tendría guardia, y la incidencia de las dos guardias
+inalcanzables del Anexo \ref{cap:anexo2} muestra que la propia batería puede tener
+defectos silenciosos. La afirmación que sostiene esta memoria es la prudente: se han
+implementado controles específicos contra las principales formas de fuga, y se han
+verificado sobre el código.
+
+\textbf{Dependencia de una única serie y de un único ámbito geográfico.} Todos los
+resultados proceden de una serie diaria de 1.310 observaciones del sistema CRTM de la
+Comunidad de Madrid en 2023-2026. Ni el resultado negativo del híbrido ni la ventaja del
+ensamble se han replicado sobre otra red, otro periodo ni otra escala temporal; su
+generalización a otros sistemas o a demanda horaria es una hipótesis que este trabajo no
+contrasta.
 
 \section{Trabajos futuros}\label{sec:trabajos_futuros}
 
