@@ -1743,6 +1743,100 @@ cosméticas y sin efecto en el contenido.
     compilan por si solas). Pendiente del autor: `git push origin main` (*fast-forward*) y
     repetir (v) contra el clon publico.
 
+26. **Pasada de cumplimiento final contra el PDF compuesto (los 35 items de direccion,
+    verificados sobre el artefacto y no sobre el registro) y cuatro correcciones.** Metodo:
+    puerta 0 (recompilacion en copia desechable desde `HEAD`, texto pagina a pagina identico
+    al `TFT.pdf` confirmado, 97/97), despues cada item leido en el PDF y en las fuentes
+    actuales; los registros de las fases 1-5 solo sirvieron para saber donde mirar. Resultado
+    de la lectura: 18 items resueltos, 11 «correctos» de direccion siguen siendo ciertos, 6
+    parciales (4, 16, 24, 26, 27, 30). Por decision del autor se corrigen cuatro y se dejan
+    para el correo de acompanamiento la leyenda inglesa y los separadores de miles de la
+    figura 5.1, los dos «confirma» interpretativos (`05` §5.11.5 y §5.12), el «(Surribas-Sayago
+    et al.)» sin ano del resumen/abstract, el «pre-registered» ingles, el guion de la portada y
+    la ausencia de una frase «se usa APA 7». Ningun modelo se reentrena; `data/` y `models/`
+    sin tocar; ninguna cifra medida cambia.
+
+    a. **HALLAZGO DE EXACTITUD (octavo de la revision, y el unico que es una afirmacion
+       teorica falsa y no un error de hecho): §5.6.1 afirmaba que, con conjuntos de
+       informacion anidados, «la combinacion secuencial no puede superar, en teoria, al mejor
+       modelo de una sola etapa sobre el conjunto mayor»** (`05:389`), y tres parrafos antes
+       lo mismo en otra forma: «no puede aportar, en teoria, nada que un unico modelo sobre el
+       conjunto mayor no pudiera aprender por si mismo con una forma funcional
+       suficientemente flexible» (`05:374`). Ambas se introdujeron en la fase 3 (23d) al
+       reformular el item 16, no venian del texto revisado, y no se atribuian a nadie (25i ya
+       lo anotaba como consecuencia «enunciada sin atribuir»). Como enunciado general es
+       falso: el *gradient boosting* es exactamente una correccion secuencial de residuos
+       sobre un conjunto de informacion identico y supera a un arbol unico; que dos etapas
+       vean informacion anidada no implica que sus clases de hipotesis esten anidadas. Era
+       refutable con un contraejemplo de una linea en la defensa y era mas fuerte que
+       cualquier cosa que los datos sostengan. Se elimina la clausula (`05:387-391` pasa a
+       «la comparacion relevante es con el mejor modelo de una sola etapa sobre el conjunto
+       mayor, y ese modelo existe en la comparacion») y se reformula `05:372-375` («la
+       combinacion pierde esa fuente de ganancia, y lo que aporte dependera de la forma
+       funcional de cada etapa, no de informacion nueva»). En paralelo, «incumple la
+       condicion» pasa a «no satisface plenamente la condicion» en los seis sitios (`00:33`,
+       `00:83` «does not fully satisfy», `02:209`, `04:462`, `05:377`, `06:32`). Se conservan
+       literalmente la frase de direccion, el encuadre de conjuntos anidados y el hallazgo
+       empirico: nada de eso dependia de la imposibilidad. Barrido posterior de «no puede /
+       cannot / necesariamente / imposible» junto a superar/combinacion/hibrido: 0 restos.
+       Lectura cruzada de los nueve lugares de la fase 3 (resumen, abstract, §2.3, §4.7,
+       §5.6.1 ×3 y su parrafo de cierre, §6.1, §6.2): todos leen «anidados, no
+       complementarios» + «no satisface plenamente»; el cierre de §5.6.1 sigue siendo
+       empirico («patron … consistente con M4 y M5»).
+
+       **Patron, actualizado:** ocho defectos de exactitud destapados por la revision formal
+       (Monje 21c, Chen 22a, «sin termino autorregresivo» 23e, Bates-Granger invertido 23f,
+       «confirma» con ganancia por impureza 24i, remision falsa a 411.142 25f, cita de LSTM
+       atribuida a Zhang 25f, y esta). Los siete anteriores eran hechos mal enunciados; este
+       es el primero que era una afirmacion teorica insostenible, y la fase que la introdujo
+       fue precisamente la que corregia el item 16.
+
+    b. **Item 26, «257 tests» en el cuadro 2.1** (fila «Este TFM», celda de protocolo): literal
+       del generador `export_latex_tables.py:371` que el barrido de la fase 4 no alcanzo porque
+       solo recorrio `sections/` y los literales que ya tenia inventariados. → «257 pruebas
+       automatizadas»; regenerado con el exportador, `git status` marca solo esa tabla (las
+       otras 31, byte a byte identicas); `test_export_latex_tables.py` 39/39. Unico «tests» que
+       queda en el PDF: «470 automated tests» del abstract ingles, conservado por decision.
+
+    c. **Items 2-3, sentence case en la lista de referencias.** No estaba en la lista de
+       direccion, pero revisa APA expresamente y la primera entrada lo mostraba: biblatex-apa
+       compone los titulos tal como estan en el `.bib`, y los 23 estaban en Title Case. APA 7
+       exige sentence case en titulos de articulo, libro, capitulo y actas-como-libro; los
+       nombres de revista, de congreso (ACM SIGKDD, IEEE ITSC) y de software (Claude, Claude
+       Code) son nombres propios y no cambian. 23 campos en 21 fichas (21 `title`, 2
+       `booktitle`: Perrone y Surribas), con llaves de proteccion en XGBoost, ARIMA, M4, M5,
+       XAI, CNN, LSTM, MLP, SOCO y Spain (esta ultima nueva). Dos decisiones que el autor
+       revisa: en Surribas se mantiene «20th International Conference» en mayusculas como
+       nombre del congreso y «proceedings» en minuscula; Granger queda «Invited review:
+       Combining forecasts--twenty years later». Orden alfabetico sin cambio.
+
+    d. **Item 4, la ficha de Surribas-Sayago no imprimia la serie ni la editorial.** Ambas
+       estaban en el `.bib` (`series`, `publisher`), pero biblatex-apa las omite en una
+       `@inproceedings` sin `editor` (forma de articulo de actas). Probado en copia desechable
+       con la misma configuracion (`style=apa`, biber), once variantes: `@inproceedings` con
+       `series`+`volume`, `+number`, `+maintitle`, `+organization` (ninguna imprime serie ni
+       editorial); `@incollection`/`@inbook` con `series`+`volume` o `+number` (imprimen
+       «Springer» y «Vol. 2806» pero no el nombre de la serie); **`@incollection` con la serie
+       en `maintitle` y `volume`** imprime los ocho campos en la forma APA 7 de obra en varios
+       volumenes: «En *Communications in Computer and Information Science: Vol. 2806. Soft
+       computing models in industrial and environmental applications: 20th International
+       Conference, SOCO 2025, proceedings* (pp. 466-475). Springer. https://doi.org/…». Sin
+       inventar editores. En esa forma el estilo aplica sentence case a `maintitle` y
+       `booktitle` por su cuenta, de modo que la serie entera y «International Conference»
+       van entre llaves dobles/simples. Cabecera del `.bib` reescrita en consecuencia; la
+       observacion 25i sobre el campo `editor` queda cerrada.
+
+    **Estado, medido:** `python -m pytest` → **470/470**; `latexmk` desde limpio (`.bbl`,
+    `.bcf` borrados) → **97 paginas, cuerpo 74**, 0 errores, 0 referencias/citas
+    indefinidas, biber 0 avisos; `audit_guia_docente.py --strict` → todos los bloqueantes OK,
+    0 infracciones de margen; resumen 468 / abstract 482 palabras, una pagina cada uno, 6
+    palabras clave; C1 37.467 → **37.468** (+1), C5 28.885 → 28.889; PI1-PI5 identicas
+    (script); `\textcite` 30 / `\parencite` 13 / 23 fichas = 23 citadas. **Puerta 0
+    repetida sobre el arbol final: recompilacion en copia desechable = `docs/LaTeX/TFT.pdf`,
+    97/97 paginas identicas en texto** — el PDF que se envia es el verificado. Huella:
+    `Bibliografia_TFT.bib`, cinco `sections/`, `tabla_comparativa_estado_arte.tex`,
+    `export_latex_tables.py`, `TFT.pdf`; nada bajo `data/`, `models/` ni `reports/`.
+
 ---
 
 ## 6. Cómo regenerar todo desde cero

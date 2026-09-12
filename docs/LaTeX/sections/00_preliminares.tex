@@ -30,7 +30,7 @@
   ni a un XGBoost entrenado directamente sobre las mismas variables (MAE de test
   234.223 frente a 163.627 y 156.121, respectivamente). Este hallazgo se audita
   a la luz de la teoría de combinación de pronósticos de Granger (1989): el
-  híbrido secuencial incumple la condición de conjuntos de información distintos,
+  híbrido secuencial no satisface plenamente la condición de conjuntos de información distintos,
   pues la etapa 2 añade calendario y meteorología pero su matriz ya representa el
   pasado reciente que observa la etapa 1: ambos conjuntos están anidados, no son
   complementarios. Los modelos más precisos del estudio son
@@ -80,7 +80,7 @@ negative for the proposed architecture: the hybrid beats neither an
 AIC-selected SARIMAX nor an XGBoost trained directly on the same variables
 (test MAE of 234,223 versus 163,627 and 156,121, respectively). This finding is
 audited through Granger's (1989) forecast-combination theory: the sequential
-hybrid violates the requirement that its components rest on genuinely different
+hybrid does not fully satisfy the requirement that its components rest on genuinely different
 information sets: the second stage adds calendar and lagged weather, but the recent
 history the first stage observes is already represented in its feature matrix, so
 the two information sets are nested rather than complementary. The most accurate

@@ -12,8 +12,11 @@
 %% El numero de articulo (1428) va en eid, no en pages, como pide APA 7.
 %%
 %% surribas_sayago_diffuse: ficha completa suministrada por direccion (SOCO 2025,
-%% CCIS 2806, Springer). Sin campo editor por ahora: biblatex-apa la compone en forma de
-%% articulo de actas, valida en APA 7; con editores pasaria a forma de capitulo.
+%% CCIS 2806, Springer). Sin campo editor (no se inventa). Como @inproceedings sin editor,
+%% biblatex-apa omitia la serie y la editorial; como @incollection con la serie en
+%% maintitle + volume imprime los ocho campos en la forma APA 7 de obra en varios
+%% volumenes: "In Serie: Vol. N. Titulo del volumen (pp.). Springer." Las llaves
+%% protegen los nombres propios, porque en esa forma el estilo aplica sentence case.
 %% Se cita exclusivamente como inspiracion de ingenieria de caracteristicas (retardos,
 %% terminos de Fourier), nunca como arquitectura replicada (ver Capitulo 2).
 %%
@@ -28,14 +31,14 @@
 @book{box1970time,
   author    = {George E. P. Box and Gwilym M. Jenkins},
   year      = {1970},
-  title     = {Time Series Analysis: Forecasting and Control},
+  title     = {Time series analysis: Forecasting and control},
   publisher = {Holden-Day},
   address   = {San Francisco}
 }
 
 @article{hochreiter1997lstm,
   author  = {Sepp Hochreiter and J{\"u}rgen Schmidhuber},
-  title   = {Long Short-Term Memory},
+  title   = {Long short-term memory},
   journal = {Neural Computation},
   volume  = {9},
   number  = {8},
@@ -47,7 +50,7 @@
 
 @inproceedings{chen2016xgboost,
   author    = {Tianqi Chen and Carlos Guestrin},
-  title     = {{XGBoost}: A Scalable Tree Boosting System},
+  title     = {{XGBoost}: A scalable tree boosting system},
   booktitle = {Proceedings of the 22nd ACM SIGKDD International Conference on
                Knowledge Discovery and Data Mining},
   pages     = {785--794},
@@ -58,7 +61,7 @@
 
 @article{bergmeir2012cv,
   author  = {Christoph Bergmeir and Jos{\'e} M. Ben{\'i}tez},
-  title   = {On the Use of Cross-Validation for Time Series Predictor Evaluation},
+  title   = {On the use of cross-validation for time series predictor evaluation},
   journal = {Information Sciences},
   volume  = {191},
   pages   = {192--213},
@@ -69,8 +72,7 @@
 
 @article{cerqueira2020evaluating,
   author  = {Vitor Cerqueira and Luis Torgo and Igor Mozeti{\v{c}}},
-  title   = {Evaluating Time Series Forecasting Models: An Empirical Study on
-             Performance Estimation Methods},
+  title   = {Evaluating time series forecasting models: An empirical study on performance estimation methods},
   journal = {Machine Learning},
   volume  = {109},
   pages   = {1997--2028},
@@ -82,7 +84,7 @@
 
 @book{hyndman2021fpp,
   author    = {Rob J. Hyndman and George Athanasopoulos},
-  title     = {Forecasting: Principles and Practice},
+  title     = {Forecasting: Principles and practice},
   edition   = {3},
   year      = {2021},
   publisher = {OTexts},
@@ -92,7 +94,7 @@
 
 @article{zhang2003hybrid,
   author  = {G. Peter Zhang},
-  title   = {Time Series Forecasting Using a Hybrid {ARIMA} and Neural Network Model},
+  title   = {Time series forecasting using a hybrid {ARIMA} and neural network model},
   journal = {Neurocomputing},
   volume  = {50},
   pages   = {159--175},
@@ -103,7 +105,7 @@
 
 @article{wolpert1992stacking,
   author  = {David H. Wolpert},
-  title   = {Stacked Generalization},
+  title   = {Stacked generalization},
   journal = {Neural Networks},
   volume  = {5},
   number  = {2},
@@ -115,7 +117,7 @@
 
 @article{granger1989combining,
   author  = {Clive W. J. Granger},
-  title   = {Invited Review: Combining Forecasts--Twenty Years Later},
+  title   = {Invited review: Combining forecasts--twenty years later},
   journal = {Journal of Forecasting},
   volume  = {8},
   number  = {3},
@@ -127,7 +129,7 @@
 
 @article{bates1969combination,
   author  = {John M. Bates and Clive W. J. Granger},
-  title   = {The Combination of Forecasts},
+  title   = {The combination of forecasts},
   journal = {Operational Research Quarterly},
   volume  = {20},
   number  = {4},
@@ -139,8 +141,8 @@
 
 @incollection{perrone1993networks,
   author    = {Michael P. Perrone and Leon N. Cooper},
-  title     = {When Networks Disagree: Ensemble Methods for Hybrid Neural Networks},
-  booktitle = {Neural Networks for Speech and Image Processing},
+  title     = {When networks disagree: Ensemble methods for hybrid neural networks},
+  booktitle = {Neural networks for speech and image processing},
   editor    = {Richard J. Mammone},
   pages     = {126--142},
   year      = {1993},
@@ -149,7 +151,7 @@
 
 @article{makridakis2018m4,
   author  = {Spyros Makridakis and Evangelos Spiliotis and Vassilios Assimakopoulos},
-  title   = {The {M4} Competition: Results, Findings, Conclusion and Way Forward},
+  title   = {The {M4} competition: Results, findings, conclusion and way forward},
   journal = {International Journal of Forecasting},
   volume  = {34},
   number  = {4},
@@ -161,7 +163,7 @@
 
 @article{makridakis2022m5,
   author  = {Spyros Makridakis and Evangelos Spiliotis and Vassilios Assimakopoulos},
-  title   = {The {M5} Competition: Background, Organization, and Implementation},
+  title   = {The {M5} competition: Background, organization, and implementation},
   journal = {International Journal of Forecasting},
   volume  = {38},
   number  = {4},
@@ -174,8 +176,7 @@
 @article{monje2022deep,
   author    = {Leticia Monje and Ram{\'o}n A. Carrasco and Carlos Rosado and
                Manuel S{\'a}nchez-Monta{\~n}{\'e}s},
-  title     = {Deep Learning {XAI} for Bus Passenger Forecasting: A Use Case
-               in Spain},
+  title     = {Deep learning {XAI} for bus passenger forecasting: A use case in {Spain}},
   journal   = {Mathematics},
   volume    = {10},
   number    = {9},
@@ -188,8 +189,7 @@
 @inproceedings{toque2017short,
   author    = {Florian Toqu{\'e} and Mostepha Khouadjia and Etienne C{\^o}me
                and Martin Tr{\'e}panier and Latifa Oukhellou},
-  title     = {Short and Long Term Forecasting of Multimodal Transport
-               Passenger Flows with Machine Learning Methods},
+  title     = {Short and long term forecasting of multimodal transport passenger flows with machine learning methods},
   booktitle = {2017 IEEE 20th International Conference on Intelligent
                Transportation Systems (ITSC)},
   pages     = {560--566},
@@ -200,8 +200,7 @@
 
 @article{cardozo2012spatial,
   author    = {O. D. Cardozo and J. C. Garc{\'i}a-Palomares and J. Guti{\'e}rrez},
-  title     = {Application of Geographically Weighted Regression to the
-               Direct Forecasting of Transit Ridership at Station-Level},
+  title     = {Application of geographically weighted regression to the direct forecasting of transit ridership at station-level},
   journal   = {Applied Geography},
   volume    = {34},
   pages     = {548--558},
@@ -210,16 +209,14 @@
   doi       = {10.1016/j.apgeog.2012.01.005}
 }
 
-@inproceedings{surribas_sayago_diffuse,
+@incollection{surribas_sayago_diffuse,
   author    = {Gonzalo Surribas-Sayago and Jos{\'e} David Fern{\'a}ndez-Rodr{\'i}guez
                and Enrique Dom{\'i}nguez},
   year      = {2026},
-  title     = {Diffuse Radiation Forecasting Using a Hybrid Neural Network Architecture
-               Integrating {CNN}, {LSTM}, and {MLP} Models},
-  booktitle = {Soft Computing Models in Industrial and Environmental Applications: 20th
-               International Conference, {SOCO} 2025, Proceedings},
-  series    = {Communications in Computer and Information Science},
+  title     = {Diffuse radiation forecasting using a hybrid neural network architecture integrating {CNN}, {LSTM}, and {MLP} models},
+  maintitle = {{Communications in Computer and Information Science}},
   volume    = {2806},
+  booktitle = {Soft computing models in industrial and environmental applications: 20th {International Conference}, {SOCO} 2025, proceedings},
   pages     = {466--475},
   publisher = {Springer},
   doi       = {10.1007/978-3-032-19763-4_43}
@@ -244,8 +241,7 @@
 @article{yazicioglu2025passenger,
   author  = {Cafer Yaz{\i}c{\i}o{\u{g}}lu and Ali Pay{\i}dar Akg{\"u}ng{\"o}r},
   year    = {2025},
-  title   = {Modeling Short-Term Passenger Flows in Metro and Bus Systems Using
-             Meteorological Data: Deep Learning Model Comparisons},
+  title   = {Modeling short-term passenger flows in metro and bus systems using meteorological data: Deep learning model comparisons},
   journal = {Applied Sciences},
   volume  = {15},
   number  = {11},
@@ -257,8 +253,7 @@
 @article{arana2014weather,
   author  = {P. Arana and S. Cabezudo and M. Pe{\~n}alba},
   year    = {2014},
-  title   = {Influence of Weather Conditions on Transit Ridership: A Statistical Study Using
-             Data from Smartcards},
+  title   = {Influence of weather conditions on transit ridership: A statistical study using data from smartcards},
   journal = {Transportation Research Part A: Policy and Practice},
   volume  = {59},
   pages   = {1--12},
@@ -270,8 +265,7 @@
   author  = {Quanchao Chen and Di Wen and Xuqiang Li and Dingjun Chen and Hongxia Lv
              and Jie Zhang and Peng Gao},
   year    = {2019},
-  title   = {Empirical Mode Decomposition Based Long Short-Term Memory Neural Network
-             Forecasting Model for the Short-Term Metro Passenger Flow},
+  title   = {Empirical mode decomposition based long short-term memory neural network forecasting model for the short-term metro passenger flow},
   journal = {PLoS ONE},
   volume  = {14},
   number  = {9},
@@ -283,7 +277,7 @@
 @article{singhal2014weather,
   author  = {Abhishek Singhal and Camille Kamga and Anil Yazici},
   year    = {2014},
-  title   = {Impact of Weather on Urban Transit Ridership},
+  title   = {Impact of weather on urban transit ridership},
   journal = {Transportation Research Part A: Policy and Practice},
   volume  = {69},
   pages   = {379--391},

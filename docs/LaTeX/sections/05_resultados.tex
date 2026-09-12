@@ -371,11 +371,10 @@ mejora solo es posible cuando los modelos que se combinan son individualmente su
 \emph{y}, de manera crucial, se basan en conjuntos de información distintos entre sí. La
 consecuencia de esa condición es que la ganancia de combinar procede de información que
 cada componente tiene y el otro no; si el conjunto de información de uno está contenido en
-el del otro, la combinación no puede aportar, en teoría, nada que un único modelo sobre el
-conjunto mayor no pudiera aprender por sí mismo con una forma funcional suficientemente
-flexible.
+el del otro, la combinación pierde esa fuente de ganancia, y lo que aporte dependerá de
+la forma funcional de cada etapa, no de información nueva.
 
-La arquitectura híbrida de este TFM \textbf{incumple precisamente esa segunda condición}, y
+La arquitectura híbrida de este TFM \textbf{no satisface plenamente esa segunda condición}, y
 conviene precisar en qué sentido. Los conjuntos de información de las dos etapas no son
 idénticos: la etapa 1 observa únicamente la ventana cruda de 28 valores de \texttt{total},
 y la etapa 2 dispone además del calendario, la meteorología retardada, los armónicos de
@@ -386,10 +385,9 @@ tampoco son \emph{distintos} en el sentido que la condición exige: el pasado re
 serie que la etapa 1 observa está representado en la matriz de la etapa 2 por sus siete
 retardos y cuatro estadísticos móviles sobre la misma ventana de 28 días, de modo que los
 dos conjuntos están, en la práctica, anidados y no son complementarios. En esa situación la
-combinación secuencial no puede superar, en teoría, al mejor modelo de una sola etapa sobre
-el conjunto mayor, y ese modelo existe en la comparación: \texttt{xgboost\_alone}, que
-accede a las mismas 161 variables predictoras sin arrastrar el ruido de una etapa 1
-estructuralmente débil. Aunque la segunda etapa incorpora información adicional de
+comparación relevante es con el mejor modelo de una sola etapa sobre el conjunto mayor, y
+ese modelo existe en la comparación: \texttt{xgboost\_alone}, que accede a las mismas 161
+variables predictoras sin arrastrar el ruido de una etapa 1 estructuralmente débil. Aunque la segunda etapa incorpora información adicional de
 calendario, meteorología retardada y otras variables predictoras, los resultados indican
 que esta separación secuencial no genera una complementariedad predictiva suficiente para
 compensar el error introducido por la primera etapa LSTM. Los dos controles de la sección

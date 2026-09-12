@@ -368,7 +368,7 @@ LITERATURE_COMPARISON: list[dict[str, str]] = [
         # de las 161 predictoras solo 122 lo son (11 calendario + 6 Fourier + 105 meteo); las
         # otras 39 son retardos y estadisticos moviles de la propia serie y de sus operadores.
         "exogenas": "122 exógenas de las 161 predictoras: 105 meteorológicas físicas retardadas (lags 1/2/3/7 + media móvil 7), 6 términos de Fourier y 11 de calendario (55 días puente detectados); meteorología del mismo día explícitamente prohibida",
-        "protocolo": "Partición cronológica 70/15/15 de frontera única; walk-forward OOF en 5 bloques expansivos; SARIMAX walk-forward de un paso (un día hacia adelante) sin reestimación; escalado ajustado solo en train; 257 tests fijando las reglas anti-fuga",
+        "protocolo": "Partición cronológica 70/15/15 de frontera única; walk-forward OOF en 5 bloques expansivos; SARIMAX walk-forward de un paso (un día hacia adelante) sin reestimación; escalado ajustado solo en train; 257 pruebas automatizadas fijando las reglas anti-fuga",
         "aporte": "Auditoría del fallo: el híbrido no bate a SARIMAX (+70.597 MAE test) ni a XGBoost independiente (+78.103); el mejor modelo es un ensamble 50/50 (MAE 139.725, -10,5% vs. el mejor componente)",
     },
 ]

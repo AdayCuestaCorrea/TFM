@@ -895,6 +895,31 @@ HTTP 200 unauthenticated but sits at `92c000e` (pre-review); exclusion set re-de
 unchanged (4 files); re-export prepared on top of the published history with its
 verification gate (25h) — the author pushes.
 
+**Final compliance pass against the rendered PDF + four corrections: complete.** 470/470
+tests. Every one of the 35 items re-verified on the compiled `TFT.pdf` and the current
+sources (Gate 0 first: scratch rebuild from HEAD text-identical to the committed PDF, 97/97).
+Four corrections by the author's decision: **(1) eighth accuracy finding of the review, the
+only false *theoretical* claim** — §5.6.1's "la combinación secuencial no puede superar, en
+teoría, al mejor modelo de una sola etapa sobre el conjunto mayor" (introduced in Phase 3
+while reformulating item 16; refuted by gradient boosting itself: nested information sets do
+not imply nested hypothesis classes) removed together with its `05:374` twin, and "incumple
+la condición" → "no satisface plenamente" at six sites; his sentence, the nested-sets
+framing and the empirical finding untouched; nine-location cross-read clean. (2) Item 26:
+"257 tests" in Cuadro 2.1 was a generator literal (`export_latex_tables.py:371`) the Phase-4
+sweep missed → "pruebas automatizadas", only that table regenerated. (3) Items 2-3: all 23
+reference titles were Title Case; APA 7 sentence case applied to 23 fields in 21 entries with
+brace protection (journal, conference and software names untouched). (4) Item 4: the
+Surribas-Sayago entry rendered without series and publisher (biblatex-apa drops them for
+`@inproceedings` without editor); eleven variants trialled in a scratch copy — `@incollection`
+with the series in `maintitle` + `volume` prints all eight supplied fields in the APA 7
+multivolume form, no editor invented. Left for the covering email by decision: fig. 5.1
+English legend and comma thousands, two interpretive "confirma", resumen/abstract
+"(Surribas-Sayago et al.)" without year, English "pre-registered", portada hyphen, no
+explicit "APA 7" sentence. Measured: 97 pages, body 74, 0 errors/undefined, biber 0
+warnings, 0 margin violations, resumen 468 / abstract 482 on one page each, C1 37,468;
+**Gate 0 repeated on the final tree: scratch rebuild = `docs/LaTeX/TFT.pdf`, 97/97 pages
+identical**. Details: REPORT_MAPPING incidencia 26.
+
 **Next (not started):** push of the prepared public re-export (author); Colab migration.
 
 ### Phase 1 — Ingestion
