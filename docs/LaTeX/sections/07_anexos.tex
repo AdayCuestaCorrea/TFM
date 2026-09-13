@@ -157,7 +157,7 @@ anti-fuga, listadas de la más general a la más específica del dominio de este
     retardadas (1, 2, 3, 7 días y media móvil de 7), verificado por
     \texttt{weather\_features.\_assert\_no\_same\_day\_weather} con el mismo criterio de
     doble comprobación que la guardia de operadores.
-  \item \textbf{El modelo de control \texttt{xgboost\_alone} entrena sobre las 889
+  \item \textbf{El modelo de control XGBoost independiente (\texttt{xgboost\_alone}) entrena sobre las 889
     filas completas de entrenamiento, no sobre las 552 del conjunto residual.} No
     depende de los folds \emph{out-of-fold} de la LSTM, y limitar sus datos por una
     razón ajena a su diseño penalizaría artificialmente al control frente al híbrido;
@@ -440,7 +440,7 @@ remitiendo por número de cuadro.
   \small
   \setlength{\tabcolsep}{4pt}
   \resizebox{\textwidth}{!}{\input{tables/tabla_residuo_dia_semana}}
-  \caption{\headlinecolor{Perfil del residuo de la etapa 1 por día de la semana: media, mediana, desviación típica, error absoluto medio y media relativa a la $\sigma$ global del residuo. Serie primaria (393 días).}}
+  \caption{\headlinecolor{Perfil del residuo de la etapa 1 por día de la semana: media, mediana, desviación típica y error absoluto medio, en viajes por día, y media relativa a la $\sigma$ global del residuo (adimensional). Serie primaria (393 días).}}
   \label{tab:residuo_dia_semana}
 \end{table}
 
@@ -449,7 +449,7 @@ remitiendo por número de cuadro.
   \small
   \setlength{\tabcolsep}{4pt}
   \resizebox{\textwidth}{!}{\input{tables/tabla_residuo_calendario}}
-  \caption{\headlinecolor{Magnitud del residuo de la etapa 1 por régimen de calendario (tipo de día y tipo de festivo). El residuo se concentra 6,52x en festivos y 2,96x en puentes frente a los laborables ordinarios. La fila ``laborable'' ($n=269$) es la suma de ``laborable, ordinary'' (254) y ``laborable, bridge day'' (15); no es un grupo adicional independiente.}}
+  \caption{\headlinecolor{Magnitud del residuo de la etapa 1 por régimen de calendario (tipo de día y tipo de festivo); residuo absoluto medio en viajes por día. El residuo se concentra 6,52x en festivos y 2,96x en puentes frente a los laborables ordinarios. La fila ``laborable'' ($n=269$) es la suma de ``laborable, ordinary'' (254) y ``laborable, bridge day'' (15); no es un grupo adicional independiente.}}
   \label{tab:residuo_calendario}
 \end{table}
 

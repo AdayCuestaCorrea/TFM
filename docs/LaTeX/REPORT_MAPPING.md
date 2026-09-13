@@ -1968,6 +1968,109 @@ cosméticas y sin efecto en el contenido.
     `Bibliografia_TFT.bib`, ocho `sections/`, 10 `tables/`, `export_latex_tables.py`,
     `test_export_latex_tables.py`, `TFT.pdf`; nada bajo `data/`, `models/` ni `reports/`.
 
+28. **Pasada de cumplimiento final contra la segunda revision (25 items, verificados sobre el
+    PDF compuesto y el codigo, no sobre el registro) y siete correcciones.** Metodo: puerta 0
+    (recompilacion de `HEAD` = 84a9a5a en copia desechable: 100/100 paginas identicas en
+    texto al `TFT.pdf` comprometido; el publico `d60b7f5` = mismo arbol salvo las cuatro
+    exclusiones deliberadas), despues cada item leido en el PDF y en las fuentes actuales,
+    y las nueve comprobaciones de codigo repetidas en vivo (parquet: 28 `feat_{op}_lag_k`,
+    0 columnas de operador del mismo dia; 161 columnas en los tres `.joblib`; OOF hasta
+    2025-07-05, `has_oof` 689). Lectura: 19 items resueltos, 4 parciales (2, 8, 16, 21) y
+    dos conservaciones deliberadas senaladas (5: la memoria dice que las 161 variables se
+    calculan sobre la serie completa, que es lo que hace el codigo; 15: el argumento de
+    circularidad era mas amplio de lo que sostiene). Por decision del autor se corrigen
+    A-E y G del plan y se afina el item 15; F (cambiar el modelo de referencia) no se hace.
+    Ningun modelo se reentrena; `data/`, `models/` y `reports/` sin tocar; ninguna cifra
+    medida cambia; ninguna tabla se regenera.
+
+    a. **Item 8 (A).** Un tercer «fuera de muestra» en sentido OOF, `02:162-163` (p16:
+       «no disponer de una prediccion genuinamente fuera de muestra»), que el barrido de
+       27f no vio porque la frase parte en dos lineas → «fuera del pliegue de
+       entrenamiento (OOF)». Quedan los dos conservados a proposito (`04:53`, `04:249`).
+
+    b. **Item 16 (B).** Tres cuadros sin unidad ni en cabecera ni en pie: 5.10 (criterio
+       del experimento A, columnas `hybrid`/`hybrid_weighted`), E.3 (perfil por dia de la
+       semana) y E.4 (residuo por regimen de calendario). Unidad anadida en el pie
+       (`05:448`, `07:443`, `07:452`), como ya hacian las tablas por tipo de dia; no se toca
+       el generador (los encabezados de esos cuadros no son claves de `UNIT_HEADERS`).
+
+    c. **Item 2 (C).** Resumen y abstract citaban «(Surribas-Sayago et al.)» sin ano
+       (`00:46`, `00:100`) → «(Surribas-Sayago et al., 2026)». Resumen 463 palabras, una
+       pagina (comprobado: el ano no lo desborda).
+
+    d. **Item 2 (D), reintento de la forma dictada con el campo `editor`.** Las once
+       variantes de 26d se probaron sin editores; con ellos, `@inproceedings`,
+       `@incollection` y `@inbook` con `series`+`volume` o `series`+`number` (ocho
+       variantes, misma configuracion `style=apa`+biber) siguen sin imprimir nunca el
+       nombre de la serie: biblatex-apa 9.20 omite `series` en toda parte de libro (APA 7
+       no la incluye). **Para el registro: las ocho variantes CON los editores presentes
+       establecen que biblatex-apa 9.20 no imprime el nombre de la serie en partes de libro
+       en ningun caso; es una limitacion del estilo, no una configuracion que no se supo
+       encontrar** (el `.bbx` no tiene ningun `\printfield{series}` en las rutas de
+       `@inproceedings`/`@incollection`/`@inbook`; `apa.dbx:138` solo declara el campo).
+       Lo mas cercano es `@inproceedings`+`volume`: «…: SOCO 2025 (pp.
+       466-475, Vol. 2806)», que pierde el nombre de la serie. Por instruccion del autor se
+       conserva la forma de obra en varios volumenes (`@incollection` + `maintitle`), sin
+       parchear la bibliografia a mano, con dos ajustes de datos y localizacion: (i)
+       `booktitle` en la forma corta dictada, «…applications: SOCO 2025», sin el subtitulo
+       «20th International Conference …, proceedings» del registro de Springer; (ii) coma
+       serial antes de «&» en la lista de editores. La causa de su ausencia: `spanish.lbx`
+       vacia `\finalandcomma`, y `apa.bbx:727-731` la usa en `finalnamedelim`; la lista de
+       autores no la pierde porque su coma procede del formato apellido-inicial. Solucion:
+       `\DefineBibliographyExtras{spanish}{\def\finalandcomma{\addcomma}}` en el preambulo,
+       exactamente lo que hace `dutch-apa.lbx:199`; verificado en copia desechable y en el
+       PDF (p101 «P. Fosci, & F. Martinez Alvarez (Eds.)»; ninguna lista de autores gana
+       una coma doble: Arana, Chen ×7, Monje, Toque, Surribas inspeccionadas).
+
+    e. **Item 21 (E), identificadores → nombres en prosa.** Rectificacion del criterio de
+       27b/26: `PROSE_CLAIMS` fija cifras, no nombres, asi que el manifiesto nunca fue el
+       obstaculo; y direccion pidio `xgboost_alone` → «XGBoost independiente» dos veces, en
+       monoespaciada. Nombres (los de su cuadro del item 16): `xgboost_alone` → «XGBoost
+       independiente», `ensemble_equal` → «ensamble 50/50», `ensemble_inverse_mae` →
+       «ensamble inverso al MAE», `lstm_alone` → «LSTM independiente», `hybrid_weighted` →
+       «hibrido ponderado». Sitios sustituidos en `sections/` (prosa, titulos de seccion y
+       enunciados PI; nunca pies, cuadros, figuras ni codigo): 51 + 12 + 10 + 8 + 5 = 86,
+       mas `\texttt{hybrid}` → «el hibrido» en las enumeraciones donde sus hermanos
+       cambiaban (`04:192`, `05:59`, `05:129/134`, `05:692`) y `\texttt{sarimax}` →
+       «SARIMAX» en `05:22`. Correspondencia establecida una vez por nombre en su primer
+       uso: `01:136` (PI2), `04:192` (familia LSTM: los tres), `04:484` y `04:486` (los dos
+       ensambles); en los anexos, `07:160`. Se conservan como identificadores: los 12
+       pies/titulos de cuadro y figura, `05:1089` (conjunto {hybrid, hybrid_weighted} del
+       argmin) y `07:286` (descripcion de un comando). Sitios de gramatica revisados a mano
+       tras la sustitucion (articulo «el/al ensamble», «El hibrido ponderado, variante
+       descrita», PI5 y §6.1 sin la doble parentesis «equiponderado (el ensamble 50/50)»).
+
+    f. **Item 21 (G).** Glosa de *walk-forward* en la forma dictada, «validacion temporal
+       progresiva (walk-forward)», en `01:94` y `04:257` (esta ultima conserva «en forma
+       de validacion cruzada expansiva hacia adelante»); los cinco «confirma/confirmando»
+       interpretativos (`04:57`, `05:48`, `05:66`, `05:1147`, `05:1197`) → «es coherente
+       con / muestra / lo que apoya / apoyando / indica». Quedan «confirman» (`03:125`,
+       sobre pruebas que interrumpen la ejecucion: hecho, no interpretacion) y
+       «confirmatorio» ×2 (nombre del tipo de analisis).
+
+    g. **Item 15, afinado sin cambiar el modelo de referencia.** El «lo que es circular»
+       de `05:506-508` y `06:190-191` era mas amplio de lo que sostiene: ajustar pesos en
+       validacion y evaluar en test es el procedimiento estandar. Ahora ambos sitios dicen
+       exactamente que lo circular es usar el MAE de validacion para elegir *entre* las dos
+       variantes cuando los pesos de una de ellas se ajustaron sobre esa misma particion
+       (cifra de validacion levemente optimista). Los tres hechos de 27b no cambian.
+
+    **Estado, medido:** `python -m pytest` → **470/470**; `latexmk` desde limpio → **101
+    paginas, cuerpo 78** (limite 80; +1 por los nombres en prosa), 0 errores, 0
+    referencias/citas indefinidas, biber 0 avisos, 8 *overfull* (los mismos 8 de antes);
+    `audit_guia_docente.py --strict` → todos los bloqueantes OK, 0 infracciones de margen;
+    resumen 463 / abstract 483 palabras, una pagina cada uno; C5 29.732 → 30.002 con los
+    nombres largos → **29.997** tras retirar cinco palabras de tejido en §5.7.2 («y conviene
+    precisar por que»); C1 38.830 → 39.086. Diferencia de texto compuesto, palabra a
+    palabra, antes/despues: solo los cambios a-g mas la repaginacion del indice (+1) y los
+    guiones de linea. Barrido del PDF: 0 «fuera de muestra» en sentido OOF; identificadores
+    solo en cuadros, pies, codigo y los cinco sitios de correspondencia; «XGBoost
+    independiente» 58 apariciones. **Recompilacion en copia desechable del arbol de trabajo
+    = `TFT.pdf` en el arbol, 101/101 paginas identicas en texto** (puerta 0 sobre `HEAD`
+    pendiente del commit del autor). Huella: `Bibliografia_TFT.bib`, `preamble.tex`, siete
+    `sections/`, `TFT.pdf`, este fichero y `CLAUDE_PHASE_LOG.md`; nada bajo `data/`,
+    `models/`, `reports/` ni `tables/`.
+
 ---
 
 ## 6. Cómo regenerar todo desde cero

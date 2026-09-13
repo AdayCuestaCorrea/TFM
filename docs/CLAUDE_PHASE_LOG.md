@@ -966,6 +966,30 @@ margin violations, resumen 463 / abstract 482 on one page each, C1 37,468 → 38
 identical; Gate 0 at start (HEAD scratch rebuild = committed PDF, 97/97) and repeated on the
 final tree (100/100). Details: REPORT_MAPPING incidencia 27.
 
+**Final compliance pass over the second review (all 25 items re-verified on the compiled PDF and
+the code, not on the log).** Gate 0 first: HEAD (84a9a5a) rebuilt in scratch = committed PDF,
+100/100 pages text-identical; public `d60b7f5` = same tree minus the four deliberate exclusions.
+Nine code checks repeated live (parquet, joblib, OOF parquet). Verdicts: 19 addressed, 4 partial
+(2, 8, 16, 21), two deliberate departures flagged (5, 15). Applied by the author's decision:
+a third OOF-sense «fuera de muestra» at `02:162` (missed by 27f because the phrase breaks across
+a line); unit in the captions of cuadro 5.10 and E.3/E.4; year in the resumen/abstract Surribas
+cites; the dictated short booktitle («…: SOCO 2025») plus the serial comma before «&» in the
+editor list via `\DefineBibliographyExtras{spanish}{\def\finalandcomma{\addcomma}}` (the
+dictated «(CCIS, Vol. 2806, pp.)» form is not composable: biblatex-apa 9.20 never prints
+`series` in a book part, eight variants with `editor` tried); **identifiers → prose names**
+(`xgboost_alone` → «XGBoost independiente», `ensemble_equal` → «ensamble 50/50»,
+`ensemble_inverse_mae` → «ensamble inverso al MAE», `lstm_alone` → «LSTM independiente»,
+`hybrid_weighted` → «híbrido ponderado»; 86 prose sites, identifiers kept in tables, figures,
+captions and code, correspondence stated once at first use — the 27b/26 rationale was wrong:
+`PROSE_CLAIMS` pins figures, not names); walk-forward glossed as dictated; five interpretive
+«confirma» softened; item 15's circularity claim narrowed to the precise one (choosing *between*
+variants on validation MAE when one variant's weights were fitted on validation — fitting on
+validation and evaluating on test is standard). Measured: **101 pages, body 78** (limit 80),
+470/470, 0 errors/undefined, biber 0 warnings, 0 margin violations, resumen 463 / abstract 483
+on one page each, C5 29,997 after trimming five tissue words; word-level diff of the rendered
+text shows only the listed changes plus repagination. Working-tree scratch rebuild = in-tree PDF,
+101/101. Details: REPORT_MAPPING incidencia 28.
+
 **Next (not started):** push of the prepared public re-export (author); Colab migration.
 
 ### Phase 1 — Ingestion

@@ -41,14 +41,14 @@ específico de la sección \ref{sec:objetivos} se acredita por separado:
     OOF con las 161 variables, comparado con la etapa 1 sola y con un XGBoost directo sobre
     la misma matriz (secciones \ref{sec:etapa2_xgboost} y \ref{sec:modelos_control}).
     \emph{Resultado:} la etapa 2 reduce el MAE de su etapa 1 en un 16,6\,\% en test, pero
-    el híbrido queda por detrás de SARIMAX y de \texttt{xgboost\_alone} en ambas
+    el híbrido queda por detrás de SARIMAX y de XGBoost independiente en ambas
     particiones (PI3, PI4). \emph{Cumplido en su formulación} —el contraste se realizó y
     los controles aislaron la causa—, \emph{con resultado negativo}. \emph{Limitación:}
     5 festivos y 3 puentes en test impiden concluir sobre los días irregulares.
   \item \textbf{OE5, ensamble, sensibilidad e interpretación.} \emph{Qué se hizo:} dos
     experimentos acotados y una lectura a la luz de \textcite{granger1989combining}
     (sección \ref{sec:analisis_sensibilidad}). \emph{Resultado:} el repesado no mejora los
-    días que perseguía; el ensamble aritmético de SARIMAX y \texttt{xgboost\_alone} es el
+    días que perseguía; el ensamble aritmético de SARIMAX y XGBoost independiente es el
     modelo más preciso del estudio (PI5). \emph{Cumplido.} \emph{Limitación:} la
     preferencia entre las dos variantes del ensamble se formuló tras conocer sus cifras de
     test (sección \ref{sec:limitaciones}).
@@ -56,7 +56,7 @@ específico de la sección \ref{sec:objetivos} se acredita por separado:
 
 El hallazgo empírico central aparece en la evaluación de la corrección residual:
 \textbf{el híbrido, tal como queda diseñado, no supera a SARIMAX ni a
-\texttt{xgboost\_alone} en ninguna de las dos particiones} (PI1 y PI2, tabla
+XGBoost independiente en ninguna de las dos particiones} (PI1 y PI2, tabla
 \ref{tab:delta_hibrido}), y tampoco reduce de forma diferencial el error en los días de
 calendario irregular que motivaron su diseño (PI3, tabla \ref{tab:desglose_dia_test}).
 No es un fallo de ejecución sino un resultado consistente con la teoría de combinación de
@@ -80,10 +80,10 @@ ver por construcción (sección \ref{sec:importancia_variables}). El mecanismo q
 la hibridación se observa de forma medible; lo insuficiente es la etapa 1 de la que parte.
 
 El modelo que mejor resuelve el problema no requiere ninguna red neuronal: PI5 muestra
-que un ensamble aritmético de SARIMAX y \texttt{xgboost\_alone} —sin reentrenamiento, sin
-etapa LSTM y sin ningún paso de ajuste— alcanza un MAE de test de 139.725 equiponderado
-(\texttt{ensemble\_equal}) y de 139.681 ponderado por el inverso del MAE
-(\texttt{ensemble\_inverse\_mae}), en torno a un 10,5\,\% por debajo del mejor de sus
+que un ensamble aritmético de SARIMAX y XGBoost independiente —sin reentrenamiento, sin
+etapa LSTM y sin ningún paso de ajuste— alcanza un MAE de test de 139.725 en su variante
+equiponderada (el ensamble 50/50) y de 139.681 en la ponderada por el inverso del MAE
+(el ensamble inverso al MAE), en torno a un 10,5\,\% por debajo del mejor de sus
 componentes. Es coherente con la identidad de
 \textcite{bates1969combination} aplicada a la correlación de 0,576 entre los residuos de ambos
 sobre test (sección \ref{sec:mecanismo_ensemble}): inferior a la unidad porque fallan en
@@ -168,7 +168,7 @@ veredicto binario sugeriría.
 control de paridad informativa (sección \ref{sec:paridad_lstm}) evaluó dos ámbitos de
 variables predictoras con criterios de cierre de hueco fijados por adelantado. El ámbito
 \texttt{calendario} ($k=17$) cayó con claridad en \emph{limitación arquitectónica}: cierra
-solo un 16,2\,\% del hueco hasta \texttt{xgboost\_alone}, con la banda mín-máx de cinco
+solo un 16,2\,\% del hueco hasta XGBoost independiente, con la banda mín-máx de cinco
 semillas por completo dentro de la zona de ese veredicto. Pero el ámbito \texttt{completo}
 ($k=161$) cerró un 31,0\,\% y su banda (354.235--391.630) cruza el umbral del 25\,\%, de
 modo que su veredicto se degrada a \emph{mixto/ambiguo} por la regla de cruce de banda
@@ -182,13 +182,15 @@ solo por la arquitectura; discriminar ambas causas con más semillas o un diseñ
 también la representación de entrada queda fuera del alcance de este TFM.
 
 \textbf{Elección entre las dos variantes del ensamble tras conocer sus cifras de test.}
-No existía una regla previa para preferir \texttt{ensemble\_equal} a
-\texttt{ensemble\_inverse\_mae}: ambas se calcularon en la misma ejecución y la
+No existía una regla previa para preferir el ensamble 50/50 al
+ensamble inverso al MAE: ambas se calcularon en la misma ejecución y la
 preferencia se formuló con las dos cifras de test a la vista (sección
 \ref{sec:por_que_ensemble}). El test no interviene en ningún peso y la elección no lo
 optimiza —la equiponderada es la peor de las dos tanto en validación como en test—, y
-repetir la selección solo con validación sería circular, porque los pesos del inverso del
-MAE proceden de esa misma partición. Aun así, la decisión de presentación se tomó a
+elegir entre ambas por su MAE de validación sería circular en un sentido preciso: no por
+ajustar pesos en validación y evaluar en test, que es el procedimiento estándar, sino porque
+los pesos de una de las dos variantes se ajustaron sobre esa misma partición y su cifra de
+validación es, por ello, levemente optimista. Aun así, la decisión de presentación se tomó a
 posteriori y se registra como tal; la diferencia entre ambas, 44 viajes diarios de MAE,
 carece de relevancia práctica.
 
@@ -277,7 +279,7 @@ dimensionamiento de la oferta de material y de
 turnos de personal, previsión de carga agregada para la programación de frecuencias, y
 detección temprana de desviaciones frente a lo esperado. Para esos usos, la recomendación
 que se desprende de este trabajo es doble y deliberadamente austera: emplear la
-combinación aritmética de SARIMAX y \texttt{xgboost\_alone} descrita en la sección
+combinación aritmética de SARIMAX y XGBoost independiente descrita en la sección
 \ref{sec:por_que_ensemble}, y no una arquitectura recurrente ---el capítulo
 \ref{cap:resultados} muestra que la etapa LSTM no solo no aporta precisión, sino que su
 coste de entrenamiento, ajuste y mantenimiento no se traduce en ninguna ventaja

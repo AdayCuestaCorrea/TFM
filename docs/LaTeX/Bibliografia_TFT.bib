@@ -17,7 +17,13 @@
 %% nombres de memoria; con `editor` la entrada @incollection compone la forma APA 7 de
 %% capitulo: "En E. Corchado, ... (Eds.), Serie: Vol. N. Titulo (pp.). Springer." Las
 %% llaves protegen los nombres propios, porque el estilo aplica sentence case a maintitle
-%% y booktitle, y los apellidos compuestos de los editores.
+%% y booktitle, y los apellidos compuestos de los editores. El titulo del volumen se
+%% transcribe en la forma corta dictada por direccion ("...: SOCO 2025"), sin el subtitulo
+%% "20th International Conference ... proceedings" del registro de Springer. Se probo
+%% (segunda pasada, con `editor`) @inproceedings/@incollection/@inbook con series+volume o
+%% series+number: biblatex-apa 9.20 nunca imprime `series` en una parte de libro (APA 7
+%% omite la serie), asi que la forma dictada "(CCIS, Vol. 2806, pp. 466-475)" no es
+%% componible sin parchear el estilo; se conserva la forma de obra en varios volumenes.
 %% Se cita exclusivamente como inspiracion de ingenieria de caracteristicas (retardos,
 %% terminos de Fourier), nunca como arquitectura replicada (ver Capitulo 2).
 %%
@@ -219,7 +225,7 @@
                and P. {Garc{\'i}a Bringas} and P. Fosci and F. {Mart{\'i}nez {\'A}lvarez}},
   maintitle = {{Communications in Computer and Information Science}},
   volume    = {2806},
-  booktitle = {Soft computing models in industrial and environmental applications: 20th {International Conference}, {SOCO} 2025, proceedings},
+  booktitle = {Soft computing models in industrial and environmental applications: {SOCO} 2025},
   pages     = {466--475},
   publisher = {Springer},
   doi       = {10.1007/978-3-032-19763-4_43}

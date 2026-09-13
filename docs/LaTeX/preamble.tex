@@ -169,6 +169,11 @@
 \usepackage{csquotes}
 \usepackage[style=apa,backend=biber]{biblatex}
 \addbibresource{Bibliografia_TFT.bib}
+% spanish.lbx vacia \finalandcomma, y con ello la lista de editores en posicion "En ..."
+% pierde la coma serial antes de "&" ("P. Fosci & F. Martinez"); APA 7 la exige en editores
+% igual que en autores (dutch-apa.lbx hace exactamente esta misma redefinicion). Las listas
+% de autores no cambian: su coma procede del formato apellido-inicial.
+\DefineBibliographyExtras{spanish}{\def\finalandcomma{\addcomma}}
 
 % hyperref must be loaded last so it correctly patches the other packages'
 % cross-referencing hooks (titlesec, caption, biblatex, etc.).

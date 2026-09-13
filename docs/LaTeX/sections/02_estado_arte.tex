@@ -93,7 +93,7 @@ ganancia previo a las redes recurrentes que comparan. Es precisamente este
 algoritmo el que este proyecto emplea en dos papeles distintos: como corrector de
 residuos en la etapa 2 de la arquitectura híbrida (sección \ref{sec:etapa2_xgboost}) y,
 de forma independiente, como modelo de control entrenado directamente sobre la demanda
-total (\texttt{xgboost\_alone}, sección \ref{sec:modelos_control}), cuyo desempeño
+total (XGBoost independiente, sección \ref{sec:modelos_control}), cuyo desempeño
 resulta ser, junto con SARIMAX, el más sólido entre los modelos de una sola etapa de
 todo el estudio.
 
@@ -159,8 +159,8 @@ ajustado, mientras que este TFM impone la generación estrictamente
 \emph{out-of-fold} de esos residuos mediante el esquema \emph{walk-forward} de 5 folds
 descrito en la sección \ref{sec:esquema_oof}. Es una exigencia deliberadamente más
 estricta que tiene un coste medible: el 38\,\% de las filas de entrenamiento originales
-(889 a 552) se descartan por no disponer de una predicción genuinamente fuera de
-muestra. Esta tercera diferencia impide, por diseño, cualquier comparación directa entre
+(889 a 552) se descartan por no disponer de una predicción genuinamente fuera del
+pliegue de entrenamiento (OOF). Esta tercera diferencia impide, por diseño, cualquier comparación directa entre
 el resultado positivo de Zhang y el negativo de este TFM: son experimentos con un rigor de
 validación distinto sobre series de naturaleza distinta, y el capítulo
 \ref{cap:resultados} evalúa el suyo bajo el estándar más exigente de los dos.
@@ -203,7 +203,7 @@ que conecta este capítulo con el hallazgo central negativo del capítulo
 híbrida de este TFM encadena dos etapas cuyos conjuntos de información están anidados
 —el pasado reciente de \texttt{total} que ve la etapa 1 está representado en la matriz
 de la etapa 2, que además añade el bloque exógeno—, mientras que el
-ensamble ganador combina SARIMAX y \texttt{xgboost\_alone}, dos modelos que fallan en
+ensamble ganador combina SARIMAX y XGBoost independiente, dos modelos que fallan en
 subconjuntos de días sistemáticamente distintos (el primero en laborables ordinarios, el
 segundo en fin de semana y festivos) y que, por tanto, sí satisfacen la condición de
 información distinta que la hibridación secuencial no satisface plenamente.
@@ -278,7 +278,7 @@ una mejora sino la auditoría deliberada de un fallo. A diferencia de Zhang, cuy
 ARIMA-red neuronal supera a ambos componentes en las tres series que evalúa, y de Chen et
 al., cuyo EMD-LSTM bate a sus tres comparadores en un único día de prueba, la
 arquitectura híbrida LSTM-XGBoost de este proyecto \textbf{no} bate ni a SARIMAX ni a
-\texttt{xgboost\_alone} (capítulo \ref{cap:resultados}), y el modelo finalmente más
+XGBoost independiente (capítulo \ref{cap:resultados}), y el modelo finalmente más
 preciso es un ensamble de esos mismos dos componentes de una sola etapa (MAE de test
 139.725 en su variante equiponderada 50/50 y 139.681 en la ponderada por el inverso del
 MAE). Leído a la luz de la condición de Granger (sección

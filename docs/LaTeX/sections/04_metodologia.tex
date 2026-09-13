@@ -54,7 +54,7 @@ y no sobre una partición fuera de muestra, porque los días festivos son demasi
 (48 en total) para dividirlos de forma fiable en tres particiones y seguir teniendo un
 tamaño de grupo interpretable.
 
-El resultado confirma la premisa de la arquitectura híbrida: el error absoluto medio de
+El resultado es coherente con la premisa de la arquitectura híbrida: el error absoluto medio de
 SARIMAX es 492.092 en festivos (20,50\,\% de error porcentual medio) y 262.194 en
 sábado, frente a 212.383 en laborables en general, y el sesgo con signo es
 sistemáticamente negativo en festivos ($-145.250$), es decir, SARIMAX
@@ -189,7 +189,8 @@ sistemática de hiperparámetros.
 
 Conviene señalar que $W$ se eligió observando precisamente la
 partición de validación: por tanto, las métricas de validación de toda la familia
-LSTM (\texttt{lstm\_alone}, \texttt{hybrid}, \texttt{hybrid\_weighted}) son levemente
+LSTM —LSTM independiente, híbrido e híbrido ponderado; \texttt{lstm\_alone},
+\texttt{hybrid} y \texttt{hybrid\_weighted} en los cuadros y el código— son levemente
 optimistas respecto de lo que cabría esperar de una evaluación totalmente independiente,
 mientras que sus métricas de test, nunca consultadas durante esta elección, constituyen
 la evaluación estrictamente limpia y son las que deben citarse como comparación
@@ -253,8 +254,8 @@ literatura de evaluación de modelos de pronóstico
 \parencite{bergmeir2012cv,cerqueira2020evaluating}, adaptada aquí a la generación de
 predicciones de \emph{stacking} \parencite{wolpert1992stacking} en dos etapas.
 
-Concretamente, se emplea una validación cruzada expansiva hacia adelante
-(\emph{walk-forward}) de cinco folds sobre el periodo de entrenamiento posterior al
+Concretamente, se emplea una validación temporal progresiva (\emph{walk-forward}),
+en forma de validación cruzada expansiva hacia adelante, de cinco folds sobre el periodo de entrenamiento posterior al
 calentamiento, 2023-01-29 a 2025-07-05 (889 filas). El fold $k$ entrena un modelo LSTM
 completo sobre el bloque $[0, s_k)$ y genera predicciones únicamente sobre el bloque
 inmediatamente siguiente, $[s_k, s_{k+1})$, que nunca ha visto durante su entrenamiento;
@@ -403,16 +404,16 @@ información mucho más grave.
 Para poder atribuir el desempeño del híbrido a su arquitectura, y no simplemente al hecho
 de disponer de variables exógenas, es necesario compararlo contra un control que utilice
 exactamente las mismas 161 variables sin pasar por ninguna etapa LSTM previa. Este control,
-denominado \texttt{xgboost\_alone}, entrena un modelo XGBoost directamente sobre la
+denominado XGBoost independiente, entrena un modelo XGBoost directamente sobre la
 demanda total, con idéntico procedimiento de ajuste de hiperparámetros que el modelo
 residual de la sección anterior y sobre la misma matriz de características. Su función es
 aislar si la etapa 1 aporta valor incremental a la predicción final o si, por el
 contrario, introduce ruido que un modelo de una sola etapa evitaría directamente.
 
 Una decisión que podría parecer, a primera vista, una inconsistencia entre ambos modelos
-es deliberada: \texttt{xgboost\_alone} se entrena sobre las 889 filas completas del
+es deliberada: XGBoost independiente se entrena sobre las 889 filas completas del
 conjunto de entrenamiento posterior al calentamiento, no sobre las 552 filas del conjunto
-residual de la etapa 2. La razón es que \texttt{xgboost\_alone} no depende en ningún
+residual de la etapa 2. La razón es que XGBoost independiente no depende en ningún
 momento de las predicciones OOF de la etapa 1, de modo que ni la exclusión de las 200
 filas sin cobertura OOF ni la exclusión del fold 1 degenerado le son aplicables:
 imponérselas de todos modos, en nombre de una supuesta igualdad de condiciones, habría
@@ -434,7 +435,7 @@ resultado central de este trabajo.
 
 Como complemento a este control directo, la sección \ref{sec:analisis_sensibilidad} del
 capítulo \ref{cap:resultados} introduce una variante adicional de la etapa 2,
-\texttt{hybrid\_weighted}, que no constituye un modelo nuevo, sino una reponderación del
+híbrido ponderado, que no constituye un modelo nuevo, sino una reponderación del
 mismo modelo residual: idéntica en las 552 filas de entrenamiento, las 161 variables, la
 semilla aleatoria y los hiperparámetros (cargados directamente del modelo de la sección
 \ref{sec:etapa2_xgboost} en lugar de reajustarse de forma independiente, precisamente
@@ -449,7 +450,7 @@ resultado, se desarrolla en la sección \ref{sec:experimento_a} y no se anticipa
 
 \section{Ensamble por combinación de pronósticos}\label{sec:metodologia_ensemble}
 
-SARIMAX (sección \ref{sec:baselines}) y el control \texttt{xgboost\_alone} de la sección anterior
+SARIMAX (sección \ref{sec:baselines}) y el control XGBoost independiente de la sección anterior
 no solo se emplean por separado como adversarios del híbrido: sus predicciones, ya
 generadas y persistidas, permiten formular sin ningún coste de entrenamiento adicional
 un tercer candidato —una combinación lineal de ambos— cuya justificación conviene
@@ -469,7 +470,7 @@ La justificación de que una combinación tan simple pueda superar a ambos compo
 individuales no es heurística: descansa en la identidad de reducción de varianza de Bates y
 Granger y en la condición de Granger sobre conjuntos de información distintos, ambas
 expuestas en la sección \ref{sec:arquitecturas_hibridas}. Lo que importa fijar aquí es que
-SARIMAX y \texttt{xgboost\_alone} \emph{sí} satisfacen esa condición: sus conjuntos de
+SARIMAX y XGBoost independiente \emph{sí} satisfacen esa condición: sus conjuntos de
 información se solapan pero no se anidan. El primero condiciona sobre el historial completo
 de la serie mediante su componente $(p,d,q)\times(P,D,Q,s)$ con diferenciación estacional
 y solo cinco indicadores de calendario; el segundo dispone de una memoria de la serie
@@ -481,9 +482,9 @@ etapa 1 está representado en la matriz de su etapa 2 (sección
 \ref{sec:resultado_negativo_teoria}).
 
 Se contemplan, por diseño y antes de observar ningún resultado, dos estrategias de
-ponderación. La primera, \texttt{ensemble\_equal}, fija $w_1 = w_2 = 0{,}5$: no requiere
+ponderación. La primera, el ensamble 50/50 (\texttt{ensemble\_equal} en los cuadros y el código), fija $w_1 = w_2 = 0{,}5$: no requiere
 ningún dato adicional para determinarse y actúa como el punto de referencia neutro de
-la combinación. La segunda, \texttt{ensemble\_inverse\_mae}, pondera cada componente en
+la combinación. La segunda, el ensamble inverso al MAE (\texttt{ensemble\_inverse\_mae} en los cuadros y el código), pondera cada componente en
 proporción inversa a su MAE sobre la partición de validación, de modo que el modelo
 históricamente más preciso recibe mayor peso; sus coeficientes se derivan
 exclusivamente de la validación y nunca de la partición de test, preservando la
@@ -491,9 +492,9 @@ separación estricta entre selección de configuración y evaluación final que 
 todo este TFM. Ambas variantes se evalúan en el capítulo \ref{cap:resultados}
 (secciones \ref{sec:analisis_sensibilidad} y \ref{sec:mecanismo_ensemble}), donde se
 cuantifica empíricamente la correlación de error $\rho$ entre SARIMAX y
-\texttt{xgboost\_alone} y se pone la ganancia observada en relación con la reducción de
+XGBoost independiente y se pone la ganancia observada en relación con la reducción de
 varianza que la identidad de Bates y Granger anticipa; se adelanta únicamente que ese contraste
-sitúa a \texttt{ensemble\_equal} y \texttt{ensemble\_inverse\_mae} como los dos modelos
+sitúa al ensamble 50/50 y al ensamble inverso al MAE como los dos modelos
 más precisos de todo el estudio (MAE de test 139.725 y 139.681, respectivamente),
 prácticamente indistinguibles entre sí, lo que hace preferible la variante
 equiponderada por no depender de ningún dato de validación para fijar sus pesos.

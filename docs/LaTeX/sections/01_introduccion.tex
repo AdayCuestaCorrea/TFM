@@ -90,8 +90,8 @@ fiables:
     Establecer una jerarquía de modelos de referencia —persistencia, persistencia
     estacional, medias móviles y un modelo SARIMAX con exógenas de calendario,
     seleccionado mediante rejilla de criterio de información de Akaike sobre 324
-    combinaciones de orden— evaluados bajo un protocolo de pronóstico
-    progresivo (\emph{walk-forward}) de un solo paso (un día hacia adelante, actualizado con la
+    combinaciones de orden— evaluados bajo un protocolo de validación temporal
+    progresiva (\emph{walk-forward}) de un solo paso (un día hacia adelante, actualizado con la
     demanda observada del día anterior), de modo que la arquitectura híbrida se mida
     frente a un adversario estadístico ya de por sí exigente y no frente a un baseline
     trivial (sección \ref{sec:baselines}).
@@ -133,10 +133,10 @@ con la que se responden en la sección \ref{sec:respuesta_preguntas}:
 \begin{itemize}
   \item \textbf{PI1.} ¿Bate el híbrido a SARIMAX en validación y en test
     simultáneamente?
-  \item \textbf{PI2.} ¿Bate el híbrido a \texttt{xgboost\_alone}, entrenado sobre las
+  \item \textbf{PI2.} ¿Bate el híbrido a XGBoost independiente (\texttt{xgboost\_alone} en los cuadros y el código), entrenado sobre las
     mismas variables predictoras?
   \item \textbf{PI3.} ¿Reduce el híbrido específicamente el error en festivos y
-    puentes frente a SARIMAX y \texttt{xgboost\_alone}?
+    puentes frente a SARIMAX y XGBoost independiente?
   \item \textbf{PI4.} ¿Funciona la etapa 2 como mecanismo de corrección residual,
     aunque el híbrido completo no supere a los modelos de una sola etapa?
   \item \textbf{PI5.} ¿Existe una combinación más simple que supere a ambos
