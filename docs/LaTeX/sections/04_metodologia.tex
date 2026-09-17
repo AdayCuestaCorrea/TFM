@@ -1,12 +1,12 @@
 \chapter{Arquitectura híbrida residual LSTM-XGBoost para demanda diaria agregada}\label{cap:metodologia}
 
 Este capítulo describe la arquitectura de modelado propuesta y el protocolo experimental
-que la sustenta, sobre la matriz de 161 variables construida en el capítulo
-\ref{cap:datos_features}. La propuesta central es un híbrido residual secuencial de dos
-etapas: una red LSTM univariante (etapa 1) que modela la dinámica temporal de la propia
-demanda, y un modelo XGBoost (etapa 2) que corrige, a partir de la matriz completa de
-variables predictoras (calendario y meteorología retardada, pero también retardos y
-estadísticos móviles de la propia demanda), el residuo que la etapa 1 deja sin explicar.
+que la sustenta, sobre la matriz de 161 variables del capítulo \ref{cap:datos_features}.
+La propuesta central es un híbrido residual secuencial de dos etapas: una red LSTM
+univariante (etapa 1) que modela la dinámica temporal de la propia demanda, y un modelo
+XGBoost (etapa 2) que corrige, a partir de la matriz completa de variables predictoras
+(calendario y meteorología retardada, pero también retardos y estadísticos móviles de la
+propia demanda), el residuo que la etapa 1 deja sin explicar.
 Formalmente, si
 $\hat y^{\text{LSTM}}_t$ denota la predicción de la etapa 1 en el instante $t$, el residuo
 que alimenta la etapa 2 se define como
@@ -19,92 +19,84 @@ y la predicción final del sistema combina ambas etapas por suma directa,
 \]
 
 Conviene precisar en qué difiere este diseño del esquema híbrido ARIMA-red neuronal de
-\textcite{zhang2003hybrid}, que es su referente más directo en la literatura y al que
-se volverá al interpretar el resultado central del capítulo \ref{cap:resultados}
-(\ref{sec:resultado_negativo_teoria}). En primer lugar, el orden de las etapas está
-invertido: aquí es la red neuronal la que modela primero la componente no lineal de la
-serie y un modelo basado en árboles el que corrige después, no al revés. En segundo
-lugar, la etapa 2 de este TFM no modela el residuo como una serie temporal autorregresiva
-sobre sus propios retardos, sino como una función de 161 variables predictoras (retardos
-de la demanda, calendario, meteorología retardada, términos de Fourier) construidas de
-forma independiente de la
-dinámica del residuo mismo. Y en tercer lugar, y de manera no negociable para la validez
-del diseño, las predicciones de la etapa 1 que se emplean para calcular ese residuo de
-entrenamiento se generan siempre fuera del pliegue de entrenamiento (\emph{out-of-fold},
-OOF), mediante un
-esquema de validación cruzada expansivo hacia adelante (\ref{sec:esquema_oof}) y nunca a
-partir de un único ajuste \emph{in-sample}: un residuo calculado sobre predicciones que el
-propio modelo ya ha visto en entrenamiento está optimistamente sesgado hacia cero y es
-estructuralmente distinto del residuo que la etapa 2 enfrentará realmente en inferencia,
-de modo que aprender a corregirlo no transferiría a producción.
+\textcite{zhang2003hybrid}, su referente más directo en la literatura, al que se volverá
+al interpretar el resultado central del capítulo \ref{cap:resultados}
+(\ref{sec:resultado_negativo_teoria}). Primero, el orden de las etapas está invertido:
+aquí la red neuronal modela primero la componente no lineal de la serie y un modelo de
+árboles corrige después, no al revés. Segundo, la etapa 2 de este TFM no modela el residuo
+como una serie autorregresiva sobre sus propios retardos, sino como una función de 161
+variables predictoras (retardos de la demanda, calendario, meteorología retardada,
+términos de Fourier) construidas con independencia de la dinámica del residuo mismo. Y
+tercero, de manera no negociable para la validez del diseño, las predicciones de la etapa
+1 con las que se calcula ese residuo de entrenamiento se generan siempre fuera del pliegue
+de entrenamiento (\emph{out-of-fold}, OOF), mediante un esquema de validación cruzada
+expansivo hacia adelante (\ref{sec:esquema_oof}) y nunca a partir de un único ajuste
+\emph{in-sample}: un residuo calculado sobre predicciones que el propio modelo ya ha visto
+en entrenamiento está optimistamente sesgado hacia cero y es estructuralmente distinto del
+residuo que la etapa 2 enfrentará realmente en inferencia, de modo que aprender a
+corregirlo no transferiría a producción.
 
 \section{Diagnóstico previo: ¿tiene el residuo estructura de calendario?}\label{sec:diagnostico_previo}
 
-Antes de comprometerse con la arquitectura de dos etapas descrita más arriba conviene
-comprobar, con evidencia y no por intuición, que existe una estructura de error
-sistemática que una segunda etapa no lineal pueda efectivamente corregir: si un modelo
-lineal ya captura todo el error explicable, ni el híbrido residual ni el repesado por
-calendario de la sección \ref{sec:experimento_a} tendrían ningún margen de mejora
-posible. Este diagnóstico exploratorio se calcula sobre el error absoluto de SARIMAX
-(el baseline estadístico de la sección \ref{sec:baselines}, disponible ya en esta fase
-del proyecto) agregado por régimen de calendario sobre las 1.282 observaciones
-posteriores al recorte de calentamiento de 28 días (sección \ref{sec:particiones_fuga}),
-y es deliberadamente exploratorio: se calcula sobre el periodo completo train+val+test
-y no sobre una partición fuera de muestra, porque los días festivos son demasiado raros
-(48 en total) para dividirlos de forma fiable en tres particiones y seguir teniendo un
-tamaño de grupo interpretable.
+Antes de comprometerse con la arquitectura de dos etapas conviene comprobar, con
+evidencia y no por intuición, que existe una estructura de error sistemática que una
+segunda etapa no lineal pueda efectivamente corregir: si un modelo lineal ya captura todo
+el error explicable, ni el híbrido residual ni el repesado por calendario de la sección
+\ref{sec:experimento_a} tendrían margen de mejora posible. Este diagnóstico se calcula
+sobre el error absoluto de SARIMAX (el baseline estadístico de la sección
+\ref{sec:baselines}, disponible ya en esta fase) agregado por régimen de calendario sobre
+las 1.282 observaciones posteriores al recorte de calentamiento de 28 días (sección
+\ref{sec:particiones_fuga}), y es deliberadamente exploratorio: se calcula sobre el
+periodo completo train+val+test y no sobre una partición fuera de muestra, porque los
+festivos son demasiado raros (48 en total) para dividirlos de forma fiable en tres
+particiones y seguir teniendo un tamaño de grupo interpretable.
 
-El resultado es coherente con la premisa de la arquitectura híbrida: el error absoluto medio de
-SARIMAX es 492.092 en festivos (20,50\,\% de error porcentual medio) y 262.194 en
-sábado, frente a 212.383 en laborables en general, y el sesgo con signo es
-sistemáticamente negativo en festivos ($-145.250$), es decir, SARIMAX
-\textbf{sobreestima} la demanda festiva de forma consistente sin saber cuantificar
-correctamente su magnitud.
+El resultado es coherente con la premisa de la arquitectura híbrida: el error absoluto
+medio de SARIMAX es 492.092 en festivos (20,50\,\% de error porcentual medio) y 262.194
+en sábado, frente a 212.383 en laborables en general, y el sesgo con signo es
+sistemáticamente negativo en festivos ($-145.250$): SARIMAX \textbf{sobreestima} la
+demanda festiva de forma consistente sin cuantificar correctamente su magnitud.
 
-El contraste más nítido, sin embargo, aísla el efecto de los
-días puente del efecto de fin de semana comparando únicamente dentro del régimen
-laborable: los 54 días laborables de tipo puente presentan un error absoluto medio de
-518.634 frente a 192.191 en los 819 laborables ordinarios, es decir,
-\textbf{los días puente concentran 2,70 veces el error absoluto medio de un laborable
-corriente}. Esta es exactamente la estructura no lineal y condicionada al calendario
-(grande en magnitud, concentrada en un subconjunto pequeño y bien identificable de
-días) que la etapa 2 de la arquitectura híbrida (sección \ref{sec:etapa2_xgboost}) está
-diseñada para aprender a partir de variables exógenas, y la que motiva directamente,
-más adelante, tanto el repesado de días irregulares del experimento A (sección
-\ref{sec:experimento_a}) como la lectura del desglose de error por tipo de día del
-capítulo \ref{cap:resultados} (sección \ref{sec:error_dia}). Que el mecanismo exista de
-forma medible en este diagnóstico exploratorio, y que aun así el híbrido resultante no
-supere a sus componentes de una sola etapa, es precisamente el contraste que sostiene
-el hallazgo central de este TFM: el problema no es que no haya señal de calendario que
-corregir, sino que la etapa 1 de la que parte esa corrección es demasiado débil
-(sección \ref{sec:resultado_negativo_teoria}).
+El contraste más nítido, sin embargo, aísla el efecto de los días puente del de fin de
+semana comparando únicamente dentro del régimen laborable: los 54 laborables de tipo
+puente presentan un error absoluto medio de 518.634 frente a 192.191 en los 819 laborables
+ordinarios, es decir, \textbf{los días puente concentran 2,70 veces el error absoluto
+medio de un laborable corriente}. Esta es exactamente la estructura no lineal y
+condicionada al calendario (grande en magnitud, concentrada en un subconjunto pequeño y
+bien identificable de días) que la etapa 2 (sección \ref{sec:etapa2_xgboost}) está
+diseñada para aprender a partir de variables exógenas, y la que motiva tanto el repesado
+de días irregulares del experimento A (sección \ref{sec:experimento_a}) como la lectura
+del desglose de error por tipo de día del capítulo \ref{cap:resultados} (sección
+\ref{sec:error_dia}). Que el mecanismo exista de forma medible en este diagnóstico
+exploratorio, y que aun así el híbrido resultante no supere a sus componentes de una sola
+etapa, es precisamente el contraste que sostiene el hallazgo central de este TFM: el
+problema no es que no haya señal de calendario que corregir, sino que la etapa 1 de la que
+parte esa corrección es demasiado débil (sección \ref{sec:resultado_negativo_teoria}).
 
 \section{Baselines}\label{sec:baselines}
 
 Antes de evaluar cualquier arquitectura de aprendizaje automático es necesario fijar la
-referencia frente a la que se mide: un conjunto de modelos de referencia sencillos que
-establezcan cuánta señal puede explicarse sin recurrir a redes neuronales ni a variables
-exógenas. El primero, la persistencia $\hat y_t = y_{t-1}$, resulta ser un modelo de referencia
-particularmente débil sobre esta serie: como se documentó en la sección \ref{sec:eda}, la
-demanda salta en torno a 2,5 millones de viajes diarios en cada transición entre régimen
-laborable y régimen de fin de semana, una transición que ocurre dos veces por semana, y la
-persistencia ignora por construcción cualquier estructura de calendario. El resultado es
-un coeficiente de determinación negativo tanto en entrenamiento como en test, lo que
-indica que ni siquiera predecir la media de la serie sería peor. Por ello, el baseline
-ingenuo relevante en este trabajo es la persistencia estacional $\hat y_t = y_{t-7}$, que
-sí incorpora el ciclo semanal al comparar cada día con el mismo día de la semana anterior;
-superar a la persistencia estacional, y no a la persistencia simple, es el umbral
-que cualquier modelo posterior debe rebasar para justificar su complejidad adicional.
+referencia frente a la que se mide: modelos sencillos que establezcan cuánta señal puede
+explicarse sin recurrir a redes neuronales ni a variables exógenas. El primero, la
+persistencia $\hat y_t = y_{t-1}$, resulta particularmente débil sobre esta serie: como
+documentó la sección \ref{sec:eda}, la demanda salta en torno a 2,5 millones de viajes
+diarios en cada transición entre régimen laborable y fin de semana, dos veces por semana,
+y la persistencia ignora por construcción cualquier estructura de calendario. El
+resultado es un coeficiente de determinación negativo tanto en entrenamiento como en
+test: ni siquiera predecir la media de la serie sería peor. Por ello, el baseline ingenuo
+relevante en este trabajo es la persistencia estacional $\hat y_t = y_{t-7}$, que sí
+incorpora el ciclo semanal al comparar cada día con el mismo día de la semana anterior;
+superarla, y no a la persistencia simple, es el umbral que cualquier modelo posterior debe
+rebasar para justificar su complejidad adicional.
 
 El baseline estadístico fuerte de esta familia es un modelo SARIMAX, seleccionado
 mediante una búsqueda en rejilla de 324 combinaciones de órdenes
 $(p,d,q)\times(P,D,Q,s)$, con $p,q,P,Q \in \{0,1,2\}$, $d,D \in \{0,1\}$ y periodo
-estacional fijo $s=7$, el ciclo semanal identificado en el análisis exploratorio. La
-selección se realiza exclusivamente por el criterio de información de Akaike (AIC)
-calculado sobre el conjunto de entrenamiento, deliberadamente sin consultar en ningún
-momento el error de validación: hacerlo convertiría la validación en un conjunto de
-ajuste adicional y contaminaría la comparación que se plantea en el capítulo
-\ref{cap:resultados}. El orden seleccionado, resumido en la tabla \ref{tab:sarimax_orden},
+estacional fijo $s=7$, el ciclo semanal del análisis exploratorio. La selección se realiza
+exclusivamente por el criterio de información de Akaike (AIC) sobre el conjunto de
+entrenamiento, deliberadamente sin consultar en ningún momento el error de validación:
+hacerlo convertiría la validación en un conjunto de ajuste adicional y contaminaría la
+comparación del capítulo \ref{cap:resultados}. El orden seleccionado, resumido en la tabla \ref{tab:sarimax_orden},
 es $\text{SARIMAX}(2,1,2)\times(0,1,2,7)$, con un AIC de entrenamiento de 24.616,89; las
 cinco combinaciones mejor puntuadas se sitúan dentro de 0,8 puntos de AIC entre sí, de
 modo que el orden concreto elegido debe leerse como \emph{una} especificación razonable de
@@ -121,60 +113,57 @@ esta complejidad, no como una verdad estructural descubierta de forma inequívoc
 El vector de variables exógenas se limita deliberadamente a cinco columnas de calendario
 (los indicadores de fin de semana y de día puente, y las tres categorías reales de tipo
 de festividad, excluyendo \texttt{feat\_holiday\_type\_none} como nivel de referencia para
-evitar la trampa de la variable ficticia frente al intercepto de la regresión), sin
-incorporar ningún retardo ni estadístico móvil de la propia demanda: el componente
-$(p,d,q)\times(P,D,Q,s)$ del modelo ya captura la autorregresión y la diferenciación
-estacional de la serie \parencite{box1970time}, y añadir retardos hechos a mano expresaría la
-misma dependencia dos veces a través de dos mecanismos en competencia.
+evitar la trampa de la variable ficticia frente al intercepto), sin ningún retardo ni
+estadístico móvil de la propia demanda: el componente $(p,d,q)\times(P,D,Q,s)$ ya captura
+la autorregresión y la diferenciación estacional de la serie \parencite{box1970time}, y
+añadir retardos hechos a mano expresaría la misma dependencia dos veces a través de dos
+mecanismos en competencia.
 
-Los parámetros del modelo se estiman una única vez sobre el conjunto de entrenamiento; a partir de ahí, la
-predicción sobre validación y test es un pronóstico \emph{walk-forward} de un paso
+Los parámetros se estiman una única vez sobre el conjunto de entrenamiento; a partir de
+ahí, la predicción sobre validación y test es un pronóstico \emph{walk-forward} de un paso
 mediante el filtro de Kalman (\texttt{.filter()}, sin reestimación de parámetros) con
 \texttt{get\_prediction(dynamic=False)}, de modo que cada predicción en el instante $t$
 condiciona exclusivamente sobre las observaciones reales hasta $t-1$. La evaluación de
 SARIMAX corresponde, por tanto, a un escenario de predicción \textbf{de un día hacia
 adelante}, actualizado diariamente una vez conocida la demanda observada del día anterior;
 no representa un pronóstico estático de todo el periodo de evaluación realizado desde su
-fecha inicial. Se prefiere este
-esquema a un único pronóstico estático a 390 días porque este último decaería hacia la
-media de la serie y mediría, en la práctica, una distancia de extrapolación en lugar de la
-calidad real del modelo; se verificó además que los residuos no presentan autocorrelación
-de primer orden relevante (aproximadamente $-0{,}03$) y que la predicción sigue de cerca
-el valor real del propio día ($\text{MAE}=163.627$) y no el del día anterior
-($\text{MAE}=909.082$), descartando así un desfase temporal accidental en la
+fecha inicial. Se prefiere este esquema a un único pronóstico estático a 390 días porque este decaería
+hacia la media de la serie y mediría, en la práctica, una distancia de extrapolación en
+lugar de la calidad del modelo; se verificó además que los residuos no presentan
+autocorrelación de primer orden relevante (aproximadamente $-0{,}03$) y que la predicción
+sigue de cerca el valor real del propio día ($\text{MAE}=163.627$) y no el del día
+anterior ($\text{MAE}=909.082$), descartando así un desfase temporal accidental en la
 implementación. Con este protocolo, SARIMAX alcanza un MAPE de test del 3,85\,\% y un
-$R^2$ de 0,9672 (tabla \ref{tab:comparacion_test}, sección \ref{sec:tabla_maestra}),
-constituyéndose en un baseline exigente que cualquier arquitectura de aprendizaje
-automático de este TFM debe superar para justificar su mayor coste de desarrollo. Es el
-mismo horizonte de un día al que se evalúan todos los demás modelos del estudio: la matriz
-de variables solo contiene retardos $\geq 1$ y la ventana de la etapa 1 abarca $[t-W, t)$,
-de modo que la comparación de la tabla maestra es entre pronósticos a un día vista en todos
-los casos.
+$R^2$ de 0,9672 (tabla \ref{tab:comparacion_test}, sección \ref{sec:tabla_maestra}), un
+baseline exigente que cualquier arquitectura de aprendizaje automático de este TFM debe
+superar para justificar su mayor coste de desarrollo. Es el mismo horizonte de un día al
+que se evalúan todos los demás modelos: la matriz de variables solo contiene retardos
+$\geq 1$ y la ventana de la etapa 1 abarca $[t-W, t)$, de modo que la comparación de la
+tabla maestra es entre pronósticos a un día vista en todos los casos.
 
 \section{Etapa 1: LSTM}\label{sec:etapa1_lstm}
 
 La primera etapa del híbrido es una red LSTM \parencite{hochreiter1997lstm}
 \textbf{univariante por diseño}: recibe únicamente la ventana de las $W$ observaciones
-pasadas de \texttt{total} y debe inferir a partir de esa dinámica (sin ningún indicador de
-día de la semana, festividad o puente) toda la estructura de calendario que la sección
-\ref{sec:eda} mostró dominante. Esta restricción no es una limitación accidental, sino la
+pasadas de \texttt{total} y debe inferir de esa dinámica (sin ningún indicador de día de
+la semana, festividad o puente) toda la estructura de calendario que la sección
+\ref{sec:eda} mostró dominante. La restricción no es una limitación accidental, sino la
 pregunta que la etapa 1 está diseñada para responder: cuánta de esa estructura puede
 recuperarse de la memoria temporal de la serie por sí sola, dejando a la etapa 2 la tarea
 explícita de aportar la información de calendario y meteorología que la etapa 1
 estructuralmente no puede ver.
 
 La longitud de la ventana $W$ se fijó mediante una comparación empírica, no una búsqueda
-exhaustiva, entre tres valores candidatos, $W \in \{14, 28, 60\}$, entrenando en cada caso
-un modelo final completo y evaluándolo únicamente sobre la partición de validación; el
-conjunto de test se mantuvo deliberadamente fuera de esta decisión, de modo que la
-elección de $W$ no pudiera beneficiarse, ni siquiera indirectamente, de información sobre
-la partición de evaluación final. Los resultados se recogen en la tabla
-\ref{tab:ventana_lstm}: $W=28$ resulta ganador en las cuatro métricas de validación
-simultáneamente, con una brecha de MAE de aproximadamente el 11\,\% frente a sus dos
-vecinos, una diferencia lo bastante amplia como para no atribuirse al azar de una única
-ejecución, aunque el propio diseño del experimento, una ejecución por valor de $W$, obliga
-a presentarla como evidencia documentada y no como el resultado de una búsqueda
-sistemática de hiperparámetros.
+exhaustiva, entre tres candidatos, $W \in \{14, 28, 60\}$, entrenando en cada caso un
+modelo final completo y evaluándolo únicamente sobre validación; el test se mantuvo
+deliberadamente fuera de esta decisión, de modo que la elección de $W$ no pudiera
+beneficiarse, ni siquiera indirectamente, de información sobre la partición de evaluación
+final. La tabla \ref{tab:ventana_lstm} recoge los resultados: $W=28$ gana en las cuatro
+métricas de validación simultáneamente, con una brecha de MAE de aproximadamente el
+11\,\% frente a sus dos vecinos, lo bastante amplia como para no atribuirse al azar de
+una única ejecución, aunque el propio diseño del experimento, una ejecución por valor de
+$W$, obliga a presentarla como evidencia documentada y no como el resultado de una
+búsqueda sistemática de hiperparámetros.
 
 \begin{table}[htbp]
   \centering
@@ -187,81 +176,76 @@ sistemática de hiperparámetros.
   \label{tab:ventana_lstm}
 \end{table}
 
-Conviene señalar que $W$ se eligió observando precisamente la
-partición de validación: por tanto, las métricas de validación de toda la familia
-LSTM —LSTM independiente, híbrido e híbrido ponderado; \texttt{lstm\_alone},
-\texttt{hybrid} y \texttt{hybrid\_weighted} en los cuadros y el código— son levemente
-optimistas respecto de lo que cabría esperar de una evaluación totalmente independiente,
-mientras que sus métricas de test, nunca consultadas durante esta elección, constituyen
-la evaluación estrictamente limpia y son las que deben citarse como comparación
-principal frente a SARIMAX y XGBoost.
+Como $W$ se eligió observando precisamente la partición de validación, las métricas de
+validación de toda la familia LSTM —LSTM independiente, híbrido e híbrido ponderado;
+\texttt{lstm\_alone}, \texttt{hybrid} y \texttt{hybrid\_weighted} en los cuadros y el
+código— son levemente optimistas respecto de lo que cabría esperar de una evaluación
+totalmente independiente, mientras que sus métricas de test, nunca consultadas durante
+esta elección, constituyen la evaluación estrictamente limpia y son las que deben citarse
+como comparación principal frente a SARIMAX y XGBoost.
 
-La arquitectura final, entrenada sobre $W=28$, es deliberadamente compacta:
-una capa LSTM de 32 unidades con desactivación aleatoria (\emph{dropout}) de 0,2, seguida de una capa densa de
-salida lineal de una única neurona. Se optimiza con Adam ($\text{lr}=10^{-3}$) bajo error
-cuadrático medio, en lotes de 32 secuencias, con parada anticipada de paciencia 10 y
-restauración de los mejores pesos observados (\texttt{restore\_best\_weights}). El corte
-de la parada anticipada se decide sobre una cola interna de las propias secuencias de
-\emph{entrenamiento} (las últimas 129, correspondientes al periodo 2025-02-27 a
-2025-07-05) y nunca sobre la partición de validación oficial: emplear la validación
-oficial en ese punto convertiría la parada anticipada en un mecanismo de ajuste sobre
-validación, sesgando de forma optimista y silenciosa cada cifra de validación que se
-reporte más adelante en la tabla maestra de comparación (\ref{sec:tabla_maestra}).
+La arquitectura final, entrenada sobre $W=28$, es deliberadamente compacta: una capa
+LSTM de 32 unidades con desactivación aleatoria (\emph{dropout}) de 0,2, seguida de una
+capa densa de salida lineal de una neurona. Se optimiza con Adam ($\text{lr}=10^{-3}$)
+bajo error cuadrático medio, en lotes de 32 secuencias, con parada anticipada de paciencia
+10 y restauración de los mejores pesos (\texttt{restore\_best\_weights}). El corte de la
+parada anticipada se decide sobre una cola interna de las propias secuencias de
+\emph{entrenamiento} (las últimas 129, del 2025-02-27 al 2025-07-05) y nunca sobre la
+validación oficial: emplearla en ese punto convertiría la parada anticipada en un
+mecanismo de ajuste sobre validación, sesgando de forma optimista y silenciosa cada cifra
+de validación de la tabla maestra (\ref{sec:tabla_maestra}).
 
-Entrenada de este modo sobre las 889 filas de entrenamiento posteriores al calentamiento,
-la etapa 1 en solitario queda claramente por debajo de SARIMAX en ambas particiones de
-evaluación. Y, más revelador todavía, no llega a superar ni siquiera a la persistencia
-estacional cuando ambas se comparan sobre las mismas filas fuera del pliegue de
-entrenamiento (OOF) generadas por el esquema de la sección \ref{sec:esquema_oof} (MAE OOF de 690.460 frente a 461.087).
-Esto no constituye un defecto de la implementación: los resultados obtenidos indican
-que la dinámica temporal univariante, por sí sola, no basta
-para igualar a un modelo que sí observa el calendario de forma explícita. El detalle
-numérico completo de esta comparación, junto con el resto de modelos de una sola etapa,
-se presenta en la tabla maestra del capítulo \ref{cap:resultados}
-(\ref{sec:tabla_maestra}).
+Entrenada así sobre las 889 filas posteriores al calentamiento, la etapa 1 en solitario
+queda claramente por debajo de SARIMAX en ambas particiones de evaluación. Y, más
+revelador todavía, no llega a superar ni siquiera a la persistencia estacional cuando
+ambas se comparan sobre las mismas filas fuera del pliegue de entrenamiento (OOF)
+generadas por el esquema de la sección \ref{sec:esquema_oof} (MAE OOF de 690.460 frente a
+461.087). Esto no constituye un defecto de la implementación: los resultados obtenidos indican
+que la dinámica temporal univariante, por sí sola, no basta para igualar a un modelo que
+sí observa el calendario de forma explícita. El detalle numérico completo, junto con el
+resto de modelos de una sola etapa, está en la tabla maestra del capítulo
+\ref{cap:resultados} (\ref{sec:tabla_maestra}).
 
 Dos decisiones de ajuste, verificadas empíricamente y no asumidas de antemano, merecen
-constar. Primero, el número máximo de épocas se elevó de 200 a 500 tras observar que el
-fold 3 del esquema OOF alcanzaba las 200 épocas sin que la parada anticipada hubiera
-actuado todavía —es decir, el límite artificial de épocas, no la convergencia del modelo,
-era la restricción activa—, lo que habría entrenado folds de tamaño distinto hasta
-presupuestos de cómputo efectivamente distintos y los habría hecho incomparables entre sí;
-al elevar el límite, el fold 3 llegó a 228 épocas y su MAE mejoró de 288.194 a 282.122.
-Segundo, se probó y se descartó el barajado de los lotes de entrenamiento: aunque barajar
-secuencias ya construidas no constituiría en sí misma una fuga de información —cada
-secuencia es autocontenida y la cola de parada anticipada se separa cronológicamente antes
-de cualquier barajado—, medido sobre el fold 3 el barajado empeoró el resultado (MAE OOF de
-288.000 a 309.000 aproximadamente), por lo que se mantiene \texttt{shuffle=False} por
-evidencia, no por precaución teórica.
+constar. Primero, el máximo de épocas se elevó de 200 a 500 tras observar que el fold 3
+del esquema OOF alcanzaba las 200 sin que la parada anticipada hubiera actuado —es decir,
+el límite artificial de épocas, no la convergencia del modelo, era la restricción
+activa—, lo que habría entrenado folds de tamaño distinto hasta presupuestos de cómputo
+efectivamente distintos y los habría hecho incomparables; al elevar el límite, el fold 3
+llegó a 228 épocas y su MAE mejoró de 288.194 a 282.122. Segundo, se probó y se descartó
+el barajado de los lotes de entrenamiento: aunque barajar secuencias ya construidas no
+constituiría en sí mismo una fuga de información —cada secuencia es autocontenida y la
+cola de parada anticipada se separa cronológicamente antes de cualquier barajado—, medido
+sobre el fold 3 el barajado empeoró el resultado (MAE OOF de 288.000 a 309.000
+aproximadamente), por lo que se mantiene \texttt{shuffle=False} por evidencia, no por
+precaución teórica.
 
 \section{Esquema de predicción fuera del pliegue de entrenamiento (OOF)}\label{sec:esquema_oof}
 
-El esquema descrito en esta sección es, con diferencia, el componente metodológico más
-crítico del proyecto: la decisión de diseño de la que depende la validez de toda la etapa
-2. Como se anticipó en la introducción del capítulo, las predicciones de la etapa 1 que
-alimentan el cálculo del residuo de entrenamiento de la etapa 2 deben generarse siempre
-fuera del pliegue de entrenamiento (\emph{out-of-fold}, OOF): cada predicción procede de
-un modelo cuyo entrenamiento no incluyó esa observación. La alternativa sería ajustar un
-único modelo LSTM sobre todo el
-entrenamiento y calcular el residuo directamente sobre esas mismas predicciones
-\emph{in-sample}, y produciría un residuo artificialmente pequeño y con una distribución
+El esquema de esta sección es, con diferencia, el componente metodológico más crítico
+del proyecto: la decisión de diseño de la que depende la validez de toda la etapa 2. Como
+se anticipó en la introducción del capítulo, las predicciones de la etapa 1 que alimentan
+el residuo de entrenamiento de la etapa 2 deben generarse siempre fuera del pliegue de
+entrenamiento (\emph{out-of-fold}, OOF): cada predicción procede de un modelo cuyo
+entrenamiento no incluyó esa observación. La alternativa, ajustar un único modelo LSTM
+sobre todo el entrenamiento y calcular el residuo sobre esas mismas predicciones
+\emph{in-sample}, produciría un residuo artificialmente pequeño y con una distribución
 distinta de la que la etapa 2 encontrará en producción, precisamente porque el modelo ya
 ha memorizado, en algún grado, las observaciones sobre las que se evalúa; la etapa 2
 aprendería entonces a corregir una distribución de error que no existe fuera de muestra,
-lo que se traduciría en un desempeño peor del esperado en inferencia real. Este esquema de
-predicción OOF para series temporales sigue la práctica establecida en la
-literatura de evaluación de modelos de pronóstico
+con un desempeño peor del esperado en inferencia real. Este esquema OOF para series
+temporales sigue la práctica establecida en la literatura de evaluación de pronósticos
 \parencite{bergmeir2012cv,cerqueira2020evaluating}, adaptada aquí a la generación de
 predicciones de \emph{stacking} \parencite{wolpert1992stacking} en dos etapas.
 
-Concretamente, se emplea una validación temporal progresiva (\emph{walk-forward}),
-en forma de validación cruzada expansiva hacia adelante, de cinco folds sobre el periodo de entrenamiento posterior al
-calentamiento, 2023-01-29 a 2025-07-05 (889 filas). El fold $k$ entrena un modelo LSTM
-completo sobre el bloque $[0, s_k)$ y genera predicciones únicamente sobre el bloque
-inmediatamente siguiente, $[s_k, s_{k+1})$, que nunca ha visto durante su entrenamiento;
-cada fold reajusta además su propio escalador de normalización exclusivamente sobre su
-propia porción de entrenamiento, sin reutilizar en ningún caso un escalador ajustado con
-información de un bloque posterior. Dentro de cada bloque, la ventana de entrada para el
+Concretamente, se emplea una validación temporal progresiva (\emph{walk-forward}), en
+forma de validación cruzada expansiva hacia adelante, de cinco folds sobre el periodo de
+entrenamiento posterior al calentamiento, 2023-01-29 a 2025-07-05 (889 filas). El fold $k$
+entrena un modelo LSTM completo sobre el bloque $[0, s_k)$ y genera predicciones
+únicamente sobre el bloque inmediatamente siguiente, $[s_k, s_{k+1})$, que nunca ha visto
+durante su entrenamiento; cada fold reajusta además su propio escalador exclusivamente
+sobre su porción de entrenamiento, sin reutilizar en ningún caso un escalador ajustado
+con información de un bloque posterior. Dentro de cada bloque, la ventana de entrada para el
 día $t$ es $[t-W, t)$ construida con valores \emph{observados}, incluidos los del propio
 bloque para los objetivos posteriores dentro de él: nunca contiene $t$, y los pesos del
 modelo solo han visto fechas anteriores a $s_k$, de modo que se trata de predicción a un
@@ -297,26 +281,24 @@ transformación ajustada del proyecto.
   \label{fig:oof_folds}
 \end{figure}
 
-Las 200 primeras filas de entrenamiento (2023-01-29 a 2023-08-16) no reciben ninguna
-predicción OOF, puesto que evaluarlas exigiría un modelo entrenado con menos observaciones
-que la ventana mínima inicial que el esquema considera aceptable; estas filas se
-conservan en el fichero de salida marcadas explícitamente como \texttt{has\_oof=False},
-con su motivo de exclusión indicado, en lugar de eliminarse sin más. La cobertura efectiva
-resultante es de 689 de las 889 filas de entrenamiento (77,5\,\%), con un MAE OOF agregado
-de 690.460 y un RMSE de 997.520.
+Las 200 primeras filas de entrenamiento (2023-01-29 a 2023-08-16) no reciben predicción
+OOF, puesto que evaluarlas exigiría un modelo entrenado con menos observaciones que la
+ventana mínima inicial que el esquema considera aceptable; se conservan en el fichero de
+salida marcadas explícitamente como \texttt{has\_oof=False}, con su motivo de exclusión,
+en lugar de eliminarse sin más. La cobertura efectiva es de 689 de las 889 filas
+(77,5\,\%), con un MAE OOF agregado de 690.460 y un RMSE de 997.520.
 
 El fold 1 merece un análisis detallado porque su comportamiento es \textbf{degenerado} y
 la decisión que se toma sobre él condiciona directamente el conjunto de entrenamiento de
-la etapa 2. Entrenado sobre apenas 200 observaciones (172 secuencias, reducidas a 147 tras
-separar la cola de parada anticipada), sus predicciones OOF presentan una
-desviación típica de solo el 0,199 de la de los valores reales y una correlación de
-apenas 0,300 con ellos: el modelo, con tan poco historial disponible, nunca llega a
-escapar de predecir un valor próximo a una constante, y la parada anticipada se activa ya
-en la época 15 sobre una señal de validación interna construida con solo 25 secuencias,
-demasiado ruidosa para guiar el entrenamiento de forma fiable. La figura
-\ref{fig:oof_fold1_degenerado} contrasta visualmente esta degeneración con el fold 3, sano
-por comparación (correlaciones entre 0,79 y 0,95 en los folds 2 a 5, frente al 0,300 del
-fold 1).
+la etapa 2. Entrenado sobre apenas 200 observaciones (172 secuencias, 147 tras separar la
+cola de parada anticipada), sus predicciones OOF presentan una desviación típica de solo
+el 0,199 de la de los valores reales y una correlación de apenas 0,300 con ellos: el
+modelo, con tan poco historial, nunca llega a escapar de predecir un valor próximo a una
+constante, y la parada anticipada se activa ya en la época 15 sobre una señal de
+validación interna de solo 25 secuencias, demasiado ruidosa para guiar el entrenamiento
+de forma fiable. La figura \ref{fig:oof_fold1_degenerado} contrasta esta degeneración con
+el fold 3, sano por comparación (correlaciones entre 0,79 y 0,95 en los folds 2 a 5,
+frente al 0,300 del fold 1).
 
 \begin{figure}[htbp]
   \centering
@@ -329,27 +311,25 @@ La consecuencia práctica es que las 137 filas del fold 1 se \textbf{excluyen} d
 conjunto de entrenamiento de la etapa 2 (\ref{sec:etapa2_xgboost}): sus residuos están
 dominados por el fallo estructural de un modelo con historial insuficiente, no por la
 estructura de calendario que se pretende que XGBoost aprenda, e incorporarlos
-introduciría ruido de una naturaleza distinta a la del resto del conjunto residual. Esta
+introduciría ruido de una naturaleza distinta a la del resto del conjunto residual. La
 exclusión no se decide por intuición, sino que se somete a una comprobación explícita de
 cobertura de categorías: para cada nivel categórico presente en el fold 1 (tipo de día,
-tipo de festividad, indicador de día puente) se verifica que ese mismo nivel reaparece con
-observaciones suficientes en los folds 2 a 5 restantes. Ninguna categoría queda huérfana
-tras la exclusión, de modo que eliminar el fold 1 retira redundancia de cobertura y no
-información única e insustituible; de haberse detectado una categoría con cobertura
-exclusiva en el fold 1, el procedimiento habría detenido la exclusión en lugar de
-proceder de todos modos.
+tipo de festividad, indicador de día puente) se verifica que reaparece con observaciones
+suficientes en los folds 2 a 5. Ninguna categoría queda huérfana, de modo que eliminar el
+fold 1 retira redundancia de cobertura y no información única e insustituible; de haberse
+detectado una categoría con cobertura exclusiva en el fold 1, el procedimiento habría
+detenido la exclusión en lugar de proceder de todos modos.
 
 \section{Etapa 2: XGBoost sobre el residuo}\label{sec:etapa2_xgboost}
 
-Tras retirar las 200 filas sin predicción OOF y las 137 filas del fold 1 degenerado, el
-conjunto de entrenamiento de la etapa 2 queda formado por 552 filas, desde el
-2024-01-01 hasta el 2025-07-05, con las 161 variables predictoras de la sección
-\ref{sec:ingenieria_features} y sin ningún valor nulo. La variable objetivo de esta etapa
-no es la demanda sino el residuo definido en la introducción del capítulo,
-$e_t = y_t - \hat y^{\text{LSTM}}_t$, calculado exclusivamente a partir de las
-predicciones OOF de la sección anterior; su signo se fija de modo que la
-corrección de la etapa 2 se \emph{suma} a la predicción de la etapa 1. El residuo
-presenta una media de 109.601 y una desviación típica de 726.669 sobre un rango de
+Tras retirar las 200 filas sin predicción OOF y las 137 del fold 1 degenerado, el
+conjunto de entrenamiento de la etapa 2 queda en 552 filas, del 2024-01-01 al 2025-07-05,
+con las 161 variables predictoras de la sección \ref{sec:ingenieria_features} y sin ningún
+valor nulo. La variable objetivo no es la demanda sino el residuo definido en la
+introducción del capítulo, $e_t = y_t - \hat y^{\text{LSTM}}_t$, calculado exclusivamente
+a partir de las predicciones OOF de la sección anterior; su signo se fija de modo que la
+corrección de la etapa 2 se \emph{suma} a la predicción de la etapa 1. El residuo presenta
+una media de 109.601 y una desviación típica de 726.669 sobre un rango de
 $[-3.128.729,\ +1.899.895]$: una dispersión del mismo orden de magnitud que la propia
 señal de demanda, lo que anticipa que corregirlo es, en sí mismo, un problema de
 predicción exigente.
@@ -357,14 +337,14 @@ predicción exigente.
 XGBoost \parencite{chen2016xgboost} se entrena sobre este conjunto residual con los
 hiperparámetros de la tabla \ref{tab:hiperparametros}, seleccionados mediante una rejilla
 de 54 combinaciones evaluada sobre un \emph{holdout} interno cronológico (el último
-15\,\% de las fechas del propio conjunto de entrenamiento del modelo, nunca la partición
-de validación oficial) y reajustados después sobre la totalidad de los datos disponibles
-para ese modelo. La configuración ganadora combina árboles relativamente profundos
-($\text{max\_depth}=5$) con una tasa de aprendizaje baja (0,01) y un número elevado de
-estimadores (300), junto con una regularización moderada por tamaño mínimo de nodo
-($\text{min\_child\_weight}=3$); esta combinación resulta coherente con un conjunto de
-entrenamiento reducido (552 filas) y una señal de calendario dispersa y de bajo peso
-relativo frente al ruido introducido por la propia etapa 1.
+15\,\% de las fechas del propio conjunto de entrenamiento del modelo, nunca la validación
+oficial) y reajustados después sobre la totalidad de los datos disponibles para ese
+modelo. La configuración ganadora combina árboles relativamente profundos
+($\text{max\_depth}=5$) con una tasa de aprendizaje baja (0,01) y muchos estimadores
+(300), junto con una regularización moderada por tamaño mínimo de nodo
+($\text{min\_child\_weight}=3$); es coherente con un conjunto de entrenamiento reducido
+(552 filas) y una señal de calendario dispersa y de bajo peso relativo frente al ruido
+introducido por la propia etapa 1.
 
 \begin{table}[htbp]
   \centering
@@ -377,13 +357,12 @@ relativo frente al ruido introducido por la propia etapa 1.
   \label{tab:hiperparametros}
 \end{table}
 
-La variable individual con mayor ganancia en este modelo es
+La variable con mayor ganancia en este modelo es
 \texttt{feat\_\allowbreak{}day\_\allowbreak{}type\_\allowbreak{}festivo} (ganancia 0,125;
-tabla \ref{tab:top15_residual}, capítulo \ref{cap:resultados}), lo que apunta a
-que la etapa 2 sí aprende, a partir de las variables exógenas, la señal de calendario que
-la etapa 1 no puede ver por diseño: el mecanismo que motiva la arquitectura híbrida se
-observa de forma medible, con independencia de que el resultado agregado del
-capítulo \ref{cap:resultados} termine siendo, o no, favorable a la arquitectura completa.
+tabla \ref{tab:top15_residual}), lo que apunta a que la etapa 2 sí aprende, a partir de
+las variables exógenas, la señal de calendario que la etapa 1 no puede ver por diseño; el
+capítulo \ref{cap:resultados} retoma esa lectura (secciones
+\ref{sec:importancia_variables} y \ref{sec:respuesta_preguntas}).
 
 Conviene dejar constancia, en este punto y no como un descubrimiento tardío en la
 discusión de resultados, de una limitación estructural del esquema de \emph{stacking}
@@ -401,100 +380,93 @@ información mucho más grave.
 
 \section{Modelos de control}\label{sec:modelos_control}
 
-Para poder atribuir el desempeño del híbrido a su arquitectura, y no simplemente al hecho
-de disponer de variables exógenas, es necesario compararlo contra un control que utilice
-exactamente las mismas 161 variables sin pasar por ninguna etapa LSTM previa. Este control,
-denominado XGBoost independiente, entrena un modelo XGBoost directamente sobre la
-demanda total, con idéntico procedimiento de ajuste de hiperparámetros que el modelo
-residual de la sección anterior y sobre la misma matriz de características. Su función es
-aislar si la etapa 1 aporta valor incremental a la predicción final o si, por el
-contrario, introduce ruido que un modelo de una sola etapa evitaría directamente.
+Para atribuir el desempeño del híbrido a su arquitectura, y no simplemente a disponer de
+variables exógenas, es necesario compararlo contra un control que utilice exactamente las
+mismas 161 variables sin pasar por ninguna etapa LSTM. Este control, XGBoost
+independiente, entrena un modelo XGBoost directamente sobre la demanda total, con idéntico
+procedimiento de ajuste de hiperparámetros que el modelo residual y sobre la misma matriz.
+Su función es aislar si la etapa 1 aporta valor incremental a la predicción final o si,
+por el contrario, introduce ruido que un modelo de una sola etapa evitaría.
 
-Una decisión que podría parecer, a primera vista, una inconsistencia entre ambos modelos
-es deliberada: XGBoost independiente se entrena sobre las 889 filas completas del
-conjunto de entrenamiento posterior al calentamiento, no sobre las 552 filas del conjunto
-residual de la etapa 2. La razón es que XGBoost independiente no depende en ningún
-momento de las predicciones OOF de la etapa 1, de modo que ni la exclusión de las 200
-filas sin cobertura OOF ni la exclusión del fold 1 degenerado le son aplicables:
-imponérselas de todos modos, en nombre de una supuesta igualdad de condiciones, habría
-privado al control de un tercio de su historial de entrenamiento disponible por una razón
-que le es completamente ajena. La matriz de variables y el procedimiento de ajuste de
-hiperparámetros son, por tanto, idénticos entre ambos modelos XGBoost; el tamaño del
-conjunto de entrenamiento, legítimamente, no lo es.
+Una decisión que podría parecer una inconsistencia entre ambos modelos es deliberada:
+XGBoost independiente se entrena sobre las 889 filas completas posteriores al
+calentamiento, no sobre las 552 del conjunto residual. La razón es que no depende en
+ningún momento de las predicciones OOF de la etapa 1, de modo que ni la exclusión de las
+200 filas sin cobertura OOF ni la del fold 1 degenerado le son aplicables: imponérselas en
+nombre de una supuesta igualdad de condiciones habría privado al control de un tercio de
+su historial por una razón que le es completamente ajena. La matriz de variables y el
+ajuste de hiperparámetros son, por tanto, idénticos entre ambos modelos XGBoost; el tamaño
+del conjunto de entrenamiento, legítimamente, no lo es.
 
-La propuesta inicial de este TFM contemplaba, junto a XGBoost, un segundo representante
-de la familia de aprendizaje automático tabular (bosques aleatorios, \emph{random forest}). Se ha prescindido
-de él de forma deliberada: ambos son métodos de conjunto sobre árboles de decisión y
-comparten la misma capacidad de representación sobre esta matriz de características, de
-modo que un segundo representante habría añadido una fila más a la comparación maestra
-sin poner a prueba ninguna hipótesis distinta. El esfuerzo de control se ha destinado, en
-su lugar, a los experimentos de \emph{paridad informativa} de la sección
-\ref{sec:paridad_informativa} (ablación de bloques de variables y LSTM con acceso a la
-matriz predictora completa), diseñados para discriminar entre las explicaciones rivales del
-resultado central de este trabajo.
+La propuesta inicial contemplaba, junto a XGBoost, un segundo representante del
+aprendizaje automático tabular (bosques aleatorios, \emph{random forest}). Se ha
+prescindido de él deliberadamente: ambos son métodos de conjunto sobre árboles de decisión
+y comparten la misma capacidad de representación sobre esta matriz, de modo que un segundo
+representante habría añadido una fila a la comparación maestra sin poner a prueba ninguna
+hipótesis distinta. El esfuerzo de control se ha destinado, en su lugar, a los
+experimentos de \emph{paridad informativa} de la sección \ref{sec:paridad_informativa}
+(ablación de bloques de variables y LSTM con acceso a la matriz predictora completa),
+diseñados para discriminar entre las explicaciones rivales del resultado central.
 
-Como complemento a este control directo, la sección \ref{sec:analisis_sensibilidad} del
-capítulo \ref{cap:resultados} introduce una variante adicional de la etapa 2,
-híbrido ponderado, que no constituye un modelo nuevo, sino una reponderación del
-mismo modelo residual: idéntica en las 552 filas de entrenamiento, las 161 variables, la
-semilla aleatoria y los hiperparámetros (cargados directamente del modelo de la sección
-\ref{sec:etapa2_xgboost} en lugar de reajustarse de forma independiente, precisamente
-para que ambas variantes sean comparables sin introducir una segunda fuente de
-variación), y que difiere únicamente en que asigna un peso de muestra triple a las filas
-correspondientes a días de calendario irregular (festivos y días puente), un 8,2\,\% del
-conjunto residual. El objetivo de esta variante es comprobar si concentrar la capacidad
-del modelo en los días donde la etapa 1 falla con mayor intensidad (festivos y puentes,
-según el diagnóstico de la sección \ref{sec:diagnostico_previo}) mejora la corrección precisamente en
-esos días; su evaluación completa, con un criterio de éxito fijado antes de observar el
-resultado, se desarrolla en la sección \ref{sec:experimento_a} y no se anticipa aquí.
+Como complemento a este control, la sección \ref{sec:analisis_sensibilidad} introduce
+una variante de la etapa 2, híbrido ponderado, que no es un modelo nuevo sino una
+reponderación del mismo modelo residual: idéntica en las 552 filas de entrenamiento, las
+161 variables, la semilla aleatoria y los hiperparámetros (cargados del modelo de la
+sección \ref{sec:etapa2_xgboost} en lugar de reajustarse, precisamente para que ambas
+variantes sean comparables sin una segunda fuente de variación), y que difiere únicamente
+en que asigna un peso de muestra triple a las filas de calendario irregular (festivos y
+días puente), un 8,2\,\% del conjunto residual. Su objetivo es comprobar si concentrar la
+capacidad del modelo en los días donde la etapa 1 falla con mayor intensidad (festivos y
+puentes, según el diagnóstico de la sección \ref{sec:diagnostico_previo}) mejora la
+corrección precisamente en esos días; su evaluación completa, con un criterio de éxito
+fijado antes de observar el resultado, se desarrolla en la sección
+\ref{sec:experimento_a} y no se anticipa aquí.
 
 \section{Ensamble por combinación de pronósticos}\label{sec:metodologia_ensemble}
 
-SARIMAX (sección \ref{sec:baselines}) y el control XGBoost independiente de la sección anterior
-no solo se emplean por separado como adversarios del híbrido: sus predicciones, ya
-generadas y persistidas, permiten formular sin ningún coste de entrenamiento adicional
-un tercer candidato —una combinación lineal de ambos— cuya justificación conviene
-formalizar aquí, como parte del diseño experimental, y no introducir por primera vez
-al presentar sus resultados en el capítulo \ref{cap:resultados}. Dados los pronósticos
-puntuales de ambos modelos en el instante $t$, $\hat y_t^{\text{SARIMAX}}$ y
-$\hat y_t^{\text{XGB}}$, el ensamble se define como la combinación lineal convexa
+SARIMAX (sección \ref{sec:baselines}) y el control XGBoost independiente no solo se
+emplean por separado como adversarios del híbrido: sus predicciones, ya generadas y
+persistidas, permiten formular sin coste de entrenamiento adicional un tercer candidato
+—una combinación lineal de ambos— cuya justificación conviene formalizar aquí, como parte
+del diseño experimental, y no al presentar sus resultados en el capítulo
+\ref{cap:resultados}. Dados los pronósticos puntuales de ambos modelos en el instante $t$,
+$\hat y_t^{\text{SARIMAX}}$ y $\hat y_t^{\text{XGB}}$, el ensamble se define como la
+combinación lineal convexa
 \[
   \hat y_t = w_1\, \hat y_t^{\text{SARIMAX}} + w_2\, \hat y_t^{\text{XGB}},
   \qquad w_1 + w_2 = 1,\ w_1, w_2 \geq 0,
 \]
 una operación puramente aritmética sobre predicciones ya calculadas, sin reentrenar
-ningún modelo ni introducir ningún parámetro adicional que deba ajustarse por
-descenso de gradiente.
+ningún modelo ni introducir ningún parámetro que deba ajustarse por descenso de
+gradiente.
 
 La justificación de que una combinación tan simple pueda superar a ambos componentes
-individuales no es heurística: descansa en la identidad de reducción de varianza de Bates y
-Granger y en la condición de Granger sobre conjuntos de información distintos, ambas
-expuestas en la sección \ref{sec:arquitecturas_hibridas}. Lo que importa fijar aquí es que
-SARIMAX y XGBoost independiente \emph{sí} satisfacen esa condición: sus conjuntos de
-información se solapan pero no se anidan. El primero condiciona sobre el historial completo
+individuales se apoya en la literatura clásica de combinación de pronósticos —la lectura
+de Granger sobre información parcialmente distinta y la identidad de reducción de varianza
+de Bates y Granger, ambas expuestas en la sección \ref{sec:arquitecturas_hibridas}—, que
+anticipa que la combinación puede beneficiarse cuando los errores de los componentes no
+están perfectamente correlacionados. Lo que importa fijar aquí es que SARIMAX y XGBoost
+independiente son candidatos razonables a ello: sus conjuntos de información se solapan
+pero no se anidan. El primero condiciona sobre el historial completo
 de la serie mediante su componente $(p,d,q)\times(P,D,Q,s)$ con diferenciación estacional
 y solo cinco indicadores de calendario; el segundo dispone de una memoria de la serie
 limitada a siete retardos y cuatro estadísticos móviles, pero añade los retardos de
 operador, los armónicos de Fourier, la codificación completa de calendario y la
 meteorología retardada, sin estructura autorregresiva ni diferenciación. El híbrido
-secuencial de este TFM, en cambio, no la satisface plenamente, porque el pasado reciente que ve su
-etapa 1 está representado en la matriz de su etapa 2 (sección
+secuencial de este TFM, en cambio, ofrece poca complementariedad de esa clase (sección
 \ref{sec:resultado_negativo_teoria}).
 
 Se contemplan, por diseño y antes de observar ningún resultado, dos estrategias de
-ponderación. La primera, el ensamble 50/50 (\texttt{ensemble\_equal} en los cuadros y el código), fija $w_1 = w_2 = 0{,}5$: no requiere
-ningún dato adicional para determinarse y actúa como el punto de referencia neutro de
-la combinación. La segunda, el ensamble inverso al MAE (\texttt{ensemble\_inverse\_mae} en los cuadros y el código), pondera cada componente en
-proporción inversa a su MAE sobre la partición de validación, de modo que el modelo
-históricamente más preciso recibe mayor peso; sus coeficientes se derivan
-exclusivamente de la validación y nunca de la partición de test, preservando la
-separación estricta entre selección de configuración y evaluación final que gobierna
-todo este TFM. Ambas variantes se evalúan en el capítulo \ref{cap:resultados}
-(secciones \ref{sec:analisis_sensibilidad} y \ref{sec:mecanismo_ensemble}), donde se
-cuantifica empíricamente la correlación de error $\rho$ entre SARIMAX y
-XGBoost independiente y se pone la ganancia observada en relación con la reducción de
-varianza que la identidad de Bates y Granger anticipa; se adelanta únicamente que ese contraste
-sitúa al ensamble 50/50 y al ensamble inverso al MAE como los dos modelos
-más precisos de todo el estudio (MAE de test 139.725 y 139.681, respectivamente),
-prácticamente indistinguibles entre sí, lo que hace preferible la variante
-equiponderada por no depender de ningún dato de validación para fijar sus pesos.
+ponderación. La primera, el ensamble 50/50 (\texttt{ensemble\_equal} en los cuadros y el
+código), fija $w_1 = w_2 = 0{,}5$: no requiere ningún dato adicional y actúa como punto
+de referencia neutro de la combinación. La segunda, el ensamble inverso al MAE
+(\texttt{ensemble\_inverse\_mae} en los cuadros y el código), pondera cada componente en
+proporción inversa a su MAE sobre validación, de modo que el modelo históricamente más
+preciso recibe mayor peso; sus coeficientes se derivan exclusivamente de la validación y
+nunca del test, preservando la separación estricta entre selección de configuración y
+evaluación final que gobierna todo este TFM. Ambas variantes se evalúan en el capítulo
+\ref{cap:resultados} (secciones \ref{sec:analisis_sensibilidad} y
+\ref{sec:mecanismo_ensemble}), donde se cuantifica empíricamente la correlación de error
+$\rho$ entre SARIMAX y XGBoost independiente, se pone la ganancia observada en relación
+con la reducción de varianza que la identidad de Bates y Granger anticipa, y se documenta
+cuál de las dos variantes se adopta como modelo de referencia y con qué criterio.

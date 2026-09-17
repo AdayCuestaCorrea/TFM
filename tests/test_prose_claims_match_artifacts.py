@@ -79,9 +79,14 @@ def _english(value: int) -> str:
 # --------------------------------------------------------------------------------------
 PROSE_CLAIMS: list[tuple[str, object, tuple[str, ...]]] = [
     # --- headline test metrics --------------------------------------------------------
+    # Ambas cifras de ensamble se declaran para los mismos cinco ficheros. El capitulo 4
+    # define las dos variantes y su ponderacion prerregistrada, pero NO adelanta su MAE:
+    # el resultado se presenta en el capitulo 5 (incidencia 29b). Antes de ese tramo,
+    # "ensemble_equal" exigia ademas 04_metodologia.tex y "ensemble_inverse_mae" no, una
+    # asimetria que venia de que §4.7 cerraba anunciando el veredicto.
     ("MAE test ensemble_equal", lambda: _test_mae("ensemble_equal"),
      ("00_preliminares.tex", "01_introduccion.tex", "02_estado_arte.tex",
-      "04_metodologia.tex", "05_resultados.tex", "06_conclusiones.tex")),
+      "05_resultados.tex", "06_conclusiones.tex")),
     ("MAE test ensemble_inverse_mae", lambda: _test_mae("ensemble_inverse_mae"),
      ("00_preliminares.tex", "01_introduccion.tex", "02_estado_arte.tex",
       "05_resultados.tex", "06_conclusiones.tex")),

@@ -133,10 +133,28 @@
 \fancyhead{}
 \fancyfoot{}
 % El pie llevaba el titulo completo y ocupaba dos lineas. Con bottom=2,19cm ya no cabe:
-% la segunda linea quedaria a ~0,8cm del corte. Se sustituye por la identificacion del
-% documento, que ademas cubre un requisito de la guia (seccion 4: la memoria debe
-% identificarse como "Trabajo Fin de Master"). El titulo sigue en la portada.
-\fancyfoot[R]{{\scriptsize\thepage\ de \paginastotal | Trabajo Fin de Máster}}
+% la segunda linea quedaria a ~0,8cm del corte, y se sustituyo por "N de M | Trabajo Fin
+% de Master".
+%
+% ATENCION -- la justificacion que figuraba aqui era inexacta. Decia que el literal
+% "cubre un requisito de la guia (seccion 4: la memoria debe identificarse como 'Trabajo
+% Fin de Master')". Comprobado contra la fuente: la guia docente P11_06_F02, seccion 4
+% "Estructura y contenido del TFT", exige esa identificacion en la PORTADA -- "Autor,
+% tutor/es, fecha (formato mes y ano), nombre del Master, identificacion como 'Trabajo
+% Fin de Master' y logo de la VIU" --, no en el pie de pagina; y la portada ya la lleva.
+% El "indice paginado" es un bullet distinto de esa misma seccion, lo genera
+% \tableofcontents y \thepage sigue imprimiendo el folio, de modo que tampoco depende del
+% pie. La "Estructura formal" de la misma guia (Arial/Helvetica 11pts, interlineado 1,15,
+% margenes 4,4/2,19/3/3, 40-80 paginas, 30.000 palabras) no menciona el pie en absoluto.
+%
+% Se retira por tanto el literal, que solo duplicaba la portada y costaba ~5 palabras por
+% folio en el recuento del limite. Se conserva "N de M": es lo que permite leer del folio
+% la extension del cuerpo que cuenta para el limite de 40-80 paginas, sin restar anexos
+% ni bibliografia.
+%
+% Decimo hallazgo de exactitud texto-vs-fuente de la serie de revision; registrado en
+% REPORT_MAPPING.md, incidencia 29.
+\fancyfoot[R]{{\scriptsize\thepage\ de \paginastotal}}
 % "overlay" alone is enough for an absolute-position node; the node is unnamed and
 % never referenced across pages, so "remember picture" (which forces a second
 % coordinate-resolution pass per shipout) was pure overhead. Tried as a candidate
@@ -174,6 +192,12 @@
 % igual que en autores (dutch-apa.lbx hace exactamente esta misma redefinicion). Las listas
 % de autores no cambian: su coma procede del formato apellido-inicial.
 \DefineBibliographyExtras{spanish}{\def\finalandcomma{\addcomma}}
+% spanish.lbx tambien redefine \bibrangedash como guion no separable (convencion RAE), de
+% modo que los rangos de paginas salian "451-468". APA 7 exige semirraya ("451-468" con
+% en dash) y la revision formal final de direccion (item 1) lo pide. En este documento el
+% unico consumidor del macro son los 32 campos `pages` del .bbl: no hay backref ni citas
+% numericas por rango, que son los otros dos usos que biblatex.def le da.
+\DefineBibliographyExtras{spanish}{\protected\def\bibrangedash{\textendash}}
 
 % hyperref must be loaded last so it correctly patches the other packages'
 % cross-referencing hooks (titlesec, caption, biblatex, etc.).

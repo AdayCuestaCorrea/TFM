@@ -2071,6 +2071,354 @@ cosméticas y sin efecto en el contenido.
     `sections/`, `TFT.pdf`, este fichero y `CLAUDE_PHASE_LOG.md`; nada bajo `data/`,
     `models/`, `reports/` ni `tables/`.
 
+    **Puerta de la reexportacion, medida (el mismo metodo que 25h).** Commit `d2f622f` en
+    `TFM-HISTORICO`; puerta 0 sobre `HEAD` repetida tras el commit (recompilacion en copia
+    desechable = `TFT.pdf` comprometido, blob `894ab39`, 101/101 paginas identicas en texto).
+    Barrido de exclusion sobre el arbol completo, no asumido: `git diff --name-status
+    84a9a5a..HEAD` solo `M` (ningun fichero anadido ni borrado); `git grep` de credenciales,
+    secretos y datos personales en todo fichero de texto versionado → 0 (solo menciones por
+    nombre del ya retirado `docs/CONSULTA_DIRECCION.md`); el `.docx` de la revision y
+    `docs/references/*.pdf` siguen en `.gitignore`. Conjunto de exclusion sin cambio.
+    `TFM-publicado`: `git archive HEAD` extraido, cuatro exclusiones retiradas, commit
+    `b2fb44b` encima de `d60b7f5` (sin reescritura). (i) 172 rutas = `HEAD` menos exclusiones,
+    identicas; (ii) **0 blobs distintos**; (iii) padre `d60b7f5`, historia lineal; (iv)
+    `data/` ausente, `models/` los mismos cinco artefactos; (v) clon fresco del local +
+    `data/` → `pytest` 470/470, `latexmk` 101 paginas, 101/101 identicas al PDF publicado.
+    Push `d60b7f5..b2fb44b` (*fast-forward*) ejecutado por el autor.
+
+    **Puerta (v) contra el clon de GitHub, no del arbol local.** Clon de
+    `https://github.com/AdayCuestaCorrea/TFM.git` con `HOME`/`USERPROFILE` apuntando a un
+    directorio vacio y aislado, `GIT_CONFIG_NOSYSTEM=1`, `credential.helper` vaciado y
+    deshabilitado, `GIT_TERMINAL_PROMPT=0` y `GIT_TRACE_CURL=1`: la traza no contiene ninguna
+    cabecera `Authorization` (29 cabeceras enviadas: `GET info/refs`, `POST git-upload-pack`,
+    `Host`, `User-Agent`, `Accept*`, `Git-Protocol`, `Content-*`, `Pragma`), las tres
+    respuestas son `200 OK` y el `HOME` aislado queda vacio → el clon es anonimo, no un token
+    en cache. `HEAD` = `b2fb44b`; `git ls-files` = **172**; `image{4,5,6}.png`,
+    `docs/references/Summary.md` y `data/` ausentes. `data/` copiado desde `TFM-HISTORICO`,
+    `venv` nuevo (Python 3.13.5), `pip install -r requirements.txt` limpio → `pytest`
+    **470/470** (118 s). `latexmk` sobre `docs/LaTeX` del clon → **101 paginas, 0 errores, 0
+    indefinidas, biber 0 avisos**, y **101/101 paginas identicas en texto** al `TFT.pdf`
+    publicado (mismo blob `894ab39`). En ese PDF: la ficha de Surribas-Sayago compone los
+    siete editores con la coma serial («P. Fosci, & F. Martínez Álvarez (Eds.)»); «XGBoost
+    independiente» aparece 50 veces en la prosa y toda linea con un identificador es una
+    celda de cuadro, una continuacion de pie de figura o cuadro, codigo o uno de los sitios
+    de correspondencia (clasificacion linea a linea, revisada a mano). Anexo C pasos 1 y 2
+    ejecutados desde el clon (`src.ingestion.unify`, `src.features.build_features`):
+    `unified_daily.parquet` y `features_daily.parquet` **bit a bit identicos** (`cmp`) a los
+    artefactos de referencia de `TFM-HISTORICO`. Clon desechable borrado despues.
+
+29. **Tramo 2 de reduccion: redundancia de argumento, y DECIMO HALLAZGO DE EXACTITUD de la
+    serie (el pie de pagina).** Objetivo declarado por el autor: *no* alcanzar las 30.000
+    palabras --establecido como imposible en la incidencia 18-- sino agotar lo que puede
+    recortarse **sin retirar nada que la direccion pidiera**, para poder afirmarlo con
+    verdad ante el coordinador. Ocho cortes, todos sobre material anadido despues de la
+    aceptacion de «36.000 o poco mas» y nunca revisado por redundancia. Ningun modelo se
+    reentrena; `data/`, `models/`, `reports/` y `tables/` sin tocar; ninguna cifra medida
+    cambia; ninguna tabla se regenera. `git status`: 5 fuentes + `TFT.pdf` + este fichero.
+
+    a. **DECIMO HALLAZGO DE EXACTITUD (misma clase que los nueve anteriores: el texto
+       afirmaba de una fuente algo que la fuente no dice).** El comentario de
+       `preamble.tex:135-138` justificaba el literal del pie «| Trabajo Fin de Master»
+       alegando que «cubre un requisito de la guia (seccion 4: la memoria debe
+       identificarse como "Trabajo Fin de Master")». **Falso por desplazamiento de
+       ambito.** En `docs/references/P11_06_F02 Guia docente octubre 2026 (1).pdf`,
+       seccion 4 *Estructura y contenido del TFT*, ese requisito es de la **portada**:
+       «Autor, tutor/es, fecha (formato mes y ano: Ej. Abril-2025), nombre del Master,
+       identificacion como "Trabajo Fin de Master" y logo de la VIU». El «**Indice
+       paginado**» es un bullet **distinto** de esa misma seccion y se refiere al indice,
+       no al folio. Y la «Estructura formal» de la guia (Arial/Helvetica 11pts,
+       interlineado 1,15, margenes 4,4/2,19/3/3, 40-80 paginas, 30.000 palabras) **no
+       menciona el pie de pagina en absoluto**. La portada ya lleva la identificacion
+       (linea 5 de la extraccion de `TFT.pdf`), de modo que el literal del pie solo la
+       duplicaba, 98 veces, dentro del recuento que cuenta para el limite.
+       Pie reducido a `\thepage\ de \paginastotal`; comentario reescrito para registrar la
+       atribucion correcta en vez de corregirla en silencio. Se **conserva** «N de M» (y
+       con el `\paginastotal`, `lastpage` y `\label{CuerpoLastPage}`): es lo que permite
+       leer del folio la extension del cuerpo sin restar anexos ni bibliografia. Lo
+       destapo la peticion de confirmar el requisito antes de tocarlo, no el aspecto del
+       texto --igual que el noveno (27c), que lo destapo la comprobacion literal del item
+       5 y no la lectura.
+
+       **Patron, actualizado:** **diez** defectos de exactitud (Monje 21c, Chen 22a, «sin
+       termino autorregresivo» 23e, Bates-Granger invertido 23f, «confirma» con ganancia
+       por impureza 24i, remision falsa a 411.142 25f, cita de LSTM atribuida a Zhang 25f,
+       clausula de imposibilidad 26a, Fourier «unica excepcion» 27c, y esta). Los ocho
+       primeros eran hechos o afirmaciones del **cuerpo** mal enunciados; el noveno y el
+       decimo son **comentarios de fuente** --Anexo B y `preamble.tex`-- que describian mal
+       aquello que justificaban. Ninguno de los dos habria salido leyendo la memoria: salen
+       de contrastar la afirmacion contra el artefacto que invoca.
+
+    b. **La historia de seleccion del ensamble estaba en CINCO sitios, no en tres.** El
+       informe previo conto §5.7.2, OE5 y §6.2 L8 y llamo «tolerable» la duplicacion.
+       Faltaban dos: `04:491-499` adelantaba el veredicto («...lo que hace preferible la
+       variante equiponderada») dos capitulos antes de presentarlo, y dentro de §5.7.2 el
+       parrafo 1 ya razonaba la eleccion que el parrafo 2 vuelve a razonar entera. El
+       argumento de circularidad estaba escrito **dos veces palabra por palabra** (§5.7.2 y
+       §6.2 L8). Version minima fiel: §5.7.2 parrafo 2 **integro** (es donde se toma la
+       decision y donde el item 15 se satisface); el parrafo 1 cede la justificacion al 2;
+       §6.2 L8 pasa a enunciado de limitacion autonomo + remision, sin repetir el
+       argumento; §4.7 se queda con la definicion prerregistrada de las dos variantes y
+       cede el resultado al capitulo 5. OE5 ya era una remision correcta y no se toca.
+
+    c. **Cuatro cadenas mas, una por fase de revision.** Condicion de Granger/conjuntos
+       anidados (§4.7, marco comprimido; **se conserva** el inventario de sobre que
+       condiciona cada modelo, que no esta en ningun otro sitio); M4/M5 «esperable, no una
+       anomalia» (§6.1 a remision; §5.6.1 pierde solo su frase de cierre redundante y
+       **mantiene** el cierre empirico que 26a dejo verificado); «el mecanismo se observa»
+       adelantado en §4.5; meteorologia del mismo dia, que se enunciaba en **seis** sitios
+       (§2.4 y la cola de §6.4 pasan a remision; §6.2 L5 y §6.3 intactos, que son los dos
+       que cubren el item 9). Ademas §2.3 cedia a §5.8 un resultado empirico (en que dias
+       falla cada modelo) que no le corresponde al estado del arte.
+
+    d. **§6.2 L3** (recorte de 28 dias): no figura en la lista del item 22 y reproducia
+       casi entero §3.5. Pasa a enunciado + remision. **L4** (provisionalidad de los
+       registros del CRTM) y **L6** (veredictos ambiguos de la anatomia del residuo) **se
+       conservan pese a no estar tampoco en esa lista**: L4 es el unico sitio donde consta
+       que toda cifra hereda la provisionalidad de la fuente, y L6 es la unica matizacion
+       que queda de §5.9, intocable en este tramo por el item 23.
+
+    e. **No se toca** (decision expresa, aunque sea cortable): la lista OE1-OE5 de §6.1
+       (item 20 pide demostrar el cumplimiento uno por uno), el cuadro comparativo de diez
+       filas (item 3), el inventario de preprocesamiento de §4.4 (item 7: «describirlo
+       expresamente en la memoria»), §5.9-§5.11 (item 23) y las reescrituras de registro de
+       los items 11/13/18/21, que **alargan por diseno** porque son la correccion pedida.
+
+    f. **Guarda de literales dictados.** Antes de editar se extrajeron los 12 pasajes que
+       la direccion redacto o dicto (items 2, 3, 10, 12, 13-A, 13-B, 15, 18) y se
+       verificaron despues: **12/12 presentes, uno solo cada uno, identicos** salvo
+       reajuste de salto de linea. Ningun corte parafrasea una frase suya.
+
+    g. **Lectura cruzada de las remisiones** (repite el metodo de las fases 3 y 5): las 12
+       parejas (corte -> etiqueta destino) se comprueban resolviendo la etiqueta y
+       verificando que el pasaje destino contiene efectivamente la afirmacion delegada.
+       **12/12**. Un primer FAIL (`sec:analisis_sensibilidad`) era artefacto del troceador
+       --es una `\section` cuyo contenido vive en sus `\subsection`--, no una remision
+       colgada.
+
+    h. **Una guarda de pruebas cedio, y se registra en vez de ajustarse en silencio.** El
+       corte de 29b deja `04_metodologia.tex` sin las cifras 139.725 / 139.681, y
+       `test_prose_claims_match_artifacts.py` fallo (469/470) porque su manifiesto exigia
+       «MAE test ensemble_equal» **tambien** en el capitulo 4. La guarda funciono
+       exactamente para lo que existe: detectar que una cifra desaparece de un fichero que
+       la declaraba. Verificado antes de tocar nada que la asimetria era previa:
+       `ensemble_inverse_mae` **nunca** declaro el capitulo 4, y por eso no fallo pese a
+       perder su cifra en el mismo corte. Esa asimetria solo se sostenia porque §4.7
+       cerraba anunciando el veredicto. → Se retira `04_metodologia.tex` de la tupla de
+       `ensemble_equal`, quedando **ambas cifras con los mismos cinco ficheros**, y se
+       documenta el porque en el propio manifiesto. No se relaja ninguna otra entrada: las
+       cifras siguen exigidas en los cinco ficheros donde se presentan, y el capitulo 4
+       conserva la definicion prerregistrada de las dos variantes, que es lo que le toca.
+       `pytest` **470/470** despues.
+
+    **Estado:** `latexmk` **100 paginas** (antes 101), **0 errores, 0 referencias
+    indefinidas, 0 `??`, biber 0 avisos**; cuerpo **77 paginas** (antes 78), dentro de
+    40-80. `pytest` **470/470**. Margenes: misma poblacion de excursiones que el PDF
+    comprometido y **ninguna nueva** (33 -> 30 paginas con excursion; maximo en prosa de
+    cuerpo 2,95pt antes y despues, todas resto de portada, indice, numerales de capitulo y
+    prolongacion lateral de glifo); `Overfull \hbox` 8 en la pasada final. Recuento crudo
+    `pdftotext -enc UTF-8` **39.760 -> 39.102 (-658)**: -392 del pie (98 folios pierden
+    «Trabajo»+«Fin»+«Master» = 294, mas 98 de los 120 «de»; el literal extraia 4 tokens por
+    folio, no 5, porque el `|` sale pegado al total: `78|`) y **-266** de prosa. Medido
+    sobre la fuente `.tex`, la prosa baja **-259** (§2 -18, §4 -81, §5 -75, §6 -85); la
+    diferencia de 7 es reparto de guiones de linea en la extraccion. Sin `-enc UTF-8` el
+    par sale 39.703 -> 39.045, mismo delta. Proyeccion sobre las cifras declaradas del
+    informe previo: crudo **40.243 -> ~39.585**, tokenizador de la universidad
+    **40.676 -> ~40.018**.
+
+    ⚠️ **El tramo rinde menos de lo planificado (-658 frente a -1.065 proyectados) y la
+    razon es del plan, no de la ejecucion.** Dos errores de estimacion, ambos por exceso:
+    (i) el pie se valoro en 500 contando el `|` como token propio, cuando `pdftotext` lo
+    pega al total; (ii) los siete cortes de prosa se estimaron por el **bruto** del rango
+    retirado y no por el **neto** tras escribir la remision que ocupa su lugar, que en
+    ningun caso es vacia. Ademas dos candidatos se redujeron al leerlos de cerca: el pasaje
+    M4/M5 de §5.6.1 contiene un punto (que hibridos si ganan en M4 y M5) que §2.3 no tiene,
+    y el rango de §4.5 que el plan senalaba era en realidad la salvedad de desplazamiento
+    de distribucion del *stacking* OOF, sustantiva y anterior. En ambos se corto menos de
+    lo previsto por decision, no por omision. **La conclusion operativa no cambia:** seguia
+    sin haber via a 30.000 (incidencia 18), y lo que este tramo compra es la veracidad de
+    la frase «reducido hasta donde se puede sin retirar material pedido».
+
+30. **DEFECTO DE EDICION DEL TRAMO 2, presente en el PDF compuesto y por tanto en la
+    version que leyo direccion y en el arbol publicado: clausula duplicada en `02:205-206`.**
+    Se corrige **antes** de cualquier compresion del tramo 3 y como cambio propio, no
+    mezclado con el recuento de palabras.
+
+    a. **Que decia.** El parrafo de la condicion de Granger de §2.3 cerraba asi (extraido
+       con `pdftotext -enc UTF-8`, pagina 12 del PDF comprometido): «…esta representado en
+       la matriz de la etapa 2, que ademas anade el bloque exogeno—, mientras que el **de
+       la etapa 2, que ademas anade el bloque exogeno—, mientras que el** ensamble que
+       resulta mas preciso combina SARIMAX…». El fragmento «de la etapa 2, que ademas
+       anade el bloque exogeno—, mientras que el» aparecia **dos veces seguidas**. En
+       fuente era una linea entera repetida (`02_estado_arte.tex:205`, identica al arranque
+       de la 206). Correccion: borrar la 205; la 206 ya continuaba bien. −12 palabras.
+
+    b. **Por que importa mas que las 12 palabras.** El tramo 2 (incidencia 29) reescribio
+       ese mismo parrafo —es el «marco comprimido» de la condicion de Granger de 29c— y su
+       verificacion de cierre **incluyo una recompilacion completa** (100 paginas, 0
+       errores, 0 referencias indefinidas, biber 0 avisos) mas `pytest` 470/470 y el
+       recuento crudo antes/despues. Nada de eso lo vio, y no podia verlo: `latexmk` compone
+       una linea repetida sin protestar, la suite fija cifras y no sintaxis, y el recuento
+       crudo **subio** por el duplicado sin que eso distinga un defecto de un parrafo largo.
+       La leccion, para futuros tramos: **una recompilacion limpia no es una lectura**, y un
+       corte que reescribe un parrafo tiene que releerse compuesto, no solo recompilarse. Es
+       el unico defecto de la serie que no era ni de exactitud (texto contra artefacto) ni
+       de coherencia (texto contra texto), sino de **mecanica de edicion**.
+
+    c. **Barrido de la misma clase, por si habia mas.** Lineas consecutivas identicas o con
+       arranque identico en los ocho `sections/`: **ninguna otra** (barrido registrado en
+       el tramo 3).
+
+31. **Tramo 3 de reduccion: compresion de prosa (no redundancia). Rinde la mitad de lo
+    proyectado, y la razon vuelve a ser del plan.** Los tramos 0-2 retiraron redundancia;
+    este dice lo mismo con menos palabras en pasajes que no eran redundantes. Regla de
+    gobierno: ninguna cifra, veredicto, criterio prerregistrado, salvedad, condicion ni
+    cuantificador se retira; y, por calibracion de la direccion del tramo, tampoco ningun
+    **modal de imposibilidad o incapacidad estructural** («no puede ver», «es capaz de»,
+    «permite»), que en un argumento sobre por que existe una comprobacion es el argumento.
+
+    a. **Guardas antes de tocar nada, y verificadas al cierre.** (i) Los 12 literales que
+       direccion redacto o dicto (items 2, 3, 10, 12, 13-A, 13-B, 15, 18 y las tres
+       formulas del 21 de `REVISION FINAL DEL TFM.docx`) se extrajeron **por rango de
+       linea del estado que direccion dio por bueno**, no transcritos a mano, y se
+       verifican por subcadena normalizada en espacio: **14/14 presentes, uno solo cada
+       uno** (13-B y el item 10 viven en dos sitios cada uno). La guarda no era decorativa:
+       el primer borrador del ejemplo de §4.2 del plan comprimia sin advertirlo el literal
+       del item 12; lo destapo el cotejo contra el `.docx`. (ii) `PROSE_CLAIMS` de
+       `test_prose_claims_match_artifacts.py` sin relajar: 17/17. (iii) PI1-PI5 y la lista
+       OE1-OE5 intactas. (iv) §5.9-5.11 (item 23), el inventario de preprocesamiento de
+       §4.4 (item 7), el cuadro de diez filas (item 3), las reescrituras de registro de los
+       items 11/13/18/21, resumen y abstract: sin tocar.
+
+    b. **Que se hizo, fichero a fichero (palabras compuestas de la fuente, misma
+       convencion que el `_strip` del auditor):** `01` −23, `02` −83 (12 de ellas el
+       defecto de la incidencia 30), `03` −268, `04` −270, `05` −199 (solo §5.1-5.8 y la
+       coda de §5.12), `06` −67 (las once limitaciones: solo conectores, su alcance y su
+       «lo que no se sigue» intactos), `07` −85 (prosa de A-D; la lista de 23 comandos y
+       los pies del Anexo E no se tocan por decision expresa). **Total −995.** Cuatro
+       operaciones y ninguna otra: andamiaje ordinal y metadiscurso («en primer lugar»,
+       «conviene senalar que», «es importante subrayar que»); perifrasis verbal → verbo;
+       sintagma redundante con su nucleo; repeticion del antecedente inmediato.
+
+    c. **Medido, no proyectado.** C1 **39.120 → 38.115 (−1.005)**; crudo `pdftotext -enc
+       UTF-8` **39.102 → 38.096 (−1.006)**; C5 29.737 → 28.742. Cuerpo **77 → 74 paginas**;
+       PDF 100 → 97. `latexmk`: 0 errores, 0 referencias indefinidas, 0 `??`, biber 0
+       avisos, `Overfull \hbox` **8 → 0**. `audit_guia_docente.py --strict`: bloqueantes
+       OK, **0 infracciones de margen**, resumen 463 / abstract 483 palabras, una pagina
+       cada uno, 6 palabras clave. `pytest` **470/470**. Barrido de palabras dobladas
+       («de de», «como como», …) en `sections/`: 0.
+
+    d. **Por que −1.000 y no los −2.350 del plan, y por que se para aqui.** El plan
+       estimo la tasa sostenible extrapolando de los parrafos *mas* comprimibles (§3.2 al
+       35 %, Anexo A al 37 %). La tasa real del metodo, aplicado a todo el texto elegible
+       bajo la regla de no perder informacion ni modales, es del **4,5 %** sobre la fuente
+       (7-9 % en los capitulos 3 y 4, 2-3 % en el 2 y el 6, que son los densos en citas y
+       en salvedades). Una segunda pasada sobre los parrafos no tocados de riesgo bajo
+       rindio **−16**: lo que queda ya no es envoltura. Seguir habria significado cortar
+       clausulas, no palabras, y la direccion del tramo fijo por escrito preferir 38.000
+       con la prosa intacta a 37.000 apretada. Se entrega en **38.096 crudas** (proyeccion
+       sobre el tokenizador de la universidad: ~40.000 → ~39.000).
+
+    e. **Lo que sigue siendo verdad para el coordinador.** La reduccion acumulada desde el
+       PDF de 106 paginas es de redundancia (tramos 0-2) y de prosa (tramo 3), sin retirar
+       una sola cifra, veredicto, limitacion ni pasaje pedido por direccion. No hay via a
+       30.000 sin retirar material pedido (incidencia 18): el material intocable por
+       instruccion escrita de direccion —§5.9-5.11, OE1-OE5, el cuadro comparativo, el
+       inventario de preprocesamiento, las once limitaciones, las reescrituras de
+       registro— suma mas de 8.000 palabras compuestas por si solo.
+
+32. **Correcciones finales menores de la revision «APTO» (`docs/Aday.docx`): cuatro
+    literales dictados, dos barridos de clase y dos barridos formales. Sin tocar modelos,
+    particiones, OOF, fuga ni SARIMAX.** Los cuatro pasajes de direccion se extrajeron del
+    `.docx` (no retranscritos) y se verifican por subcadena con solo el espacio en blanco
+    normalizado: **4/4 presentes, uno cada uno**. La guarda anterior (14 literales,
+    incidencia 31a) se reconstruyo por rango de linea del estado que direccion dio por
+    bueno: **13/14 presentes**; el decimocuarto, la formula del item 18 de la revision
+    anterior («coherente con el mecanismo de reduccion de varianza descrito por Bates y
+    Granger…», §5.8), es exactamente el que el nuevo item 18 sustituye, de modo que queda
+    **superado por instruccion de direccion, no perdido**. Guarda vigente: 13 + 4 = 17.
+
+    a. **Item 13 (§5.10.2).** «la etapa 1 pierde principalmente por ser recurrente […] no
+       por ser univariante» → parrafo dictado («Los resultados sugieren que las dificultades
+       de la primera etapa no pueden atribuirse unicamente…»). Barrido de clase: la misma
+       atribucion fuerte vivia ademas en §6.2 (limitacion del control de paridad: «que la
+       etapa 1 pierde por ser recurrente […] y no por ser univariante»), en §5.6.1 («el
+       control de paridad muestra que la via recurrente no ofrece una representacion de ese
+       pasado que el modelo de una sola etapa no tenga ya» y «etapa 1 estructuralmente
+       debil») y en §5.10.3 («no parece explicarse en lo esencial por el acceso a la
+       informacion»): las cuatro se alinean con la formula dictada (muestra → indica;
+       «en lo esencial» → «unicamente»). 13-A (§5.6.1) y 13-B (§5.12 y §6.2) se conservan
+       identicas: no contradicen ni duplican el nuevo parrafo, que vive en otra seccion.
+
+    b. **Item 15 (resumen).** «Se adopta la equiponderada por no depender de ningun dato de
+       validacion…» → parrafo dictado («Ambas variantes del ensamble ofrecen resultados
+       practicamente equivalentes…»). El resumen paso a dos paginas en la primera
+       compilacion (41 palabras desbordadas) y el abstract tambien (las keywords): se
+       comprimieron frases no dictadas y sin cifras pinzadas (primera frase, descripcion de
+       la matriz, frase de Granger, frase de Bates-Granger) hasta devolver ambos a **una
+       pagina** (resumen 91 % de la altura, abstract 95 %, como antes). Resumen: 462 →
+       **459 palabras** (dentro de 400-600). Barrido de clase: el abstract ingles decia lo
+       mismo («The equal-weight variant is the one selected, since it derives its weights
+       from no validation data») y se alinea; la recomendacion operativa de §6.4 («fijar
+       los pesos a partes iguales…») recibe una clausula que la declara operativa y no
+       confirmatoria, remitiendo a §5.7.2. §5.7.2 y §6.2 ya eran consistentes (15a/15b).
+
+    c. **Item 18 (§5.8).** La formula «coherente con el mecanismo de reduccion de varianza
+       descrito por Bates y Granger…» → parrafo dictado («Los resultados pueden
+       interpretarse a la luz de la literatura clasica…»); se conserva delante la cifra
+       (139.681, −10,5 %) con «tiene el signo y el orden de magnitud que la identidad
+       anticipa». Se retira en todo el documento la afirmacion de que Granger *establece
+       como condicion* que la mejora *solo* es posible con conjuntos de informacion
+       distintos: resumen y abstract, OE5 (§1.3: «condicion necesaria» → «invocada por
+       Zhang al justificar»), §2.3 (dos pasajes: «solo puede superar a sus partes cuando…»
+       y «esta condicion de Granger»), §2.4 («la condicion de Granger» → «la literatura
+       clasica»), §4.7 («descansa en la condicion de Granger… si satisfacen esa condicion»
+       → «se apoya en… candidatos razonables»), §5.6.1 («formula la condicion que
+       determina… la mejora solo es posible» → «señala que… tiende a beneficiarse»; «no
+       satisface plenamente esa segunda condicion» → «ofrece poca complementariedad en ese
+       sentido») y §6.1 (dos parrafos, incluido «Es coherente con la identidad de Bates y
+       Granger aplicada a…» y «no mejora *porque* sus etapas observan conjuntos anidados»
+       → «y cuyas etapas observan»). El encuadre de conjuntos anidados se mantiene como
+       lectura del TFM, ya no como condicion de Granger. Titulo de §5.8: «Por que gana el
+       ensamble» → «Descorrelacion de errores: una explicacion compatible con la ganancia
+       del ensamble»; «la razon mecanica» → «una explicacion compatible».
+
+    d. **Item 20 (OE4, §6.1).** «los controles aislaron la causa» → «los controles
+       permitieron analizar posibles explicaciones del resultado». Barrido: no habia otra
+       instancia de la misma afirmacion; los «aislar» restantes (§1.1, §1.3, §2.1, §4.6,
+       §6.3) describen el proposito de un control o un fenomeno, no un resultado.
+
+    e. **Item 1, APA 7 formal (solo informe; no se cambio nada).** Citas ↔ lista: 23/23 en
+       ambos sentidos, sin `\nocite`, biber 0 avisos. Orden alfabetico correcto (Chen, Q.
+       antes que Chen, T.; Anthropic 2026a/b; Makridakis 2018 → 2022). Cursivas, sentence
+       case con nombres propios protegidos, capitulo de libro (Perrone 1993) y actas (Chen
+       & Guestrin 2016; Toque 2017) en forma APA 7; DOI como `https://doi.org/…` sin punto
+       final. Hallazgos formales pendientes de decision: (i) rangos de paginas con guion
+       («451-468») porque `spanish.lbx` de biblatex redefine `\bibrangedash` como guion
+       (convencion RAE), APA 7 usa semirraya; (ii) menciones en prosa «Chen et al.» (§2.4,
+       tres veces) y la celda «Chen et al. (2019)» del cuadro 2.1 (literal del generador)
+       sin la inicial «Q.» que biblatex-apa si añade en las citas por haber dos primeros
+       autores Chen; (iii) titulo de Granger (1989) con `--` (semirraya) donde el registro
+       de Wiley lleva raya; (iv) `address` en dos `@book` y `publisher` en los `@article`,
+       correctamente omitidos por el estilo (sin efecto en la salida).
+
+    f. **Item 21 (barrido formal).** prerregistr- unico criterio (16 apariciones; el
+       abstract ingles usa `pre-registered`); ningun «tests» en prosa castellana (solo
+       `test` como particion y nombres de fichero); `$R^2$` en las 12 apariciones;
+       separadores decimales con coma y de miles con punto en toda la prosa castellana
+       (los unicos «x.y» son anchos de LaTeX); XGBoost/SARIMAX/LSTM sin variantes de caja
+       fuera de `\texttt`; sin espacios antes de signos, sin dobles espacios ni puntos;
+       sin palabras duplicadas (salvo `venv venv`, que es un comando). Barrido de clausulas
+       repetidas (8-gramas por fichero): todas las coincidencias son remisiones entre
+       secciones distintas, no la clase del defecto de 02:205-206, que ya no esta. Se
+       variaron dos ecos introducidos en esta pasada (§5.6.1 y §6.1). Los 8 `Overfull`
+       del log proceden de cuadros generados, misma poblacion que antes.
+
+    **Estado:** `latexmk` **99 paginas** (antes 97), 0 errores, 0 `??`, 0 indefinidas,
+    biber 0 avisos; cuerpo **76 paginas** (antes 74; los dos parrafos dictados de §5.8 y
+    §5.10.2 y la reescritura de §6.1 desplazan un salto en el capitulo 5 y otro en el 6),
+    dentro de 40-80. `pytest` **470/470**, `PROSE_CLAIMS` sin relajar. Guarda de
+    literales 17/17 vigentes (13 anteriores + 4 nuevos; el 18 anterior superado por
+    direccion).
 ---
 
 ## 6. Cómo regenerar todo desde cero

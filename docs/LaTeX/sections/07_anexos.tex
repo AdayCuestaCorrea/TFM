@@ -21,30 +21,29 @@
 \chapter{Catálogo de variables}\label{cap:anexo1}
 
 \begin{sloppypar}
-Este anexo recoge, con fines de consulta autocontenida, la taxonomía completa de las
-161 variables predictoras del modelo, obtenidas mecánicamente mediante
+Este anexo recoge, para consulta autocontenida, la taxonomía completa de las 161
+variables predictoras del modelo, obtenidas mecánicamente mediante
 \texttt{build\_features.feature\_columns()} sobre la matriz procesada
 \texttt{data/\allowbreak{}processed/\allowbreak{}features\_daily.parquet} y organizadas en los mismos seis grupos
-temáticos empleados a lo largo de toda la memoria (en el análisis exploratorio del
-capítulo \ref{cap:datos_features}, en la ingeniería de características de la sección
-\ref{sec:ingenieria_features} y en el análisis de importancia de variables del capítulo
-\ref{cap:resultados}), de modo que cualquier cifra de importancia de variable citada en
-esta memoria pueda contrastarse directamente contra el grupo y el recuento exacto de su
-familia sin necesidad de releer el código fuente.
+temáticos que emplea toda la memoria (el análisis exploratorio del capítulo
+\ref{cap:datos_features}, la ingeniería de características de la sección
+\ref{sec:ingenieria_features} y el análisis de importancia de variables del capítulo
+\ref{cap:resultados}), de modo que cualquier cifra de importancia de variable pueda
+contrastarse contra el grupo y el recuento exacto de su familia sin releer el código
+fuente.
 
-Toda variable de este catálogo lleva el prefijo \texttt{feat\_}, una convención que no
-es meramente estética: el propio código deriva el conjunto de columnas del modelo a
-partir de ese prefijo, de forma que la matriz de entrada nunca se define mediante una
-lista mantenida a mano que pudiera desincronizarse silenciosamente del código que
-realmente construye las variables. Los seis grupos son, en el orden en que aparecen en
-el cuadro \ref{tab:anexo1_grupos_features}: los siete retardos de la demanda total
+Toda variable de este catálogo lleva el prefijo \texttt{feat\_}, una convención que no es
+estética: el código deriva el conjunto de columnas del modelo a partir de ese prefijo, de
+forma que la matriz de entrada nunca se define mediante una lista mantenida a mano que
+pudiera desincronizarse silenciosamente del código que construye las variables. Los seis
+grupos son, en el orden del cuadro \ref{tab:anexo1_grupos_features}: los siete retardos de
+la demanda total
 (\texttt{feat\_total\_lag\_\{1,2,3,7,14,21,28\}}); los 28 retardos de operador, siete por
 cada uno de los cuatro operadores del CRTM
-(\texttt{feat\_\allowbreak{}\{metro,emt,carretera,cercanias\}\_\allowbreak{}lag\_\{1,2,3,7,14,21,28\}}), presentes en el modelo pese a que
+(\texttt{feat\_\allowbreak{}\{metro,emt,carretera,cercanias\}\_\allowbreak{}lag\_\{1,2,3,7,14,21,28\}}), presentes pese a que
 \texttt{total} sea el único objetivo de predicción, en cumplimiento de la directriz del
 contexto técnico del proyecto de no podar los operadores como ``columnas sin uso''; las
-cuatro
-medias y desviaciones típicas móviles de la demanda total, ventanas de 7 y 28 días,
+cuatro medias y desviaciones típicas móviles de la demanda total, ventanas de 7 y 28 días,
 todas construidas con desplazamiento previo estricto
 (\texttt{feat\_total\_roll\_\{mean,std\}\_\{7,28\}}); los seis términos armónicos de
 Fourier deterministas para la estacionalidad semanal de primer orden y la anual de
@@ -64,35 +63,34 @@ prohibición de meteorología del mismo día que se documenta y verifica en el A
   \label{tab:anexo1_grupos_features}
 \end{table}
 
-El detalle de variable individual está en los cuadros de top-15 variables por ganancia de
-cada modelo XGBoost del capítulo \ref{cap:resultados}, y la lista nominal completa de las
-161 columnas la genera \texttt{src/features/build\_features.py}, consultable en el
-repositorio del proyecto.
+El detalle por variable está en los cuadros de top-15 por ganancia de cada modelo XGBoost
+del capítulo \ref{cap:resultados}, y la lista nominal completa de las 161 columnas la
+genera \texttt{src/features/build\_features.py}, consultable en el repositorio.
 \end{sloppypar}
 
 \chapter{Suite de pruebas automatizadas y guardias anti-fuga}\label{cap:anexo2}
 
 \begin{sloppypar}
 La afirmación central de esta memoria —que un resultado negativo bien instrumentado es
-una contribución metodológica válida— solo se sostiene si el pipeline que lo produce
-está libre de los errores de fuga de información que sistemáticamente producen
-resultados optimistas y no reproducibles en la literatura de predicción de series
-temporales. Este anexo documenta la arquitectura de verificación que respalda esa
-afirmación: \textbf{470 pruebas automatizadas}, recolectadas y ejecutadas con
-\texttt{python -m pytest} desde la raíz del repositorio con el entorno
+una contribución metodológica válida— solo se sostiene si el pipeline que lo produce está
+libre de los errores de fuga de información que sistemáticamente producen resultados
+optimistas y no reproducibles en la literatura de predicción de series temporales. Este
+anexo documenta la arquitectura de verificación que respalda esa afirmación: \textbf{470
+pruebas automatizadas}, recolectadas y ejecutadas con \texttt{python -m pytest} desde la
+raíz del repositorio con el entorno
 \texttt{.\textbackslash venv\textbackslash Scripts\textbackslash python.exe} activado,
-de los cuales 257 se acumulan a lo largo de las fases de modelado (0 a 6b, cuadro
-\ref{tab:cronograma_fases}) y el resto se añaden durante la redacción de la memoria:
-auditan la capa de presentación (figuras y cuadros), las tres fases diagnósticas de las
-secciones \ref{sec:anatomia_residuo_etapa1}, \ref{sec:paridad_informativa} y
-\ref{sec:desglose_subgrupos}, el cuaderno principal de flujo, y la coherencia interna del
-propio documento: \texttt{test\_prose\_claims\_match\_artifacts.py} fija contra su
-artefacto de origen cada cifra de alta relevancia citada en la prosa —métricas de test,
-tamaños de partición, recuentos de filas y variables— junto con la lista completa de
-ficheros en que cada una debe aparecer, de modo que una cifra no pueda quedar obsoleta en
-un capítulo mientras se actualiza en otro. Tres pruebas más fijan mecánicamente que las
-tres fases diagnósticas, puramente explicativas, no introducen ningún modelo nuevo en la
-tabla maestra de comparación ni escriben artefacto alguno bajo \texttt{models/}.
+de las cuales 257 se acumulan en las fases de modelado (0 a 6b, cuadro
+\ref{tab:cronograma_fases}) y el resto se añaden durante la redacción: auditan la capa de
+presentación (figuras y cuadros), las tres fases diagnósticas de las secciones
+\ref{sec:anatomia_residuo_etapa1}, \ref{sec:paridad_informativa} y
+\ref{sec:desglose_subgrupos}, el cuaderno principal de flujo y la coherencia interna del
+documento: \texttt{test\_prose\_claims\_match\_artifacts.py} fija contra su artefacto de
+origen cada cifra de alta relevancia citada en la prosa —métricas de test, tamaños de
+partición, recuentos de filas y variables— junto con la lista completa de ficheros en que
+cada una debe aparecer, de modo que una cifra no pueda quedar obsoleta en un capítulo
+mientras se actualiza en otro. Tres pruebas más fijan mecánicamente que las tres fases
+diagnósticas, puramente explicativas, no introducen ningún modelo nuevo en la tabla
+maestra ni escriben artefacto alguno bajo \texttt{models/}.
 
 Una incidencia de la última revisión merece registro porque ilustra el modo de fallo que
 esta suite existe para evitar. Las dos guardias anti-fuga del ensamblado eran
@@ -106,9 +104,9 @@ tenerla, porque el siguiente lector la da por buena. Ahora comparan contra el no
 \emph{prefijado}, que es lo que produciría una regresión de constructor, y disparan.
 
 La suite no se limita a comprobar que el código se ejecuta sin excepciones: una parte
-sustancial de ella está diseñada específicamente para hacer fallar el pipeline si se
-reintrodujera, ahora o en una modificación futura, alguna de las siguientes reglas
-anti-fuga, listadas de la más general a la más específica del dominio de este proyecto.
+sustancial está diseñada para hacer fallar el pipeline si se reintrodujera, ahora o en una
+modificación futura, alguna de las siguientes reglas anti-fuga, de la más general a la más
+específica del dominio.
 
 \begin{enumerate}
   \item \textbf{Desplazamiento previo estricto en todo retardo o estadístico móvil.}
@@ -180,9 +178,9 @@ anti-fuga, listadas de la más general a la más específica del dominio de este
 
 Cada una de estas diez comprobaciones incluye, además de su verificación sobre datos
 reales, al menos una prueba negativa que inyecta deliberadamente la condición de fuga
-correspondiente sobre un caso de prueba mínimo y comprueba que el código
-\emph{sí} falla; una guardia que nunca se ha visto obligada a disparar en la práctica es
-indistinguible de una guardia que no existe.
+correspondiente sobre un caso mínimo y comprueba que el código \emph{sí} falla; una
+guardia que nunca se ha visto obligada a disparar es indistinguible de una que no
+existe.
 \end{sloppypar}
 
 \chapter{Reproducibilidad y entorno}\label{cap:anexo3}
@@ -191,17 +189,16 @@ indistinguible de una guardia que no existe.
 
 Este anexo documenta lo estrictamente necesario para regenerar, desde una instalación
 limpia, cualquier cifra, tabla o figura de esta memoria, sin dejar ninguna decisión de
-entorno implícita en la memoria de quien ejecutó el pipeline originalmente.
+entorno implícita en la memoria de quien ejecutó el pipeline.
 
 \textbf{Repositorio.} Todo el código de este trabajo ---ingesta, ingeniería de
-características, modelos, evaluación, cuadernos y las fuentes \LaTeX{} de esta
-memoria--- es de acceso público en \url{https://github.com/AdayCuestaCorrea/TFM}. Las
-menciones a ``el repositorio'' en los anexos de esta memoria se refieren
-siempre a esa dirección. Los datos de partida no se versionan allí: proceden de tres
-fuentes abiertas cuyo origen, formato y convenciones de lectura detalla el cuadro
-\ref{tab:fuentes_datos}, y hay que descargarlos y colocarlos sin renombrar en
-\texttt{data/\allowbreak{}raw/} antes del primer comando de la secuencia siguiente, que
-es el único punto del pipeline que los lee.
+características, modelos, evaluación, cuadernos y las fuentes \LaTeX{} de esta memoria---
+es de acceso público en \url{https://github.com/AdayCuestaCorrea/TFM}, y a esa dirección
+se refieren siempre las menciones a ``el repositorio'' en estos anexos. Los datos de
+partida no se versionan allí: proceden de tres fuentes abiertas cuyo origen, formato y
+convenciones de lectura detalla el cuadro \ref{tab:fuentes_datos}, y hay que descargarlos
+y colocarlos sin renombrar en \texttt{data/\allowbreak{}raw/} antes del primer comando de
+la secuencia siguiente, único punto del pipeline que los lee.
 
 \textbf{Entorno de ejecución.} Python 3.13.5, en un entorno virtual dedicado
 (\texttt{./\allowbreak{}venv}), con todas las dependencias fijadas por versión exacta, nunca por
@@ -215,11 +212,11 @@ rango, en \texttt{requirements.txt}, entre ellas:
 \end{itemize}
 }
 
-Dos de esas versiones fijadas documentan una incompatibilidad real y no una preferencia: \texttt{pyarrow},
-porque \texttt{pandas} necesita un motor Parquet explícito, y \texttt{kaleido} en su rama
-1.x y nunca en la 0.2.1, porque esta cuelga de forma indefinida y sin excepción al
-exportar figuras bajo \texttt{plotly} 6.x ---un fallo silencioso, más costoso de
-diagnosticar que un error de instalación.
+Dos de esas versiones documentan una incompatibilidad real y no una preferencia:
+\texttt{pyarrow}, porque \texttt{pandas} necesita un motor Parquet explícito, y
+\texttt{kaleido} en su rama 1.x y nunca en la 0.2.1, porque esta cuelga de forma
+indefinida y sin excepción al exportar figuras bajo \texttt{plotly} 6.x ---un fallo
+silencioso, más costoso de diagnosticar que un error de instalación.
 
 \textbf{Fijación de semillas aleatorias.} La semilla global \texttt{GLOBAL\_SEED = 42} se
 define una sola vez, en \texttt{src/\allowbreak{}utils/\allowbreak{}seed.py}, y desde ahí se
@@ -228,19 +225,18 @@ que entrena; ningún módulo de \texttt{src/\allowbreak{}models/} la redefine lo
 Además de sembrar los generadores, \texttt{set\_global\_seed} exige a TensorFlow núcleos
 deterministas (\texttt{TF\_\allowbreak{}DETERMINISTIC\_\allowbreak{}OPS=1} y
 \texttt{tf.config.\allowbreak{}experimental.\allowbreak{}enable\_\allowbreak{}op\_\allowbreak{}determinism()}):
-sembrar por sí solo no garantiza resultados bit a bit idénticos si el motor conserva
-reducciones no deterministas, y es la reproducibilidad bit a bit la que este trabajo se
-fijó como convención.
+sembrar no garantiza por sí solo resultados bit a bit idénticos si el motor conserva
+reducciones no deterministas, y es la reproducibilidad bit a bit la que este trabajo fijó
+como convención.
 
 \textbf{Comandos de reproducción de principio a fin.} Partiendo de un clon del
 repositorio, el entorno se crea con \texttt{python -m venv venv} y se puebla con
-\texttt{pip install -r requirements.txt}.
-Ejecutados después en este orden desde la
-raíz del repositorio, con el entorno virtual activado
+\texttt{pip install -r requirements.txt}. Ejecutados después en este orden desde la raíz
+del repositorio, con el entorno virtual activado
 (\texttt{.\allowbreak{}\textbackslash{}venv\allowbreak{}\textbackslash{}Scripts%
-\allowbreak{}\textbackslash{}Activate.ps1} en PowerShell), regeneran de forma
-determinista la totalidad de los artefactos citados en esta memoria, sin reentrenar ni
-repredecir ningún modelo más allá de lo que cada paso indica explícitamente:
+\allowbreak{}\textbackslash{}Activate.ps1} en PowerShell), regeneran de forma determinista
+todos los artefactos citados en esta memoria, sin reentrenar ni repredecir ningún modelo
+más allá de lo que cada paso indica explícitamente:
 
 {\small
 \begin{enumerate}[nosep]
@@ -312,34 +308,32 @@ repredecir ningún modelo más allá de lo que cada paso indica explícitamente:
 \ref{sec:planificacion}) se materializa en el cuaderno
 \texttt{notebooks/\allowbreak{}06\_dashboard.ipynb}, que se abre con \texttt{jupyter lab}
 una vez ejecutados los pasos anteriores y presenta, sobre los artefactos ya persistidos,
-los cinco elementos de visualización comprometidos en la propuesta inicial del trabajo:
-demanda real, demanda predicha, comparación entre modelos, error de predicción e
-importancia de variables del modelo XGBoost. El cuaderno lee de
-\texttt{data/\allowbreak{}processed/} y de los modelos ya entrenados de
-\texttt{models/}, y no entrena ni predice nada; la exportación de las figuras
-estáticas de esta memoria se realiza aparte, mediante
-\texttt{export\_figures}, fuera de todo núcleo de Jupyter.
+los cinco elementos de visualización comprometidos en la propuesta inicial: demanda real,
+demanda predicha, comparación entre modelos, error de predicción e importancia de
+variables del modelo XGBoost. Lee de \texttt{data/\allowbreak{}processed/} y de los modelos
+ya entrenados de \texttt{models/}, y no entrena ni predice nada; las figuras estáticas de
+esta memoria se exportan aparte, mediante \texttt{export\_figures}, fuera de todo núcleo
+de Jupyter.
 
 \textbf{Cuaderno principal de flujo.} El cuaderno
-\texttt{notebooks/\allowbreak{}07\_flujo\_completo.ipynb} recorre el trabajo completo en las
-seis etapas del ciclo —carga y comprobación de datos, preparación de variables, partición
+\texttt{notebooks/\allowbreak{}07\_flujo\_completo.ipynb} recorre el trabajo en las seis
+etapas del ciclo —carga y comprobación de datos, preparación de variables, partición
 temporal, ejecución de los modelos principales, comparación de resultados y gráficos
 finales—, importando de \texttt{src/} sin duplicar lógica. Se distingue del cuadro de mando
-anterior en propósito y en método: aquel visualiza artefactos ya persistidos; este
-\textbf{reejecuta el pipeline}, recomputando en vivo la ingesta y sus validaciones, la
-matriz de 161 variables, la partición cronológica, los cuatro baselines, el SARIMAX —del
-que solo se carga el orden $(2,1,2)\times(0,1,2,7)$ ya seleccionado por AIC— y los dos
-modelos XGBoost. La etapa 1 LSTM es el único modelo que se carga de artefacto, por una
-razón metodológica y no de coste: la etapa 2 debe corregir los residuos del mismo modelo
-que produjo los resultados aquí reportados, y reentrenar la red los calcularía contra un
-modelo distinto del que documenta esta memoria. Se versiona \emph{con sus salidas
-guardadas}, de forma que pueda leerse sin ejecutarlo, y no escribe nada en \texttt{data/}
-ni en \texttt{models/}.
+en propósito y método: aquel visualiza artefactos ya persistidos; este \textbf{reejecuta el
+pipeline}, recomputando en vivo la ingesta y sus validaciones, la matriz de 161 variables,
+la partición cronológica, los cuatro baselines, el SARIMAX —del que solo se carga el orden
+$(2,1,2)\times(0,1,2,7)$ ya seleccionado por AIC— y los dos modelos XGBoost. La etapa 1
+LSTM es el único modelo que se carga de artefacto, por una razón metodológica y no de
+coste: la etapa 2 debe corregir los residuos del mismo modelo que produjo los resultados
+aquí reportados, y reentrenar la red los calcularía contra un modelo distinto del que
+documenta esta memoria. Se versiona \emph{con sus salidas guardadas}, de forma que pueda
+leerse sin ejecutarlo, y no escribe nada en \texttt{data/} ni en \texttt{models/}.
 
-\textbf{Identidad visual institucional.} El color naranja empleado en la memoria es una
+\textbf{Identidad visual institucional.} El naranja empleado en la memoria es una
 \textbf{aproximación} documentada del color corporativo de la universidad, no el valor
 oficial ---no disponible durante el desarrollo del proyecto---, y se codifica literalmente
-en \textbf{exactamente dos puntos}, uno por capa: la capa de figuras en
+en \textbf{exactamente dos puntos}, uno por capa: la de figuras en
 \texttt{VIU\_COLORS[\textquotedbl{}primary\textquotedbl{}] = \textquotedbl{}\#E8590C\textquotedbl{}}
 (\texttt{src/\allowbreak{}evaluation/\allowbreak{}theme.py}) y la capa \LaTeX{} en
 \texttt{docs/\allowbreak{}LaTeX/\allowbreak{}preamble.tex} (\texttt{\textbackslash{}definecolor} de \texttt{naranja} y
@@ -351,10 +345,9 @@ líneas que se propaga a todas las figuras y cuadros sin tocar ningún otro fich
 
 \begin{sloppypar}
 
-Este anexo declara el uso de herramientas de inteligencia artificial generativa en la
-realización de este Trabajo Fin de Máster, delimita las tareas en las que se emplearon
-y deja explícito qué decisiones permanecen, sin excepción, bajo la responsabilidad del
-autor.
+Este anexo declara el uso de herramientas de inteligencia artificial generativa en este
+Trabajo Fin de Máster, delimita las tareas en que se emplearon y deja explícito qué
+decisiones permanecen, sin excepción, bajo la responsabilidad del autor.
 
 \section{Herramientas empleadas y alcance}\label{sec:ia_herramientas}
 
@@ -365,14 +358,14 @@ periodo abril--septiembre de 2026 \parencite{anthropic2026claude,anthropic2026cl
 
 Su uso se ha concentrado en cuatro tareas.
 
-\textbf{Implementación del código.} La escritura de los módulos de Python del
-repositorio (ingesta, ingeniería de características, modelado, evaluación y generación
-de figuras y tablas), así como de la suite de 470 pruebas automatizadas que verifica su
-comportamiento (Anexo \ref{cap:anexo2}), se ha realizado con asistencia de IA a partir
-de especificaciones técnicas definidas por el autor. Las decisiones de arquitectura del
-pipeline, el protocolo \emph{out-of-fold}, las reglas anti-fuga, la partición
-cronológica y el diseño de los controles diagnósticos fueron fijadas por el autor antes
-de su implementación y verificadas contra los resultados obtenidos.
+\textbf{Implementación del código.} Los módulos de Python del repositorio (ingesta,
+ingeniería de características, modelado, evaluación y generación de figuras y tablas), y
+la suite de 470 pruebas automatizadas que verifica su comportamiento (Anexo
+\ref{cap:anexo2}), se han escrito con asistencia de IA a partir de especificaciones
+técnicas definidas por el autor. Las decisiones de arquitectura del pipeline, el protocolo
+\emph{out-of-fold}, las reglas anti-fuga, la partición cronológica y el diseño de los
+controles diagnósticos fueron fijadas por el autor antes de su implementación y
+verificadas contra los resultados obtenidos.
 
 \textbf{Redacción de la memoria.} El texto de este documento se ha redactado con apoyo
 de IA a partir de los resultados experimentales, las decisiones metodológicas y la
@@ -384,12 +377,12 @@ la correspondencia entre las cifras citadas en la memoria y los artefactos gener
 el código, detectar inconsistencias internas y comprobar el cumplimiento de los
 requisitos formales.
 
-\textbf{Búsqueda bibliográfica.} Al inicio del desarrollo de este TFM el autor empleó
-asistencia de IA para localizar de forma expeditiva las referencias del proyecto. Cada
-ficha fue revisada después de forma independiente: se comprobó su existencia, se
-consultó la fuente primaria y, cuando correspondía, se descargó el documento original.
-Las referencias de esta memoria no son citas inventadas ni alucinadas por el modelo;
-todas están verificadas contra su fuente.
+\textbf{Búsqueda bibliográfica.} Al inicio del desarrollo el autor empleó asistencia de
+IA para localizar de forma expeditiva las referencias del proyecto. Cada ficha fue
+revisada después de forma independiente: se comprobó su existencia, se consultó la fuente
+primaria y, cuando correspondía, se descargó el documento original. Las referencias de
+esta memoria no son citas inventadas ni alucinadas por el modelo; todas están verificadas
+contra su fuente.
 
 \section{Tareas no delegadas}\label{sec:ia_no_delegadas}
 
@@ -423,7 +416,7 @@ son las siguientes:
 
 Este anexo recoge los cuadros de detalle de las secciones \ref{sec:anatomia_residuo_etapa1},
 \ref{sec:paridad_informativa} y \ref{sec:desglose_subgrupos}. El argumento, las cifras
-titulares y los veredictos prerregistrados permanecen íntegros en el cuerpo del capítulo
+titulares y los veredictos prerregistrados permanecen íntegros en el capítulo
 \ref{cap:resultados}; aquí solo se traslada el detalle tabular, al que el texto sigue
 remitiendo por número de cuadro.
 

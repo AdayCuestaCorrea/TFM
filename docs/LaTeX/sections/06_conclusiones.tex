@@ -1,9 +1,8 @@
 \chapter{Conclusiones y trabajos futuros}\label{cap:conclusiones}
 
-Este capítulo de cierre no introduce ninguna cifra nueva: toda afirmación que sigue
-remite a una tabla o figura ya presentada y discutida en el capítulo
-\ref{cap:resultados}, del que este capítulo es una síntesis argumental y no una nueva
-fuente de evidencia.
+Este capítulo no introduce ninguna cifra nueva: toda afirmación que sigue remite a una
+tabla o figura ya presentada y discutida en el capítulo \ref{cap:resultados}, del que es
+una síntesis argumental y no una nueva fuente de evidencia.
 
 \section{Conclusiones}\label{sec:conclusiones}
 
@@ -43,7 +42,8 @@ específico de la sección \ref{sec:objetivos} se acredita por separado:
     \emph{Resultado:} la etapa 2 reduce el MAE de su etapa 1 en un 16,6\,\% en test, pero
     el híbrido queda por detrás de SARIMAX y de XGBoost independiente en ambas
     particiones (PI3, PI4). \emph{Cumplido en su formulación} —el contraste se realizó y
-    los controles aislaron la causa—, \emph{con resultado negativo}. \emph{Limitación:}
+    los controles permitieron analizar posibles explicaciones del resultado—, \emph{con
+    resultado negativo}. \emph{Limitación:}
     5 festivos y 3 puentes en test impiden concluir sobre los días irregulares.
   \item \textbf{OE5, ensamble, sensibilidad e interpretación.} \emph{Qué se hizo:} dos
     experimentos acotados y una lectura a la luz de \textcite{granger1989combining}
@@ -59,18 +59,16 @@ El hallazgo empírico central aparece en la evaluación de la corrección residu
 XGBoost independiente en ninguna de las dos particiones} (PI1 y PI2, tabla
 \ref{tab:delta_hibrido}), y tampoco reduce de forma diferencial el error en los días de
 calendario irregular que motivaron su diseño (PI3, tabla \ref{tab:desglose_dia_test}).
-No es un fallo de ejecución sino un resultado consistente con la teoría de combinación de
-pronósticos: \textcite{granger1989combining} exige que los componentes sean
-individualmente subóptimos \emph{y} se apoyen en conjuntos de información distintos, y
-esta arquitectura no satisface plenamente la segunda condición —los conjuntos de información de sus dos
-etapas están anidados, no son complementarios: la etapa 2 añade calendario y meteorología,
-pero el pasado reciente que ve la etapa 1 ya está representado en su matriz— como se
-argumenta en la sección
-\ref{sec:resultado_negativo_teoria}. Las competiciones M4 y M5
-\parencite{makridakis2018m4,makridakis2022m5} documentan que el patrón —métodos simples y
-combinaciones bien fundamentadas superando a arquitecturas más sofisticadas, sobre todo en
-muestras moderadas como las 1.310 observaciones de este proyecto— es esperable y no una
-anomalía de esta implementación.
+No es un fallo de ejecución sino un resultado que puede interpretarse a la luz de la
+literatura clásica de combinación de pronósticos: \textcite{granger1989combining} señala
+que la combinación tiende a beneficiarse cuando los componentes son individualmente
+subóptimos y aportan información o errores parcialmente complementarios, y esta
+arquitectura ofrece poca complementariedad de esa clase —los conjuntos de información de
+sus dos etapas están anidados: la etapa 2 añade calendario y meteorología, pero el pasado
+reciente que ve la etapa 1 ya está representado en su matriz—, como argumenta la sección
+\ref{sec:resultado_negativo_teoria}, que sitúa
+además ese resultado frente a lo observado de forma sistemática en las competiciones M4 y
+M5 \parencite{makridakis2018m4,makridakis2022m5}.
 
 Tampoco debe leerse como una arquitectura sin mérito: PI4 muestra que la etapa 2 cumple
 su función, reduciendo el MAE de su propia etapa 1 en un 16,6\,\% en test y un 58\,\% en
@@ -82,69 +80,69 @@ la hibridación se observa de forma medible; lo insuficiente es la etapa 1 de la
 El modelo que mejor resuelve el problema no requiere ninguna red neuronal: PI5 muestra
 que un ensamble aritmético de SARIMAX y XGBoost independiente —sin reentrenamiento, sin
 etapa LSTM y sin ningún paso de ajuste— alcanza un MAE de test de 139.725 en su variante
-equiponderada (el ensamble 50/50) y de 139.681 en la ponderada por el inverso del MAE
-(el ensamble inverso al MAE), en torno a un 10,5\,\% por debajo del mejor de sus
-componentes. Es coherente con la identidad de
-\textcite{bates1969combination} aplicada a la correlación de 0,576 entre los residuos de ambos
-sobre test (sección \ref{sec:mecanismo_ensemble}): inferior a la unidad porque fallan en
-subconjuntos de días sistemáticamente distintos —el primero en laborables ordinarios, el
-segundo en fin de semana y festivos—, que es lo que hace ventajoso promediarlos.
+equiponderada (el ensamble 50/50) y de 139.681 en la ponderada por el inverso del MAE (el
+ensamble inverso al MAE), en torno a un 10,5\,\% por debajo del mejor de sus componentes.
+Esa ganancia se lee con el mismo marco clásico de combinación de pronósticos
+\parencite{bates1969combination}: la correlación de 0,576 entre los residuos
+de ambos sobre test (sección \ref{sec:mecanismo_ensemble}) —inferior a la unidad porque
+fallan en subconjuntos de días sistemáticamente distintos, el primero en laborables
+ordinarios y el segundo en fin de semana y festivos— proporciona una explicación
+compatible con la mejora obtenida por el ensamble, sin que ello constituya por sí mismo
+una demostración causal del mecanismo.
 
-La lectura conjunta de ambos resultados —el híbrido secuencial que no mejora porque sus
-etapas observan conjuntos de información anidados, y el ensamble paralelo que sí mejora, en
-consonancia con la combinación de información parcialmente descorrelacionada— es la
-aportación empírica central de este TFM:
-una auditoría con protocolo \emph{out-of-fold} estricto en toda su cadena de las
-condiciones exactas bajo las cuales cada estrategia de combinación funciona y bajo cuáles
-no, sobre una serie real de demanda de transporte público agregada y multimodal.
+La lectura conjunta de ambos resultados —el híbrido secuencial que no mejora y cuyas
+etapas observan conjuntos de información anidados, y el ensamble paralelo que sí mejora,
+en consonancia con la combinación de errores parcialmente descorrelacionados— es la
+aportación empírica central de este TFM: una auditoría con protocolo \emph{out-of-fold}
+estricto en toda su cadena de las condiciones bajo las cuales cada estrategia de
+combinación ha funcionado aquí y bajo cuáles no, sobre una serie real de demanda de
+transporte público agregada y multimodal.
 
 \section{Limitaciones}\label{sec:limitaciones}
 
 \textbf{Agregación a nivel de red, sin corte espacial.} Este proyecto modela la demanda
 \texttt{total} del sistema CRTM como una única serie diaria, con el desglose por operador
 solo como variable de apoyo (rezagos, EDA) y no como dimensión espacial del modelo. A
-diferencia de \textcite{cardozo2012spatial}, que modelan las entradas estación
-por estación, esta memoria no ofrece resolución espacial alguna: de sus resultados no cabe
+diferencia de \textcite{cardozo2012spatial}, que modelan las entradas estación por
+estación, esta memoria no ofrece resolución espacial alguna: de sus resultados no cabe
 concluir nada sobre una línea, una estación o un corredor concreto. La elección fue
 deliberada (sección \ref{sec:movilidad_urbana}), pero es una limitación de alcance.
 
 \textbf{Tamaño muestral reducido en los días de calendario más interesantes.} Con 1.310
 observaciones diarias en total, la muestra es modesta para un modelo LSTM, y se vuelve
-particularmente escasa precisamente en los subgrupos de calendario cuyo comportamiento
-resulta más interesante para este estudio: la partición de test contiene solo 5 días
-festivos y 3 días de laborable con puente (tabla \ref{tab:desglose_dia_test}). Todas
-las afirmaciones de esta memoria sobre el comportamiento de los modelos en esos dos
-grupos, incluida la mejora del 58\,\% de la etapa 2 sobre su etapa 1 en festivos, se han
-etiquetado consistentemente como indicativas y no concluyentes; la base más sólida para
-generalizar sobre el comportamiento estructural frente al calendario sigue siendo el
-diagnóstico exploratorio de la fase 4 sobre el periodo completo (48 festivos y 54
-puentes; la detección de calendario identifica 55 días puente sobre los 1.310 días
-totales, de los que 54 caen fuera de los 28 días de calentamiento excluidos del
-entrenamiento), no las particiones reducidas de evaluación final.
+particularmente escasa precisamente en los subgrupos de calendario más interesantes para
+este estudio: la partición de test contiene solo 5 días festivos y 3 laborables con puente
+(tabla \ref{tab:desglose_dia_test}). Todas las afirmaciones de esta memoria sobre el
+comportamiento de los modelos en esos dos grupos, incluida la mejora del 58\,\% de la
+etapa 2 sobre su etapa 1 en festivos, se han etiquetado consistentemente como indicativas
+y no concluyentes; la base más sólida para generalizar sobre el comportamiento estructural
+frente al calendario sigue siendo el diagnóstico exploratorio de la fase 4 sobre el
+periodo completo (48 festivos y 54 puentes; la detección de calendario identifica 55 días
+puente sobre los 1.310 días totales, de los que 54 caen fuera de los 28 días de
+calentamiento excluidos del entrenamiento), no las particiones reducidas de evaluación
+final.
 
-\textbf{Recorte de 28 días por calentamiento de las variables de retardo.} El retardo y la
-media móvil de mayor ventana (28 días) obligan a descartar los 28 primeros días de la
-serie de entrenamiento (2023-01-01 a 2023-01-28) antes de que la matriz de
-características quede libre de valores nulos (sección \ref{sec:particiones_fuga}). Esta
-política, aplicada únicamente sobre el bloque de entrenamiento y verificada para no
-alcanzar nunca las particiones de validación o test, reduce el conjunto de entrenamiento
-efectivo de 917 a 889 días: un coste aceptado y documentado, pero un coste real sobre
-el volumen de datos disponible para el ajuste de los modelos.
+\textbf{Recorte de 28 días por calentamiento de las variables de retardo.} El retardo y
+la media móvil de mayor ventana (28 días) obligan a descartar los 28 primeros días de la
+serie de entrenamiento, que queda reducida de 917 a 889 días efectivos; la política no
+alcanza nunca las particiones de validación o test (sección \ref{sec:particiones_fuga}).
+Es un coste aceptado y documentado, pero real, sobre el volumen de datos disponible para
+el ajuste de los modelos.
 
 \textbf{Naturaleza provisional de los registros de demanda del CRTM.} El propio fichero
-fuente de demanda (\texttt{CRTM\_Evolucion\_demanda\_diaria.xlsx}) advierte
-explícitamente que sus cifras son provisionales y sujetas a revisión posterior por el
-consorcio. Este TFM no tiene control sobre esa advertencia ni forma de cuantificar la
-magnitud de una eventual revisión futura; toda cifra de demanda y todo error de modelo
-reportado en esta memoria hereda, por tanto, la incertidumbre de la fuente original.
+fuente (\texttt{CRTM\_Evolucion\_demanda\_diaria.xlsx}) advierte explícitamente que sus
+cifras son provisionales y sujetas a revisión posterior por el consorcio. Este TFM no
+tiene control sobre esa advertencia ni forma de cuantificar la magnitud de una eventual
+revisión futura; toda cifra de demanda y todo error de modelo reportado en esta memoria
+hereda, por tanto, la incertidumbre de la fuente original.
 
 \textbf{Exclusión deliberada de la meteorología del mismo día.} Se excluye por diseño la
 meteorología concurrente del día predicho, empleando solo sus rezagos de 1, 2, 3 y 7 días
 y su media móvil de 7 (sección \ref{sec:promocion_meteo}), para no asumir en evaluación un
-pronóstico atmosférico perfecto que no existe en producción. La decisión es conservadora y
-correcta para el objetivo del trabajo, pero implica que ninguna cifra de esta memoria
-estima la mejora alcanzable con un pronóstico meteorológico operativo de calidad: esa cota
-queda fuera de alcance y se retoma como línea futura.
+pronóstico atmosférico perfecto que no existe en producción. La decisión es conservadora
+y correcta para el objetivo del trabajo, pero implica que ninguna cifra de esta memoria
+estima la mejora alcanzable con un pronóstico meteorológico operativo de calidad: esa
+cota queda fuera de alcance y se retoma como línea futura.
 
 \textbf{Veredictos parcialmente ambiguos en la anatomía del residuo.} El diagnóstico del
 residuo de la etapa 1 (sección \ref{sec:anatomia_residuo_etapa1}) evaluó cuatro criterios
@@ -159,10 +157,10 @@ por debajo del umbral de 0,20 fijado como evidencia de estructura, pero por enci
 espectral. En consecuencia, la afirmación de que la etapa 1 deja sin explicar estructura
 \emph{semanal} descansa en el tamaño del efecto del perfil por día de la semana
 (dispersión de 0,60 desviaciones típicas) y no en los criterios de autocorrelación o
-espectrales, que son individualmente inconcluyentes. El hallazgo central de esa sección
-(que el residuo retiene estructura de \emph{calendario}, no de clima) no se ve afectado,
-pero la caracterización de su componente temporal fino es más matizada de lo que un
-veredicto binario sugeriría.
+espectrales, individualmente inconcluyentes. El hallazgo central de esa sección (que el
+residuo retiene estructura de \emph{calendario}, no de clima) no se ve afectado, pero la
+caracterización de su componente temporal fino es más matizada de lo que un veredicto
+binario sugeriría.
 
 \textbf{Veredicto ambiguo en el control de paridad informativa con matriz completa.} El
 control de paridad informativa (sección \ref{sec:paridad_lstm}) evaluó dos ámbitos de
@@ -172,8 +170,9 @@ solo un 16,2\,\% del hueco hasta XGBoost independiente, con la banda mín-máx d
 semillas por completo dentro de la zona de ese veredicto. Pero el ámbito \texttt{completo}
 ($k=161$) cerró un 31,0\,\% y su banda (354.235--391.630) cruza el umbral del 25\,\%, de
 modo que su veredicto se degrada a \emph{mixto/ambiguo} por la regla de cruce de banda
-(objeción O6). La conclusión de la sección —que la etapa 1 pierde por ser recurrente sobre
-esta serie y a este tamaño de muestra, y no por ser univariante— se apoya en el ámbito
+(objeción O6). La conclusión de la sección —que las dificultades de la etapa 1 no pueden
+atribuirse únicamente a su carácter univariante y apuntan a una limitación relevante de la
+arquitectura recurrente en esta serie y con este tamaño muestral— se apoya en el ámbito
 \texttt{calendario}, que es el más nítido para la afirmación de ceguera al calendario, y en
 la asimetría de interpretación O4 (la LSTM en paridad ve estrictamente más información que
 XGBoost, así que un cierre parcial es evidencia débil). Aun así, no puede descartarse con
@@ -182,16 +181,13 @@ solo por la arquitectura; discriminar ambas causas con más semillas o un diseñ
 también la representación de entrada queda fuera del alcance de este TFM.
 
 \textbf{Elección entre las dos variantes del ensamble tras conocer sus cifras de test.}
-No existía una regla previa para preferir el ensamble 50/50 al
-ensamble inverso al MAE: ambas se calcularon en la misma ejecución y la
-preferencia se formuló con las dos cifras de test a la vista (sección
-\ref{sec:por_que_ensemble}). El test no interviene en ningún peso y la elección no lo
-optimiza —la equiponderada es la peor de las dos tanto en validación como en test—, y
-elegir entre ambas por su MAE de validación sería circular en un sentido preciso: no por
-ajustar pesos en validación y evaluar en test, que es el procedimiento estándar, sino porque
-los pesos de una de las dos variantes se ajustaron sobre esa misma partición y su cifra de
-validación es, por ello, levemente optimista. Aun así, la decisión de presentación se tomó a
-posteriori y se registra como tal; la diferencia entre ambas, 44 viajes diarios de MAE,
+No existía una regla previa para preferir el ensamble 50/50 al ensamble inverso al MAE:
+ambas se calcularon en la misma ejecución y la preferencia se formuló con las dos cifras
+de test a la vista. El test no interviene en ningún peso y la elección no lo optimiza —la
+equiponderada es la peor de las dos tanto en validación como en test—, pero la decisión
+de presentación se tomó a posteriori y se registra como tal. El procedimiento exacto, y
+por qué rehacer la selección únicamente con validación tampoco la sanearía, constan en la
+sección \ref{sec:por_que_ensemble}. La diferencia entre ambas, 44 viajes diarios de MAE,
 carece de relevancia práctica.
 
 \textbf{Alcance del \emph{bootstrap} por bloques.} La única inferencia estadística de la
@@ -224,33 +220,32 @@ contrasta.
 
 \section{Trabajos futuros}\label{sec:trabajos_futuros}
 
-Las siguientes líneas de trabajo se enuncian como extensiones metodológicas concretas y
-justificadas por los propios resultados de este TFM; ninguna de ellas ha sido ejecutada
-ni evaluada en el marco de este proyecto.
+Las siguientes líneas se enuncian como extensiones metodológicas concretas y
+justificadas por los propios resultados de este TFM; ninguna ha sido ejecutada ni
+evaluada en este proyecto.
 
 \textbf{Modelado desagregado por operador.} Este TFM modela la demanda \texttt{total}
 del sistema, preservando \texttt{metro}, \texttt{emt}, \texttt{carretera} y
 \texttt{cercanias} únicamente como variables de apoyo. Una extensión natural sería
 replicar el mismo pipeline de ingeniería de características y la misma arquitectura de
 evaluación (baselines, LSTM \emph{out-of-fold}, XGBoost residual, ensamble) de forma
-independiente para cada uno de los cuatro operadores, lo que permitiría dos preguntas
-que este TFM no puede responder: si la ventaja del ensamble sobre el híbrido se mantiene
-a una escala de demanda menor y con patrones de calendario específicos de cada modo —el
-perfil de Cercanías, más ligado a la movilidad laboral pendular, es previsiblemente
-distinto del perfil de la red de EMT—, y si un modelo conjunto multivariante que
-comparta representación entre operadores aporta algo que cuatro modelos independientes
-no capturan.
+independiente para cada operador, lo que permitiría dos preguntas que este TFM no puede
+responder: si la ventaja del ensamble sobre el híbrido se mantiene a una escala de
+demanda menor y con patrones de calendario específicos de cada modo —el perfil de
+Cercanías, más ligado a la movilidad laboral pendular, es previsiblemente distinto del de
+la red de EMT—, y si un modelo conjunto multivariante que comparta representación entre
+operadores aporta algo que cuatro modelos independientes no capturan.
 
-\textbf{Integración de pronósticos meteorológicos operativos.} Tal como se señala en la
-limitación correspondiente, este TFM emplea exclusivamente meteorología retardada para
-evitar asumir un pronóstico perfecto. Una extensión natural, y metodológicamente sólida,
-sería sustituir esos rezagos por pronósticos meteorológicos
-reales de horizonte 1-7 días obtenidos de un proveedor operativo (por ejemplo, la propia
-API de pronóstico de Open-Meteo, complementaria a su API histórica ya empleada en este
-proyecto), evaluando el sistema bajo la incertidumbre de pronóstico real en lugar de bajo
-el valor observado retardado. Esto permitiría cuantificar, con evidencia y no por
-extrapolación, la brecha entre el límite superior bajo pronóstico perfecto y el
-desempeño alcanzable en un escenario de producción genuino.
+\textbf{Integración de pronósticos meteorológicos operativos.} Como señala la limitación
+correspondiente, este TFM emplea exclusivamente meteorología retardada para evitar
+asumir un pronóstico perfecto. Una extensión natural, y metodológicamente sólida, sería
+sustituir esos rezagos por pronósticos meteorológicos reales de horizonte 1-7 días de un
+proveedor operativo (por ejemplo, la API de pronóstico de Open-Meteo, complementaria a su
+API histórica ya empleada en este proyecto), evaluando el sistema bajo la incertidumbre
+de pronóstico real en lugar de bajo el valor observado retardado. Esto permitiría
+cuantificar, con evidencia y no por extrapolación, la brecha entre el límite superior
+bajo pronóstico perfecto y el desempeño alcanzable en un escenario de producción
+genuino.
 
 \textbf{Arquitecturas neuronales basadas en parches o transformers temporales.} La etapa
 1 de este TFM es deliberadamente una LSTM univariante simple, elegida para aislar con
@@ -258,46 +253,45 @@ claridad qué puede aportar la dinámica temporal pura antes de introducir infor
 exógena en la etapa 2. Arquitecturas más recientes de pronóstico de series temporales,
 basadas en mecanismos de atención y en la segmentación de la serie en parches temporales,
 se han propuesto precisamente para representar dependencias de múltiples escalas —semanal
-y anual simultáneamente— sin la memoria secuencial de una red recurrente clásica; si sobre
-esta serie lo consiguen es una cuestión empírica abierta. Sustituir la etapa 1 de este TFM
-por una arquitectura de este
-tipo, entrenada bajo el mismo protocolo estrictamente \emph{out-of-fold} que gobierna
-todo este proyecto, permitiría comprobar si una etapa 1 más expresiva cierra la brecha
-frente a SARIMAX que este TFM documenta como su hallazgo central, sin renunciar en
-ningún momento al rigor de validación que hace de esa comprobación un resultado
+y anual simultáneamente— sin la memoria secuencial de una red recurrente clásica; si
+sobre esta serie lo consiguen es una cuestión empírica abierta. Sustituir la etapa 1 por
+una arquitectura de este tipo, entrenada bajo el mismo protocolo estrictamente
+\emph{out-of-fold} que gobierna todo este proyecto, permitiría comprobar si una etapa 1
+más expresiva cierra la brecha frente a SARIMAX que este TFM documenta como su hallazgo
+central, sin renunciar al rigor de validación que hace de esa comprobación un resultado
 comparable y no una nueva fuente de sesgo optimista.
 
 \section{Implicaciones para la planificación}\label{sec:implicaciones_planificacion}
 
-Sin introducir ninguna evidencia nueva, los resultados del capítulo
-\ref{cap:resultados} admiten una lectura orientada a la explotación operativa, que es el
-destino último que motivó este TFM. El ensamble seleccionado predice la demanda diaria
-agregada de la red con un MAPE de test del \textbf{3,13\,\%} (cuadro \ref{tab:comparacion_test}),
-un margen compatible con los usos de planificación en los que la unidad de decisión es la
-red completa y el horizonte es el día siguiente, el único evaluado en este trabajo:
-dimensionamiento de la oferta de material y de
-turnos de personal, previsión de carga agregada para la programación de frecuencias, y
-detección temprana de desviaciones frente a lo esperado. Para esos usos, la recomendación
-que se desprende de este trabajo es doble y deliberadamente austera: emplear la
-combinación aritmética de SARIMAX y XGBoost independiente descrita en la sección
-\ref{sec:por_que_ensemble}, y no una arquitectura recurrente ---el capítulo
-\ref{cap:resultados} muestra que la etapa LSTM no solo no aporta precisión, sino que su
-coste de entrenamiento, ajuste y mantenimiento no se traduce en ninguna ventaja
-medible---; y fijar los pesos a partes iguales, porque la variante ponderada no mejora de
-forma apreciable y sí añade una dependencia de la partición de validación que habría que
-rehacer con cada reentrenamiento.
+Sin introducir evidencia nueva, los resultados del capítulo \ref{cap:resultados} admiten
+una lectura orientada a la explotación operativa, destino último que motivó este TFM. El
+ensamble seleccionado predice la demanda diaria agregada de la red con un MAPE de test del
+\textbf{3,13\,\%} (cuadro \ref{tab:comparacion_test}), un margen compatible con los usos
+de planificación en los que la unidad de decisión es la red completa y el horizonte es el
+día siguiente, el único evaluado en este trabajo: dimensionamiento de la oferta de
+material y de turnos de personal, previsión de carga agregada para la programación de
+frecuencias, y detección temprana de desviaciones frente a lo esperado. Para esos usos,
+la recomendación es doble y deliberadamente austera: emplear la combinación aritmética de
+SARIMAX y XGBoost independiente de la sección \ref{sec:por_que_ensemble}, y no una
+arquitectura recurrente ---el capítulo \ref{cap:resultados} muestra que la etapa LSTM no
+solo no aporta precisión, sino que su coste de entrenamiento, ajuste y mantenimiento no se
+traduce en ninguna ventaja medible---; y fijar los pesos a partes iguales, porque la
+variante ponderada no mejora de forma apreciable y sí añade una dependencia de la
+partición de validación que habría que rehacer con cada reentrenamiento. Es una
+recomendación operativa, no un resultado confirmatorio: la preferencia entre ambas
+variantes se formuló a posteriori (sección \ref{sec:por_que_ensemble}).
 
-Esa recomendación tiene límites que deben acompañarla siempre, y que son exactamente los
-de la sección \ref{sec:limitaciones}. El error no se reparte de forma uniforme: se
-concentra en los días de calendario irregular ---festivos y puentes (cuadro
-\ref{tab:desglose_dia_test})---, que son precisamente aquellos en los que una decisión de
-oferta equivocada resulta más costosa, de modo que las cifras de error agregadas no deben
+Esa recomendación tiene límites que deben acompañarla siempre, y son exactamente los de
+la sección \ref{sec:limitaciones}. El error no se reparte de forma uniforme: se concentra
+en los días de calendario irregular ---festivos y puentes (cuadro
+\ref{tab:desglose_dia_test})---, precisamente aquellos en los que una decisión de oferta
+equivocada resulta más costosa, de modo que las cifras de error agregadas no deben
 trasladarse sin más a la planificación de esos días. El modelo no ofrece resolución
 espacial alguna por debajo del agregado de red, ni predice la demanda de un operador
 concreto, por lo que no sustituye a ningún instrumento de planificación de línea,
-corredor o estación. Y, al excluir por diseño la meteorología del mismo día, su desempeño
-es el alcanzable sin pronóstico meteorológico: incorporarlo es la vía de mejora
-inmediata, y es la segunda de las líneas enunciadas en la sección
+corredor o estación. Y su desempeño es el alcanzable sin pronóstico meteorológico, por la
+exclusión deliberada de la meteorología del mismo día (sección \ref{sec:limitaciones}):
+incorporarlo es la vía de mejora inmediata y la segunda línea de la sección
 \ref{sec:trabajos_futuros}.
 
 \section{Contribución a los Objetivos de Desarrollo Sostenible}\label{sec:ods}
@@ -310,26 +304,25 @@ metodológica.
 
 \textbf{ODS 11, ciudades y comunidades sostenibles (meta 11.2).} El objeto de estudio es
 la demanda agregada del sistema de transporte público de Madrid, entre 1,3 y 6,6 millones
-de viajes diarios, que es el modo de desplazamiento que la meta 11.2 busca hacer
-accesible, asequible y sostenible. La predicción a un día alimenta las decisiones de
-dimensionamiento de flota, turnos de personal y programación de frecuencias descritas en
-la sección \ref{sec:implicaciones_planificacion}: una previsión más ajustada permite
-sostener el nivel de servicio sin sobredimensionar la oferta, que es la forma en que un
-sistema de transporte público mejora su acceso sin aumentar su coste. La contribución es
-indirecta ---el trabajo no despliega ningún sistema--- y está acotada exactamente por la
-sección \ref{sec:limitaciones}: no hay resolución espacial por debajo del agregado de red
-y el error se concentra en el calendario irregular, que son los días en los que una
-decisión de oferta equivocada resulta más costosa.
+de viajes diarios, el modo de desplazamiento que la meta 11.2 busca hacer accesible,
+asequible y sostenible. La predicción a un día alimenta las decisiones de
+dimensionamiento de flota, turnos de personal y programación de frecuencias de la sección
+\ref{sec:implicaciones_planificacion}: una previsión más ajustada permite sostener el
+nivel de servicio sin sobredimensionar la oferta, que es como un sistema de transporte
+público mejora su acceso sin aumentar su coste. La contribución es indirecta ---el
+trabajo no despliega ningún sistema--- y está acotada exactamente por la sección
+\ref{sec:limitaciones}: no hay resolución espacial por debajo del agregado de red y el
+error se concentra en el calendario irregular, los días en los que una decisión de oferta
+equivocada resulta más costosa.
 
 \textbf{ODS 13, acción por el clima.} La aportación específica de este trabajo a este
 objetivo no está en la precisión alcanzada, sino en su coste. La sección
 \ref{sec:paridad_informativa} documenta que la etapa recurrente no aporta precisión
 medible, y el mejor resultado del estudio lo obtiene una combinación aritmética de dos
-modelos ya entrenados, sin entrenamiento adicional ni aceleración por hardware
-especializado. En un campo cuya respuesta por defecto ante un problema de predicción es
-escalar la arquitectura, un resultado negativo bien documentado ahorra ese gasto
-computacional a quien venga después, y ese ahorro sí es directamente atribuible al
-trabajo. No se cuantifica aquí ninguna reducción de emisiones ni se afirma relación
+modelos ya entrenados, sin entrenamiento adicional ni hardware especializado. En un campo
+cuya respuesta por defecto ante un problema de predicción es escalar la arquitectura, un
+resultado negativo bien documentado ahorra ese gasto computacional a quien venga después,
+y ese ahorro sí es directamente atribuible al trabajo. No se cuantifica aquí ninguna reducción de emisiones ni se afirma relación
 causal alguna entre la calidad de la predicción y la huella ambiental del sistema de
 transporte: sostenerlo excedería lo que permiten los datos empleados.
 

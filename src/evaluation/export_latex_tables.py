@@ -365,7 +365,10 @@ LITERATURE_COMPARISON: list[dict[str, str]] = [
         # declarada. MAE de test 24,193 (EMD-LSTM) frente a 28,164 (LSTM), 34,248 (BPN) y
         # 39,451 (ARIMA). Una correccion de 2020 (e0231199) retira un fichero de apoyo
         # incluido por error y no altera resultados.
-        "estudio": "Chen et al. (2019)",
+        # APA 7 (8.20): dos primeros autores apellidados Chen en la bibliografia (Chen & Guestrin
+        # 2016; Chen et al. 2019), asi que la inicial disambigua, igual que hace biblatex-apa en
+        # las citas del texto.
+        "estudio": "Q. Chen et al. (2019)",
         "ambito": "Flujo entrante de una estación del metro de Chengdu (Xibu, línea 2), intervalos de 15 min",
         "horizonte": "Tres semanas de abril de 2018 (1.344 observaciones de 15 min)",
         "exogenas": "Ninguna por decisión declarada: solo el propio historial de flujo (sin meteorología ni calendario)",
