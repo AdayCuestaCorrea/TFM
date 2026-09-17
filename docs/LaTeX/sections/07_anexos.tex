@@ -75,7 +75,7 @@ La afirmación central de esta memoria —que un resultado negativo bien instrum
 una contribución metodológica válida— solo se sostiene si el pipeline que lo produce está
 libre de los errores de fuga de información que sistemáticamente producen resultados
 optimistas y no reproducibles en la literatura de predicción de series temporales. Este
-anexo documenta la arquitectura de verificación que respalda esa afirmación: \textbf{470
+anexo documenta la arquitectura de verificación que respalda esa afirmación: \textbf{472
 pruebas automatizadas}, recolectadas y ejecutadas con \texttt{python -m pytest} desde la
 raíz del repositorio con el entorno
 \texttt{.\textbackslash venv\textbackslash Scripts\textbackslash python.exe} activado,
@@ -297,7 +297,7 @@ más allá de lo que cada paso indica explícitamente:
     flujo (~40 s) y \textbf{contrasta cada métrica recomputada contra el valor publicado}
     en \texttt{full\_comparison.parquet}: si alguna se desvía más de $10^{-6}$ en términos
     relativos, levanta una excepción.
-  \item \texttt{python -m pytest} — ejecuta la suite completa de 470 pruebas automatizadas (descrita
+  \item \texttt{python -m pytest} — ejecuta la suite completa de 472 pruebas automatizadas (descrita
     en el Anexo \ref{cap:anexo2}).
   \item \texttt{latexmk -pdf -interaction=nonstopmode -halt-on-error TFT.tex}, ejecutado
     desde \texttt{docs/\allowbreak{}LaTeX/}, compila esta memoria hasta obtener \texttt{TFT.pdf}.
@@ -360,7 +360,7 @@ Su uso se ha concentrado en cuatro tareas.
 
 \textbf{Implementación del código.} Los módulos de Python del repositorio (ingesta,
 ingeniería de características, modelado, evaluación y generación de figuras y tablas), y
-la suite de 470 pruebas automatizadas que verifica su comportamiento (Anexo
+la suite de 472 pruebas automatizadas que verifica su comportamiento (Anexo
 \ref{cap:anexo2}), se han escrito con asistencia de IA a partir de especificaciones
 técnicas definidas por el autor. Las decisiones de arquitectura del pipeline, el protocolo
 \emph{out-of-fold}, las reglas anti-fuga, la partición cronológica y el diseño de los

@@ -2419,6 +2419,122 @@ cosméticas y sin efecto en el contenido.
     dentro de 40-80. `pytest` **470/470**, `PROSE_CLAIMS` sin relajar. Guarda de
     literales 17/17 vigentes (13 anteriores + 4 nuevos; el 18 anterior superado por
     direccion).
+
+    g. **Dos correcciones APA del item 1 aplicadas por instruccion de direccion (los
+       hallazgos iii y iv se dejan como estaban).** (i) `preamble.tex`:
+       `\DefineBibliographyExtras{spanish}{\protected\def\bibrangedash{\textendash}}`, que
+       restaura la definicion de `biblatex.sty` (`\newrobustcmd*{\bibrangedash}{\textendash}`)
+       frente al guion de `spanish.lbx`. Consumidores del macro en este documento: solo los
+       32 campos `pages` del `.bbl` (sin `backref`, sin citas numericas por rango, que son
+       los otros usos en `biblatex.def`). Lista compuesta: los 16 rangos llevan semirraya
+       («451–468»); los unicos «d-d» restantes estan dentro de DOI. (ii) «Q. Chen et al.» en
+       las tres menciones en prosa de §2.4 y en el literal `estudio` del generador
+       (`export_latex_tables.py`); `export_all` regenerado: **solo cambia
+       `tabla_comparativa_estado_arte.tex`** (una celda). 5 apariciones de «Q. Chen» en el
+       PDF (2 citas de biblatex-apa + 3 prosa + cuadro; una queda partida por linea).
+
+    **Puerta de la reexportacion, medida (mismo metodo que 25h y 28).** Commit `0953265` en
+    `TFM-HISTORICO`, que **incluye los tramos 0-3 (incidencias 29-31), que estaban sin
+    comprometer**: `HEAD` anterior (`e4fc57e`) aun llevaba el PDF de 101 paginas. Se intento
+    separar en dos commits (arbol de la linea base por indice temporal); el modo automatico
+    no lo permitio, y se registra aqui en lugar de forzarlo. Puerta 0 sobre `HEAD` en copia
+    desechable (`git archive`): 99 paginas, 0 errores, 0 `??`, biber 0 avisos, **99/99
+    identicas en texto** al `TFT.pdf` comprometido (blob `9907214`). `git diff --name-status
+    e4fc57e..HEAD` solo `M` (14 ficheros); `git grep` de secretos y datos personales → 0
+    (solo la palabra «token» en prosa); `docs/Aday.docx` ignorado por `*.docx`. Exclusiones
+    sin cambio (`image{4,5,6}.png`, `docs/references/Summary.md`). `TFM-publicado`: commit
+    `7d4f78a` sobre `b2fb44b`, sin reescritura. (i) 172 rutas = `HEAD` menos exclusiones,
+    identicas; (ii) 0 blobs distintos; (iii) padre `b2fb44b`; (iv) `data/` ausente, `models/`
+    los mismos cinco artefactos blob a blob; (v) clon fresco del local + `data/` → `pytest`
+    **470/470**, `latexmk` **99 paginas**, 99/99 identicas al PDF publicado, pies de cuerpo
+    «n de 76» ×76 (ningun «de 74»/«de 77»), titulo de §5.8 «Descorrelacion de errores: una
+    explicacion compatible con la ganancia del ensamble» presente, «451–468» con semirraya.
+    Pendiente del autor: `git push origin main` (*fast-forward* `b2fb44b..7d4f78a`) y
+    repetir (v) contra el clon publico.
+
+33. **UNDECIMO HALLAZGO DE EXACTITUD de la serie, y el primero que llega desde fuera:
+    remision falsa a una columna inexistente de la tabla 5.3.** Lo senalo una revision
+    externa; se verifico contra el PDF compuesto y los artefactos antes de tocar nada
+    (metodo de las incidencias 27-28: contrastar la afirmacion con el artefacto que
+    invoca, no releer la prosa). Ningun modelo se reentrena; `data/`, `models/`,
+    `reports/` y `tables/` sin tocar; ninguna cifra medida cambia; ninguna tabla se
+    regenera.
+
+    a. **Verificacion.** El informe externo enumeraba las columnas de la tabla 5.3 con los
+       identificadores tecnicos (`sarimax`, `xgboost_alone`, `hybrid`, `hybrid_weighted`,
+       `ensemble_equal`), lo que hizo sospechar que leia una version anterior a la
+       incidencia 28. **No**: esa pasada convirtio identificadores en nombres de prosa
+       **conservandolos en cuadros, figuras y pies** (asi lo dice su propio registro), de
+       modo que el revisor leia el PDF vigente. Las columnas del cuadro 5.3 compuesto son
+       exactamente esas cinco (`DEFAULT_BREAKDOWN_MODELS`, `dashboard_figures.py:44`,
+       filtro previo al pivote en `day_type_table`, `report_tables.py:99`); **no hay
+       columna de LSTM independiente** ni en 5.3 ni en 5.4. La cifra 1.585.388 aparecia
+       **solo en prosa, tres veces** (`05:198` §5.4, `05:1049` §5.12, `05:1161` PI4) y en
+       ningun cuadro; 666.572 en las mismas tres frases y ademas en dos cuadros generados
+       (5.3, fila festivo, columna `hybrid`; `tabla_subgrupos_test.tex`). La remision de
+       §5.4 «(fila festivo, columna LSTM independiente de la tabla 5.3)» era, por tanto,
+       **falsa**: senalaba una celda que no existe. PI4 remite a §5.4, donde la cifra si
+       esta, asi que esa remision es literalmente cierta pero apuntaba a una prosa que a su
+       vez apuntaba al vacio.
+
+    b. **Procedencia, confirmada.** `error_by_day_type("test")` (`dashboard_data.py:233`)
+       sobre `lstm_val_test_predictions.parquet` (`y_pred_lstm`) da, en el grupo festivo
+       (n=5): `lstm_alone` **1.585.388**, `hybrid` **666.572**, `sarimax` 271.410,
+       `xgboost_alone` 251.553, `ensemble_equal` 227.037. (1.585.388 - 666.572) /
+       1.585.388 = 57,96 % → «58 %»; 666.572 / 271.410 = 2,46 → «2,5 veces». Valor medido y
+       vigente, no un resto de un estado anterior: la cifra era correcta; lo incorrecto
+       era de donde decia salir.
+
+    c. **Remedio elegido por direccion: corregir la prosa, no ampliar el cuadro** (la
+       alternativa, una columna `lstm_alone` en 5.3 y 5.4, desbordaba los 15 cm de caja de
+       texto --los `p{}` actuales suman 12,3 cm mas separacion-- y arrastraba la figura
+       5.6, que comparte `DEFAULT_BREAKDOWN_MODELS`). `05:198-201` pasa a: «de 1.585.388
+       (MAE de LSTM independiente en los cinco festivos de test, obtenido con la misma
+       descomposicion por tipo de dia que la tabla 5.3, que no incluye esa columna) a
+       666.572 (fila festivo, columna `hybrid` de esa tabla)». §5.12 y PI4 no cambian:
+       verificado que `\label{sec:error_dia}` es §5.4 (`05:154`) y que ambas cifras siguen
+       alli con su procedencia real.
+
+    d. **Lo que hace notable el hallazgo: era la unica cifra de cabecera de la memoria
+       citada mas de una vez y sin artefacto que la protegiera.** `PROSE_CLAIMS` pinzaba el
+       MAE global de `lstm_alone` (280.952) pero ningun desglose por tipo de dia: sus
+       lectores solo leian `full_comparison.parquet` y `sensitivity_comparison.parquet`.
+       666.572 estaba al menos anclado en dos cuadros generados; 1.585.388, tecleado a mano
+       en tres sitios, no tenia proteccion alguna, que es exactamente como un numero
+       obsoleto sobrevive a una pasada de verificacion completa. Anadido a
+       `test_prose_claims_match_artifacts.py` el lector `_festivo_test_mae(model)` (sobre
+       `error_by_day_type("test")`, la misma funcion que construye el desglose) y dos
+       entradas del manifiesto, «MAE festivo test lstm_alone» y «MAE festivo test hybrid»,
+       ambas exigidas en `05_resultados.tex`. La suite pasa de 470 a **472**; las seis
+       apariciones del recuento en prosa sincronizadas en el mismo cambio (`00:22`, `00:74`,
+       `02:261`, `07:78`, `07:300`, `07:363`; `grep 470` en `sections/` → 0).
+
+       **Patron, actualizado:** **once** defectos de exactitud (Monje 21c, Chen 22a, «sin
+       termino autorregresivo» 23e, Bates-Granger invertido 23f, «confirma» con ganancia por
+       impureza 24i, remision falsa a 411.142 25f, cita de LSTM atribuida a Zhang 25f,
+       clausula de imposibilidad 26a, Fourier «unica excepcion» 27c, pie de pagina 29a, y
+       esta). Es de la misma clase que el sexto (remision falsa a una cifra que la tabla
+       citada no contiene) y la primera destapada por un lector externo en vez de por los
+       contrastes propios; ambas son remisiones que un lector solo puede falsar
+       buscando la celda, no leyendo la frase.
+
+    **Estado, medido:** `python -m pytest` → **472/472** (91 s); `--collect-only` → 472.
+    `latexmk` desde limpio (`latexmk -C`, `.bbl` borrado) → **98 paginas** (antes 99), 0
+    errores, 0 `??`, 0 indefinidas, biber 0 avisos; cuerpo **75 paginas** (antes 76; el
+    parrafo de §5.4 crece linea y media y la recolocacion de flotantes del capitulo 5
+    --figuras 5.8, 5.11, 5.12 y cuadro 5.10 cambian de pagina-- cierra un hueco), dentro
+    de 40-80. Diferencia de texto palabra a palabra contra el PDF de `HEAD` (pies
+    descontados): solo los folios del indice, 470 → 472, el pasaje de §5.4 y los flotantes
+    reordenados; +26 palabras, ninguna perdida. 8 `Overfull`, misma poblacion (cuadros
+    generados). Los 17 literales dictados de la guarda (incidencia 32) no se tocan: los
+    unicos cambios de fuente son `05:198-201` y los seis digitos del recuento.
+
+    **Puerta 0 sobre `HEAD` (`7f07afb`), medida.** Recompilacion en copia desechable
+    (`git archive HEAD`, arbol completo, sin `TFT.pdf`): 98 paginas, 0 errores, 0 `??`, 0
+    indefinidas, biber 0 avisos; **98/98 identicas en texto** al `TFT.pdf` comprometido,
+    pies de cuerpo «n de 75» ×75 (ningun «de 76»). `git diff --name-status 9cb6891..HEAD`:
+    solo `M` (7 ficheros). Pendiente del autor: `git push origin main` y la puerta de
+    reexportacion contra `TFM-publicado`, si procede, con el metodo de 25h/28/32.
 ---
 
 ## 6. Cómo regenerar todo desde cero

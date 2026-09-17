@@ -19,7 +19,7 @@
   predictoras ---retardos de demanda total y por operador, medias y desviaciones
   móviles con desplazamiento previo estricto, armónicos de Fourier deterministas,
   codificación de calendario y meteorología retardada--- sujeta a guardias
-  anti-fuga verificadas por una suite de 470 pruebas automatizadas. La primera
+  anti-fuga verificadas por una suite de 472 pruebas automatizadas. La primera
   etapa es una red LSTM univariante cuyas predicciones de entrenamiento se generan
   fuera del pliegue de entrenamiento (\emph{out-of-fold}) mediante una validación
   cruzada expansiva de cinco bloques; la segunda es un modelo XGBoost que corrige
@@ -71,7 +71,7 @@ demand data, the Open-Meteo weather data, and the municipal working calendar are
 unified, and a matrix of 161 predictor variables is engineered ---lags of total
 and per-operator demand, shift-first rolling means and standard deviations,
 deterministic Fourier harmonics, a calendar encoding, and lagged weather---
-subject to anti-leakage guards verified by a suite of 470 automated tests. The first stage is a univariate LSTM whose training-time
+subject to anti-leakage guards verified by a suite of 472 automated tests. The first stage is a univariate LSTM whose training-time
 predictions are generated strictly out-of-fold through an expanding five-block
 walk-forward cross-validation; the second is an XGBoost model that corrects the
 first stage's residual using the full predictor matrix. The central result is

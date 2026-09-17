@@ -55,6 +55,25 @@ def _test_mae(model: str) -> int:
     return round(float(row["MAE"].iloc[0]))
 
 
+def _festivo_test_mae(model: str) -> int:
+    """Holiday-group (festivo) MAE of `model` on test, from the day-type breakdown.
+
+    This is NOT a table value: `day_type_table` filters to DEFAULT_BREAKDOWN_MODELS before
+    pivoting, so tables 5.3/5.4 carry no lstm_alone column and the 1.585.388 -> 666.572
+    stage-1 -> stage-2 holiday improvement (cited three times in chapter 5) had no artifact
+    behind it in the memoria. Incident 33: the first accuracy finding surfaced by an
+    external review rather than by these cross-checks, precisely because the figure was
+    typed by hand everywhere it appears. Read live via the same function that builds the
+    breakdown, so the prose and the (implicit) computation cannot drift apart again.
+    """
+    from src.evaluation.dashboard_data import error_by_day_type
+
+    long = error_by_day_type("test")
+    row = long[(long["model"] == model) & (long["group"] == "festivo")]
+    assert len(row) == 1, f"{model}/festivo absent from the test day-type breakdown"
+    return round(float(row["MAE"].iloc[0]))
+
+
 def _feature_matrix() -> pd.DataFrame:
     return pd.read_parquet(PROCESSED / "features_daily.parquet")
 
@@ -97,6 +116,15 @@ PROSE_CLAIMS: list[tuple[str, object, tuple[str, ...]]] = [
     ("MAE test hybrid", lambda: _test_mae("hybrid"),
      ("00_preliminares.tex", "01_introduccion.tex", "05_resultados.tex")),
     ("MAE test lstm_alone", lambda: _test_mae("lstm_alone"), ("05_resultados.tex",)),
+
+    # --- holiday (festivo) breakdown, test ------------------------------------------
+    # The only finding favourable to the hybrid: stage 2 cuts stage 1's holiday MAE by
+    # 58 %. Both figures are prose-only for lstm_alone (no table column) and cited in
+    # §5.4, §5.12 and PI4 of 05_resultados.tex. See _festivo_test_mae.
+    ("MAE festivo test lstm_alone", lambda: _festivo_test_mae("lstm_alone"),
+     ("05_resultados.tex",)),
+    ("MAE festivo test hybrid", lambda: _festivo_test_mae("hybrid"),
+     ("05_resultados.tex",)),
 
     # --- shape of the data ------------------------------------------------------------
     ("filas de la serie unificada", lambda: len(_feature_matrix()),

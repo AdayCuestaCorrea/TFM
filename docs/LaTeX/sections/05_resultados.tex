@@ -195,9 +195,10 @@ El híbrido y su variante reponderada no participan de esta complementariedad: s
 XGBoost independiente en prácticamente todos los grupos de la tabla
 \ref{tab:desglose_dia_test}. El hallazgo parcialmente positivo, y el único genuinamente
 favorable a la arquitectura híbrida en todo el desglose, aparece en festivos: la etapa 2
-reduce el error de su propia etapa 1 de 1.585.388 (fila festivo, columna LSTM
-independiente de la tabla \ref{tab:desglose_dia_test}) a 666.572, una mejora del 58\,\%,
-que muestra de nuevo que el mecanismo de corrección funciona como está diseñado. Aun así,
+reduce el error de su propia etapa 1 de 1.585.388 (MAE de LSTM independiente en los
+cinco festivos de test, obtenido con la misma descomposición por tipo de día que la tabla
+\ref{tab:desglose_dia_test}, que no incluye esa columna) a 666.572 (fila festivo, columna
+\texttt{hybrid} de esa tabla), una mejora del 58\,\%, que muestra de nuevo que el mecanismo de corrección funciona como está diseñado. Aun así,
 ese 666.572 sigue siendo 2,5 veces peor que el MAE de SARIMAX en el mismo grupo (271.410)
 y notablemente peor que XGBoost independiente (251.553): la corrección funciona, pero
 parte de una etapa 1 demasiado débil para que el resultado corregido alcance a los modelos
